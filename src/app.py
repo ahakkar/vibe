@@ -1,3 +1,5 @@
+# With a python version 3.12 or lower, required libraries are transformers, torch, and sentencepiece.
+
 from transformers import pipeline, AutoModelForCausalLM, AutoTokenizer, MarianMTModel, MarianTokenizer
 
 # Initialize translation pipelines
