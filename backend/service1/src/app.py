@@ -1,5 +1,11 @@
+import time
+
+
 def main():
-    print("Hello World!")
+    while True:
+        # This loop keeps container running
+        print("Hello World!")
+        time.sleep(5)  # Prints every 5 seconds
 
 
 if __name__ == "__main__":

@@ -10,4 +10,3 @@ services:
       - ./backend:/usr/src/app
     environment:
       - PYTHONUNBUFFERED=1
-    restart: unless-stopped
