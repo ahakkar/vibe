@@ -1,6 +1,3 @@
-from text_generation import *
-
-
 def main():
     print("Hello World!")
 
