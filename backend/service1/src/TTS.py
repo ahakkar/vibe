@@ -19,4 +19,4 @@ class TextToSpeech:
         for audio_bytes in self.voice.synthesize_stream_raw(text):
             int_data = np.frombuffer(audio_bytes, dtype=np.int16)
             self.stream.write(int_data)
-        self.stop()
+        self.stream.stop()
