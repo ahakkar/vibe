@@ -10,3 +10,4 @@ services:
       - ./backend:/usr/src/app
     environment:
       - PYTHONUNBUFFERED=1
+      - PULSE_SERVER=tcp:127.0.0.1
