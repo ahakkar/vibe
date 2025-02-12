@@ -1,10 +1,14 @@
 import os
 import torch
 import torchaudio
-from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
+import pyaudio
+import wave
+import onnxruntime as ort
+from transformers import Wav2Vec2Processor
 
 LANG_ID = "fi"
-MODEL_ID = "Finnish-NLP/wav2vec2-large-uralic-voxpopuli-v2-finnish"
+ONNX_MODEL_PATH = "/models/wav2vec2_model.onnx"
+PROCESSOR_PATH = "/models/wav2vec2_processor"
 
 
 class AudioRecordingService:
@@ -18,14 +22,13 @@ class AudioRecordingService:
         self.CHUNK = 1024
         self.RECORD_SECONDS = 5
         self.OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "..", "output.wav")
+        self.processor = Wav2Vec2Processor.from_pretrained(PROCESSOR_PATH)
+        self.ort_session = ort.InferenceSession(ONNX_MODEL_PATH)
 
     def record_audio(self):
         """
         Record audio from device and save it to a file.
         """
-        import pyaudio
-        import wave
-
         audio = pyaudio.PyAudio()
 
         stream = audio.open(
@@ -59,39 +62,35 @@ class AudioRecordingService:
 
         print(f"Audio saved to {self.OUTPUT_FILE}")
 
+        # Process the audio file using the ONNX model
+        self.process_audio(self.OUTPUT_FILE)
 
-class SpeechToTextService:
-
-    def __init__(self):
+    def process_audio(self, audio_file_path: str):
         """
-        Initialize the SpeechToTextService
-        """
-        self.processor = Wav2Vec2Processor.from_pretrained(MODEL_ID)
-        self.model = Wav2Vec2ForCTC.from_pretrained(MODEL_ID)
-
-    def process_audio(self, audio_file_path: str) -> str:
-        """
-        Processe the audio file.
+        Process the audio file using the ONNX model.
         """
         # Load the audio file using torchaudio
-        waveform, sample_rate = torchaudio.load(audio_file_path)
+        waveform, sample_rate = torchaudio.load(audio_file_path, format="wav")
 
         # Preprocess the input for the model
         inputs = self.processor(
             waveform.squeeze().numpy(),
             sampling_rate=16_000,
-            return_tensors="pt",
+            return_tensors="np",
             padding=True,
         )
 
-        # Perform inference
-        with torch.no_grad():
-            logits = self.model(
-                inputs.input_values, attention_mask=inputs.attention_mask
-            ).logits
+        # Include the attention_mask in the inputs
+        ort_inputs = {
+            self.ort_session.get_inputs()[0].name: inputs.input_values,
+            self.ort_session.get_inputs()[1].name: inputs.attention_mask,
+        }
+
+        # Perform inference using the ONNX model
+        ort_outs = self.ort_session.run(None, ort_inputs)
 
         # Get recorded audio as text
-        recorded_ids = torch.argmax(logits, dim=-1)
-        recorded_sentence = self.processor.batch_decode(recorded_ids)[0]
+        recorded_ids = torch.argmax(torch.tensor(ort_outs[0]), dim=-1)
+        recorded_sentence = self.processor.batch_decode(recorded_ids.numpy())[0]
 
-        return recorded_sentence
+        print(f"Transcription: {recorded_sentence}")
