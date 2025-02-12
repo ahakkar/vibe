@@ -3,11 +3,15 @@ version: "3.3"
 services:
   app:
     build: ./backend/service1/src
+    image: vibe-app-image:latest # Specify the custom image name and tag
     container_name: my_python_app
     ports:
       - "5000:5000"
     volumes:
       - ./backend:/usr/src/app
+      - ./models:/models
     environment:
-      - PYTHONUNBUFFERED=1
-      - PULSE_SERVER=tcp:127.0.0.1
+      - PYTHONUNBUFFERED=1 # Disable output buffering
+      - PULSE_SERVER=tcp:127.0.0.1 # PulseAudio server for audio processing
+    stdin_open: true  # Keep the standard input open
+    tty: true         # Allocate a pseudo-TTY
