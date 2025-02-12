@@ -12,14 +12,18 @@
 
 ### text-generation ()
 
-## Docker Installation
+## Quickstart with Docker
 
-Ensure Docker is installed. In order to run Docker, executes these following commands:
+Run download_models.py to download STT/TSS/LLM models to correct folders.  
+
+Ensure Docker is installed. In order to run the application, execute the following commands:
 
 ```bash
-docker-compose build
-docker-compose up
+docker compose build app_linux
+sudo docker compose run --rm --service-ports app_linux
 ```
+
+Replace app_linux with app_windows or app_macos based on OS
 
 ## Run Docker CLI
 
@@ -35,16 +39,10 @@ Run the image with the image id or name, execute this command:
 docker run -it image_name
 ```
 
-Go inside docker shell, execute this command:
+To go inside docker shell, execute this command:
 
 ```bash
 docker run -it image_name /bin/bash
-```
-
-Or for running container, execute this command:
-
-```bash
-docker exec -it image_name /bin/bash
 ```
 
 ### Local Installation
