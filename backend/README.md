@@ -14,7 +14,11 @@
 
 ## Quickstart with Docker
 
-Run download_models.py to download STT/TSS/LLM models to correct folders.  
+Run download_models.py to download STT/TSS/LLM models to correct folders.
+
+Make sure Pipewire is installed and running on Linux.
+
+Install Sox on Linux for efficient audio manipulation (changing sample rates)
 
 Ensure Docker is installed. In order to run the application, execute the following commands:
 

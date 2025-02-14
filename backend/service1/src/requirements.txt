@@ -26,3 +26,4 @@ protobuf==5.29.3
 piper-phonemize==1.1.0
 piper-tts==1.2.0
 wheel==0.45.1
+sox==1.4.1
