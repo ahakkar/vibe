@@ -1,5 +1,5 @@
 services:
-  app_base:
+  app:
     build: ./backend/service1/src
     image: vibe-app-image:latest # Specify the custom image name and tag
     container_name: my_python_app
@@ -12,25 +12,5 @@ services:
       - PYTHONUNBUFFERED=1 # Disable output buffering
     stdin_open: true  # Keep the standard input open
     tty: true         # Allocate a pseudo-TTY
-
-  app_linux:
-    extends:
-      service: app_base
-    environment:
-      - PULSE_SERVER=unix:/run/user/1000/pulse/native
-    volumes:
-      - /run/user/1000/pulse:/run/user/1000/pulse # Mount PulseAudio socket for Linux
-
-  app_macos:
-    extends:
-      service: app_base
-    environment:
-      - PULSE_SERVER=unix:/run/user/1000/pulse/native
-    volumes:
-      - /run/user/1000/pulse:/run/user/1000/pulse # Mount PulseAudio socket for macOS
-
-  app_windows:
-    extends:
-      service: app_base
-    environment:
-      - PULSE_SERVER=tcp:host.docker.internal # PulseAudio server for Windows
+    devices:
+      - /dev/snd:/dev/snd # Add access to the host's sound devices
