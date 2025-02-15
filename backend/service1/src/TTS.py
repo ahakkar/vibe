@@ -4,7 +4,7 @@ import sox
 from piper.voice import PiperVoice
 
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
-DEVICE_INDEX = 2  # Change this to the correct device index (see sd.query_devices())
+DEVICE_INDEX = 1  # Change this to the correct device index (see sd.query_devices())
 
 
 class TextToSpeech:
@@ -18,6 +18,9 @@ class TextToSpeech:
     def initialize_stream(self):
         try:
             device_index = DEVICE_INDEX  # Index for your audio device
+            print("Listing available audio devices:")
+            for i, device_info in enumerate(sd.query_devices()):
+                print(f"Device {i}: {device_info['name']}")
             device_info = sd.query_devices(device_index)
             print(f"Using device: {device_info['name']}")
             self.stream = sd.OutputStream(

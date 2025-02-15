@@ -14,3 +14,4 @@ services:
     tty: true         # Allocate a pseudo-TTY
     devices:
       - /dev/snd:/dev/snd # Add access to the host's sound devices
+      - /dev/input:/dev/input # Add access to the host's input devices
