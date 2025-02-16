@@ -10,6 +10,7 @@ RUN apt-get install -y pipewire pipewire-audio-client-libraries libspa-0.2-bluet
 
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install pytest
 
 COPY . .
 
