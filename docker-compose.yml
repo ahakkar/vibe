@@ -10,6 +10,7 @@ services:
       - ./models:/models
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering
+      - RUNNING_IN_DOCKER=true # Indicate that the code is running inside Docker
     stdin_open: true  # Keep the standard input open
     tty: true         # Allocate a pseudo-TTY
     devices:

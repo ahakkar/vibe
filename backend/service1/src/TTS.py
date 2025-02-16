@@ -4,33 +4,27 @@ import sox
 from piper.voice import PiperVoice
 
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
-DEVICE_INDEX = 1  # Change this to the correct device index (see sd.query_devices())
 
 
 class TextToSpeech:
-    def __init__(self):
+    def __init__(self, device_index=1):
         self.model_path = MODEL_PATH
         self.voice = PiperVoice.load(self.model_path)
+        self.device_index = device_index
         self.stream = None
         self.piper_sample_rate = self.voice.config.sample_rate
         self.output_sample_rate = 44100  # Desired output sample rate
 
     def initialize_stream(self):
         try:
-            device_index = DEVICE_INDEX  # Index for your audio device
-            print("Listing available audio devices:")
-            for i, device_info in enumerate(sd.query_devices()):
-                print(f"Device {i}: {device_info['name']}")
-            device_info = sd.query_devices(device_index)
-            print(f"Using device: {device_info['name']}")
             self.stream = sd.OutputStream(
-                device=device_index,
+                device=self.device_index,
                 samplerate=self.output_sample_rate,
                 channels=1,
                 dtype="int16"
             )
             self.stream.start()
-            print(f"Audio stream initialized with sample rate: {self.output_sample_rate}")
+            # print(f"Audio stream initialized with sample rate: {self.output_sample_rate}")
         except sd.PortAudioError as e:
             print(f"Error initializing audio stream: {e}")
             self.stream = None

@@ -8,9 +8,12 @@ import onnxruntime as ort
 import threading
 from transformers import Wav2Vec2Processor
 import wave
+from blessed import Terminal
 
 ONNX_MODEL_PATH = "/models/wav2vec2_model.onnx"
 PROCESSOR_PATH = "/models/wav2vec2_processor"
+
+term = Terminal()
 
 
 class AudioRecordingService:
@@ -27,20 +30,25 @@ class AudioRecordingService:
 
     def start_recording(self):
         if self.recording:
-            print("Already recording!")
+            print(term.center("Already recording!"))
             return
 
         self.frames = []
-        self.stream = self.audio.open(
-            format=pyaudio.paInt16,
-            channels=self.channels,
-            rate=self.sample_rate,
-            input=True,
-            frames_per_buffer=self.CHUNK,
-            input_device_index=self.device_index
-        )
+        try:
+            self.stream = self.audio.open(
+                format=pyaudio.paInt16,
+                channels=self.channels,
+                rate=self.sample_rate,
+                input=True,
+                frames_per_buffer=self.CHUNK,
+                input_device_index=self.device_index
+            )
+        except Exception as e:
+            print(term.center(f"Failed to open audio stream: {e}"))
+            print(term.center(term.bold("Please check the audio device index.")))
+            return
         self.recording = True
-        print("Recording...")
+        print(term.center("Recording..."))
 
         # Start a new thread for recording
         self.recording_thread = threading.Thread(target=self._record_audio)
@@ -52,31 +60,37 @@ class AudioRecordingService:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 self.frames.append(data)
         except IOError as e:
-            print(f"Error recording: {e}")
+            print(term.center(f"Error recording: {e}"))
 
     def stop_recording(self):
         if not self.recording:
-            print("Not recording.")
+            print(term.center("Not recording."))
             return
 
         self.recording = False
         self.recording_thread.join()  # Wait for the thread to finish
         time.sleep(0.1)
-        print("Finished recording.")
+        print(term.center("Finished recording."))
         
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
         
         if not self.frames:
-            print("No audio frames recorded.")
+            print(term.center("No audio frames recorded."))
             return None
 
         # Convert frames to NumPy array for direct processing
         audio_data = np.frombuffer(b"".join(self.frames), dtype=np.int16).astype(np.float32) / 32768.0
+
+        # Determine the correct .env path based if running in Docker
+        if os.getenv("RUNNING_IN_DOCKER"):
+            save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
+        else:
+            save_path = os.path.join(os.path.dirname(__file__), "recorded_audio.wav")
         
         # Save the recorded audio to a file for debugging
-        save_path = os.path.join(os.path.dirname(__file__), "..", "recorded_audio.wav")
+        save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
         self.save_audio_to_file(save_path)
         
         return audio_data
@@ -89,9 +103,9 @@ class AudioRecordingService:
             wave_file.setframerate(self.sample_rate)
             wave_file.writeframes(b"".join(self.frames))
             wave_file.close()
-            print(f"Audio saved to {filename}")
+            print(term.center(f"Audio saved to {filename}"))
         except Exception as e:
-            print(f"Failed to save audio file: {e}")
+            print(term.center(f"Failed to save audio file: {e}"))
 
     def terminate_audio(self):
         self.audio.terminate()

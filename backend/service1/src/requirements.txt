@@ -29,3 +29,5 @@ wheel==0.45.1
 sox==1.4.1
 transformers==4.48.3
 blessed==1.20.0
+pyfiglet==1.0.2
+python-dotenv==1.0.1 

@@ -7,7 +7,7 @@ LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
 class TextGenLlamaService:
     def __init__(
         self,
-        max_new_tokens=100,
+        max_new_tokens=30,
         no_repeat_ngram_size=2,
         tempreature=0.2,
         top_p=0.95,
