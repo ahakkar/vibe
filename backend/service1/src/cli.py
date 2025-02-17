@@ -8,6 +8,8 @@ from text_generation import TextGenLlamaService
 from TTS import TextToSpeech
 from STT import AudioRecordingService, SpeechToTextService
 
+APP_TITLE = "SLT-VIBE"
+
 # Define the theme
 THEME = {
     "title": "bold underline",
@@ -33,7 +35,7 @@ def create_env_file():
     f.close()
 
 def display_neon_title(term):
-    app_ascii_title = pyfiglet.figlet_format("Voice CLI")
+    app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
 
     # Define colors for a neon effect
     title_flicker_colors = [term.red, term.magenta, term.blue, term.cyan, term.green, term.yellow]
@@ -133,7 +135,7 @@ def run_cli():
     print(term.move_y(term.height // 2))
     print(term.center(term.bold("Loading application...")))
 
-    # Load environment variables again after potentially creating .env
+    # Load environment variables after potentially creating .env
     load_dotenv(ENV_PATH)
 
     input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
@@ -146,6 +148,7 @@ def run_cli():
 
     display_neon_title(term)
 
+    print(term.clear)
     print(term.move_down(2))
     print(term.center("Press F12 once to start and again to stop recording. Press 'Esc' to exit."))
 
@@ -166,7 +169,9 @@ def run_cli():
                         recorded_text = stt_service.process_audio(audio_data)
                         print(term.center(term.bold_green(f"Recorded Text: {recorded_text}")))
                         llm_output = textGenLlamaService.text_generate(recorded_text)
+                        print(term.center('-' * term.width))
                         print(term.center(term.bold_green(llm_output)))
+                        print(term.center('-' * term.width))
                         textToSpeech.synthesize(llm_output)
                     else:
                         print(term.center(term.bold_red("No audio data recorded.")))
