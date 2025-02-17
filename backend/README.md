@@ -18,18 +18,16 @@ Run download_models.py to download STT/TSS/LLM models to correct folders.
 
 Make sure Pipewire is installed and running on Linux.
 
-Run sudo modprobe uinput ?
-
 Install Sox on Linux for efficient audio manipulation (changing sample rates)
 
 Ensure Docker is installed. In order to run the application, execute the following commands:
 
 ```bash
-docker compose build app_linux
-sudo docker compose run --rm --service-ports app_linux
+docker compose build
+sudo docker compose run --rm --service-ports app
 ```
 
-Replace app_linux with app_windows or app_macos based on OS
+You can try running "sudo modprobe uinput" if there's problems, delete this line if not needed
 
 ## Run Docker CLI
 
