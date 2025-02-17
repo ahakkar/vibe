@@ -17,7 +17,7 @@ term = Terminal()
 
 
 class AudioRecordingService:
-    def __init__(self, device_index=7):
+    def __init__(self, device_index):
         self.sample_rate = 16_000
         self.channels = 1
         self.CHUNK = 1024

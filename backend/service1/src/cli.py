@@ -110,6 +110,10 @@ def display_settings_menu(term):
     # Save settings to .env file
     set_key(ENV_PATH, "INPUT_DEVICE_INDEX", input_device_index)
     set_key(ENV_PATH, "OUTPUT_DEVICE_INDEX", output_device_index)
+
+    # Explicitly set the file permissions to ensure accessibility after set_key
+    os.chmod(ENV_PATH, 0o644)
+
     print(term.center(term.bold_green("Settings successfully saved to .env file!")))
 
     time.sleep(1) # Pause for a second before continuing
@@ -130,10 +134,10 @@ def run_cli():
     print(term.center(term.bold("Loading application...")))
 
     # Load environment variables again after potentially creating .env
-    load_dotenv()
+    load_dotenv(ENV_PATH)
 
-    input_device_index = int(os.getenv("INPUT_DEVICE_INDEX", 7))
-    output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX", 1))
+    input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
+    output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX"))
 
     textGenLlamaService = TextGenLlamaService()
     audio_service = AudioRecordingService(device_index=input_device_index)
