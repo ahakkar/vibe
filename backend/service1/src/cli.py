@@ -75,6 +75,29 @@ def display_settings_menu(term):
     print(term.center(term.bold_underline("Settings Menu")))
     print(term.move_down(2))
 
+    # Choose mode
+    print(term.center(term.bold("Choose Mode:")))
+    print(term.center(term.cyan("1: CLI Mode")))
+    print(term.center(term.cyan("2: Testing Mode")))
+    print()
+
+    # Prompt for mode selection
+    print(term.center(term.bold_yellow("Select Mode: ")), end="")
+    mode_selection = input().strip()
+    while mode_selection not in ["1", "2"]:
+        print(term.bold_red("Invalid input. Please enter 1 or 2."))
+        print(term.bold_yellow("Select Mode: "), end="")
+        mode_selection = input().strip()
+
+    if mode_selection == "2":
+        print(term.center(term.bold_green("Testing Mode selected.")))
+        # Add any additional setup for testing mode here
+        print(term.center(term.bold("Running all tests...")))
+        os.system("pytest tests")
+        return
+    else:
+        print(term.center(term.bold_green("CLI Mode selected.")))
+
     # List available input devices
     print(term.center(term.bold("Available Input Devices:")))
     input_devices = sd.query_devices()
