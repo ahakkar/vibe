@@ -13,6 +13,7 @@ services:
       - RUNNING_IN_DOCKER=true # Indicate that the code is running inside Docker
     stdin_open: true  # Keep the standard input open
     tty: true         # Allocate a pseudo-TTY
+    privileged: true
     devices:
       - /dev/snd:/dev/snd # Add access to the host's sound devices
       - /dev/input:/dev/input # Add access to the host's input devices
