@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 from unittest.mock import patch, MagicMock
 from STT import AudioRecordingService, SpeechToTextService

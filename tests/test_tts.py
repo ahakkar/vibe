@@ -1,4 +1,5 @@
 import pytest
+import os
 import numpy as np
 import sounddevice as sd
 from unittest.mock import patch, MagicMock

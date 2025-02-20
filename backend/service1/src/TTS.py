@@ -5,7 +5,6 @@ from piper.voice import PiperVoice
 
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
 
-
 class TextToSpeech:
     def __init__(self, device_index=1):
         self.model_path = MODEL_PATH
