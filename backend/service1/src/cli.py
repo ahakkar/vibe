@@ -201,7 +201,8 @@ def run_cli():
             time.sleep(0.5)  # Adjust the sleep time as needed
 
 def run_tests():
-    test_dir = os.path.join(os.path.dirname(__file__), "tests")
+    test_dir = "/tests"
+
     term = Terminal()
 
     if not os.path.exists(test_dir):
@@ -214,6 +215,8 @@ def run_tests():
     result = subprocess.run(
         ["pytest", test_dir, "--tb=short", "-q"], capture_output=True, text=True
     )
+
+    time.sleep(3)  # Pause for three seconds before displaying the results
 
     print(term.center(term.bold("Test Results:")))
     print(term.center(term.green(result.stdout)))
