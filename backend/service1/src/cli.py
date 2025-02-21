@@ -1,5 +1,6 @@
 import os
 import time
+import subprocess
 import pyfiglet
 import sounddevice as sd
 from blessed import Terminal
@@ -74,6 +75,9 @@ def display_settings_menu(term):
     print(term.move_y(term.height // 2 - 5))
     print(term.center(term.bold_underline("Settings Menu")))
     print(term.move_down(2))
+    
+    # This is where the testing mode is selected, later on the selection can
+    # be moved to the settings menu or after the hardware selection
 
     # Choose mode
     print(term.center(term.bold("Choose Mode:")))
@@ -92,7 +96,7 @@ def display_settings_menu(term):
     if mode_selection == "2":
         print(term.center(term.bold_green("Testing Mode selected.")))
         run_tests()
-        return
+        # Some kind of pause to show the test results before continuing to the hardware selection
     else:
         print(term.center(term.bold_green("CLI Mode selected.")))
 
@@ -197,18 +201,32 @@ def run_cli():
             time.sleep(0.5)  # Adjust the sleep time as needed
 
 def run_tests():
-    test_dir = os.path.join(os.path.dirname(__file__), "../../tests")
+    test_dir = os.path.join(os.path.dirname(__file__), "tests")
     term = Terminal()
+
     if not os.path.exists(test_dir):
         print(term.center(term.bold_red(f"Test directory {test_dir} does not exist.")))
         return
 
-    for file in os.listdir(test_dir):
-        filename = os.fsdecode(file)
-        if filename.startswith("test"):
-            print(term.center(term.bold(f"Running tests in {filename}...")))
-            os.system(f"pytest {os.path.join(test_dir, filename)}")
-    result = os.popen("pytest --tb=short -q").read()
+    print(term.center(term.bold("Running all tests...")))
+
+    # Run all tests in the test directory at once
+    result = subprocess.run(
+        ["pytest", test_dir, "--tb=short", "-q"], capture_output=True, text=True
+    )
+
     print(term.center(term.bold("Test Results:")))
-    print(term.center(term.green(result)))
-    return
+    print(term.center(term.green(result.stdout)))
+
+    if result.stderr:
+        print(term.center(term.bold_red("Errors encountered:")))
+        print(term.center(term.red(result.stderr)))
+
+    # Loop to query if done observing the results
+    while True:
+        print(term.center(term.bold_yellow("Press 'q' to return to the main menu.")))
+        key = term.inkey(timeout=1)
+        if key.lower() == "q":
+            break
+
+

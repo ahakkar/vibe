@@ -1,5 +1,4 @@
 import pytest
-import os
 import numpy as np
 import sounddevice as sd
 from unittest.mock import patch, MagicMock
@@ -9,13 +8,15 @@ from TTS import TextToSpeech
 def tts():
     return TextToSpeech()
 
+# Tests check the correct actions of the individual methods against mock objects.
+
 def test_initialize_stream_success(tts):
     with patch.object(sd, 'OutputStream', return_value=MagicMock()) as mock_stream:
         tts.initialize_stream()
         mock_stream.assert_called_once_with(samplerate=tts.voice.config.sample_rate, channels=1, dtype="int16")
         assert tts.stream is not None
 
-""" def test_initialize_stream_failure(tts):
+def test_initialize_stream_failure(tts):
     with patch.object(sd, 'OutputStream', side_effect=sd.PortAudioError("Test Error")):
         tts.initialize_stream()
         assert tts.stream is None
@@ -42,4 +43,4 @@ def test_synthesize_stream_initialization_failure(tts):
         mock_initialize_stream.side_effect = lambda: setattr(tts, 'stream', None)
         tts.synthesize("test text")
         mock_initialize_stream.assert_called_once()
-        assert tts.stream is None """
+        assert tts.stream is None
