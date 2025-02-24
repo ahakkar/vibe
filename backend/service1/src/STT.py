@@ -41,7 +41,7 @@ class AudioRecordingService:
                 rate=self.sample_rate,
                 input=True,
                 frames_per_buffer=self.CHUNK,
-                input_device_index=self.device_index
+                input_device_index=self.device_index,
             )
         except Exception as e:
             print(term.center(f"Failed to open audio stream: {e}"))
@@ -71,28 +71,31 @@ class AudioRecordingService:
         self.recording_thread.join()  # Wait for the thread to finish
         time.sleep(0.1)
         print(term.center("Finished recording."))
-        
+
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
-        
+
         if not self.frames:
             print(term.center("No audio frames recorded."))
             return None
 
         # Convert frames to NumPy array for direct processing
-        audio_data = np.frombuffer(b"".join(self.frames), dtype=np.int16).astype(np.float32) / 32768.0
+        audio_data = (
+            np.frombuffer(b"".join(self.frames), dtype=np.int16).astype(np.float32)
+            / 32768.0
+        )
 
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
             save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
         else:
             save_path = os.path.join(os.path.dirname(__file__), "recorded_audio.wav")
-        
+
         # Save the recorded audio to a file for debugging
         save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
         self.save_audio_to_file(save_path)
-        
+
         return audio_data
 
     def save_audio_to_file(self, filename):
@@ -145,6 +148,8 @@ class SpeechToTextService:
 
         # Get recorded audio as text
         recorded_ids = torch.argmax(torch.tensor(ort_outs[0]), dim=-1)
-        recorded_sentence = self.processor.batch_decode(recorded_ids.numpy(), skip_special_tokens=False)[0]
-        
+        recorded_sentence = self.processor.batch_decode(
+            recorded_ids.numpy(), skip_special_tokens=False
+        )[0]
+
         return recorded_sentence
