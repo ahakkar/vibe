@@ -1,4 +1,5 @@
-from cli import run_cli
+from cli import CommandLineService
 
 if __name__ == "__main__":
-    run_cli()
+    commandLineService = CommandLineService()
+    commandLineService.run_cli()

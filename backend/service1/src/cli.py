@@ -27,155 +27,334 @@ else:
     ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 
 
-def create_env_file():
-    f = open(ENV_PATH, 'w')
-    # Initialize with default values if .env file does not exist
-    f.write("INPUT_DEVICE_INDEX=0\n")
-    f.write("OUTPUT_DEVICE_INDEX=0\n")
-    f.close()
+class CommandLineService:
+    def __init__(self):
+        self.term = Terminal()
 
-def display_neon_title(term):
-    app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
+    def create_env_file(self):
+        """
+        Create env file by setting input device default and output device default
+        """
+        f = open(ENV_PATH, "w")
+        # Initialize with default values if .env file does not exist
+        f.write("INPUT_DEVICE_INDEX=0\n")
+        f.write("OUTPUT_DEVICE_INDEX=0\n")
+        f.close()
 
-    # Define colors for a neon effect
-    title_flicker_colors = [term.red, term.magenta, term.blue, term.cyan, term.green, term.yellow]
+    def display_neon_title(self):
+        """
+        Display a neon app title
+        """
+        app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
 
-    # Split the title into individual characters
-    title_lines = app_ascii_title.split("\n")
-    title_chars = [[char for char in line] for line in title_lines]
+        # Define colors for a neon effect
+        title_flicker_colors = [
+            self.term.red,
+            self.term.magenta,
+            self.term.blue,
+            self.term.cyan,
+            self.term.green,
+            self.term.yellow,
+        ]
 
-    color_index = 0
+        # Split the title into individual characters
+        title_lines = app_ascii_title.split("\n")
+        title_chars = [[char for char in line] for line in title_lines]
 
-    with term.fullscreen(), term.cbreak(), term.hidden_cursor():
-        while True:
-            print(term.clear)
-            print(term.move_y(term.height // 3))
+        color_index = 0
 
-            for line in title_chars:
-                styled_line = ""
-                for char in line:
-                    if char.strip():  # Apply color effect only to non-space characters
-                        styled_line += title_flicker_colors[color_index % len(title_flicker_colors)](char)
-                    else:
-                        styled_line += char
-                print(term.center(styled_line))
+        with self.term.fullscreen(), self.term.cbreak(), self.term.hidden_cursor():
+            while True:
+                print(self.term.clear)
+                print(self.term.move_y(self.term.height // 3))
 
-            # Display the "Press any key to continue..." message
-            print(term.move_y(term.height - 3))
-            print(term.center(term.bold_yellow("Press any key to continue...")))
+                for line in title_chars:
+                    styled_line = ""
+                    for char in line:
+                        if (
+                            char.strip()
+                        ):  # Apply color effect only to non-space characters
+                            styled_line += title_flicker_colors[
+                                color_index % len(title_flicker_colors)
+                            ](char)
+                        else:
+                            styled_line += char
+                    print(self.term.center(styled_line))
 
-            # Check if a key has been pressed
-            if term.inkey(timeout=0.1):
-                break
+                # Display the "Press any key to continue..." message
+                print(self.term.move_y(self.term.height - 3))
+                print(
+                    self.term.center(
+                        self.term.bold_yellow("Press any key to continue...")
+                    )
+                )
 
-            color_index += 1
-            time.sleep(0.1)  # Adjust speed of color changing
+                # Check if a key has been pressed
+                if self.term.inkey(timeout=0.1):
+                    break
 
-def display_settings_menu(term):
-    print(term.clear)
-    print(term.move_y(term.height // 2 - 5))
-    print(term.center(term.bold_underline("Settings Menu")))
-    print(term.move_down(2))
+                color_index += 1
+                time.sleep(0.1)  # Adjust speed of color changing
 
-    # List available input devices
-    print(term.center(term.bold("Available Input Devices:")))
-    input_devices = sd.query_devices()
-    for i, device in enumerate(input_devices):
-        if device['max_input_channels'] > 0:
-            print(term.center(term.cyan(f"{i}: {device['name']}")))  
-    print()
+    def display_settings_menu(self):
+        """
+        The user will choose input and output devices in this setting menu
+        """
+        print(self.term.clear)
+        print(self.term.move_y(self.term.height // 2 - 5))
+        print(self.term.center(self.term.bold_underline("Settings Menu")))
+        print(self.term.move_down(2))
 
-    # Prompt for input device
-    print(term.center(term.bold_yellow("Select Input Device Index: ")), end="")
-    input_device_index = input().strip()
-    while not input_device_index.isdigit() or int(input_device_index) not in range(len(input_devices)):
-        print(term.bold_red("Invalid input. Please enter a valid device index."))
-        print(term.bold_yellow("Select Input Device Index: "), end="")
+        # List available input devices
+        print(self.term.center(self.term.bold("Available Input Devices:")))
+        input_devices = sd.query_devices()
+        for i, device in enumerate(input_devices):
+            if device["max_input_channels"] > 0:
+                print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
+        print()
+
+        # Prompt for input device
+        print(
+            self.term.center(self.term.bold_yellow("Select Input Device Index: ")),
+            end="",
+        )
         input_device_index = input().strip()
+        while not input_device_index.isdigit() or int(input_device_index) not in range(
+            len(input_devices)
+        ):
+            print(
+                self.term.bold_red("Invalid input. Please enter a valid device index.")
+            )
+            print(self.term.bold_yellow("Select Input Device Index: "), end="")
+            input_device_index = input().strip()
 
-    # List available output devices
-    print(term.center(term.bold("Available Output Devices:")))
-    output_devices = sd.query_devices()
-    for i, device in enumerate(output_devices):
-        if device['max_output_channels'] > 0:
-            print(term.center(term.cyan(f"{i}: {device['name']}")))
-    print()
+        # List available output devices
+        print(self.term.center(self.term.bold("Available Output Devices:")))
+        output_devices = sd.query_devices()
+        for i, device in enumerate(output_devices):
+            if device["max_output_channels"] > 0:
+                print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
+        print()
 
-    # Prompt for output device
-    print(term.center(term.bold_yellow("Select Output Device Index: ")), end="")
-    output_device_index = input().strip()
-    while not output_device_index.isdigit() or int(output_device_index) not in range(len(output_devices)):
-        print(term.bold_red("Invalid input. Please enter a valid device index."))
-        print(term.bold_yellow("Select Output Device Index: "), end="")
+        # Prompt for output device
+        print(
+            self.term.center(self.term.bold_yellow("Select Output Device Index: ")),
+            end="",
+        )
         output_device_index = input().strip()
+        while not output_device_index.isdigit() or int(
+            output_device_index
+        ) not in range(len(output_devices)):
+            print(
+                self.term.bold_red("Invalid input. Please enter a valid device index.")
+            )
+            print(self.term.bold_yellow("Select Output Device Index: "), end="")
+            output_device_index = input().strip()
 
-    # Save settings to .env file
-    set_key(ENV_PATH, "INPUT_DEVICE_INDEX", input_device_index)
-    set_key(ENV_PATH, "OUTPUT_DEVICE_INDEX", output_device_index)
+        # Save settings to .env file
+        set_key(ENV_PATH, "INPUT_DEVICE_INDEX", input_device_index)
+        set_key(ENV_PATH, "OUTPUT_DEVICE_INDEX", output_device_index)
 
-    # Explicitly set the file permissions to ensure accessibility after set_key
-    os.chmod(ENV_PATH, 0o644)
+        # Explicitly set the file permissions to ensure accessibility after set_key
+        os.chmod(ENV_PATH, 0o644)
 
-    print(term.center(term.bold_green("Settings successfully saved to .env file!")))
+        print(
+            self.term.center(
+                self.term.bold_green("Settings successfully saved to .env file!")
+            )
+        )
 
-    time.sleep(1) # Pause for a second before continuing
+        time.sleep(1)  # Pause for a second before continuing
 
-def run_cli():
-    term = Terminal()
+    def setup_env(self):
+        """
+        Set up env file if it doesn't exist, the user can choose input and output devices.
+        """
+        # Check if .env file exists
+        if not os.path.exists(ENV_PATH):
+            print(
+                self.term.center(
+                    self.term.bold_red("No .env file found. Opening settings menu...")
+                )
+            )
+            time.sleep(1)
+            self.create_env_file()
+            self.display_settings_menu()
 
-    # Check if .env file exists
-    if not os.path.exists(ENV_PATH):
-        print(term.center(term.bold_red("No .env file found. Opening settings menu...")))
-        time.sleep(1)
-        create_env_file()
-        display_settings_menu(term)
+    def load_servies(self):
+        """
+        This function loads all the services based on the chosen input and output devices
+        """
+        # Display loading message
+        print(self.term.clear)
+        print(self.term.move_y(self.term.height // 2))
+        print(self.term.center(self.term.bold("Loading application...")))
 
-    # Display loading message
-    print(term.clear)
-    print(term.move_y(term.height // 2))
-    print(term.center(term.bold("Loading application...")))
+        # Load environment variables after potentially creating .env
+        load_dotenv(ENV_PATH)
 
-    # Load environment variables after potentially creating .env
-    load_dotenv(ENV_PATH)
+        self.input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
+        self.output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX"))
 
-    input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
-    output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX"))
+        self.textGenLlamaService = TextGenLlamaService()
+        self.audio_service = AudioRecordingService(device_index=self.input_device_index)
+        self.stt_service = SpeechToTextService()
+        self.textToSpeech = TextToSpeech(device_index=self.output_device_index)
 
-    textGenLlamaService = TextGenLlamaService()
-    audio_service = AudioRecordingService(device_index=input_device_index)
-    stt_service = SpeechToTextService()
-    textToSpeech = TextToSpeech(device_index=output_device_index)
+    def run_cli(self):
+        """
+        The CLI will first set up the env file, and then display the services available to the user.
 
-    display_neon_title(term)
+        """
+        self.setup_env()
+        self.load_servies()
+        self.display_neon_title()
+        self.display_services()
 
-    print(term.clear)
-    print(term.move_down(2))
-    print(term.center("Press F12 once to start and again to stop recording. Press 'Esc' to exit."))
-
-    with term.cbreak(), term.hidden_cursor():
+    def display_services(self):
+        """
+        Display the services available to the user.
+        There are 4 services:
+        1. All services (Speech to text, Language model, Text to speech)
+        2. Only speech to text service
+        3. Only language model service
+        4. Only text to speech service
+        """
         while True:
-            key = term.inkey(timeout=1)
+            print(self.term.clear)
+            print(self.term.move_down(2))
+            print(self.term.center("All services"))
+            print(
+                self.term.center(
+                    "1: All services (Speech to text, Language model, Text to speech)"
+                )
+            )
+            print(self.term.center("2: Only speech to text service"))
+            print(self.term.center("3: Only language model service"))
+            print(self.term.center("4: Only text to speech service"))
 
-            # Check if the user wants to exit
-            if key.name == "KEY_ESCAPE":
-                print(term.center(term.bold_red("Exiting the program.")))
-                audio_service.terminate_audio()
+            command_input = input(
+                self.term.center("Choose service (from 1 to 4) or exit:")
+            ).strip()
+
+            if command_input == "exit":
+                print(self.term.center(self.term.bold_red("Exiting the program.")))
                 break
+            if command_input == "1":
+                self.run_all_services()
+            elif command_input == "2":
+                self.run_speech_to_text_service()
+            elif command_input == "3":
+                self.run_gen_llama_service()
+            elif command_input == "4":
+                self.run_text_to_speech_service()
 
-            elif key.name == "KEY_F12":
-                if audio_service.recording:
-                    audio_data = audio_service.stop_recording()
-                    if audio_data is not None:
-                        recorded_text = stt_service.process_audio(audio_data)
-                        print(term.center(term.bold_green(f"Recorded Text: {recorded_text}")))
-                        llm_output = textGenLlamaService.text_generate(recorded_text)
-                        print(term.center('-' * term.width))
-                        print(term.center(term.bold_green(llm_output)))
-                        print(term.center('-' * term.width))
-                        textToSpeech.synthesize(llm_output)
-                    else:
-                        print(term.center(term.bold_red("No audio data recorded.")))
-                else:
-                    audio_service.start_recording()
+    def run_keyboard_command(self, all=False):
+        """
+        This function will run the keyboard command to start and stop recording or exit the program.
+        :param all: bool, If True, the program will run all services
+        """
+        print(
+            self.term.center(
+                "Press F12 once to start and again to stop recording. Press 'Esc' to go back."
+            )
+        )
 
-            time.sleep(0.5)  # Adjust the sleep time as needed
+        with self.term.cbreak(), self.term.hidden_cursor():
+            while True:
+                key = self.term.inkey(timeout=1)
+                # Check if the user wants to exit
+                if key.name == "KEY_ESCAPE":
+                    self.exit()
+                    return
+                elif key.name == "KEY_F12":
+                    self.record(all)
+
+                time.sleep(0.5)  # Adjust the sleep time as needed
+
+    def run_all_services(self):
+        """
+        Run all services: Speech to text, Language model, Text to speech
+        """
+        self.run_keyboard_command(all=True)
+
+    def exit(self):
+        """
+        Exit the program
+        """
+        print(self.term.center(self.term.bold_red("Exiting the program.")))
+        self.audio_service.terminate_audio()
+        return
+
+    def record(self, all=False):
+        """
+        Start and stop recording audio
+        :param all: bool, If True, the program will run all services
+        """
+        if self.audio_service.recording:
+            audio_data = self.audio_service.stop_recording()
+            if audio_data is not None:
+                recorded_text = self.stt_service.process_audio(audio_data)
+                print(
+                    self.term.center(
+                        self.term.bold_green(f"Recorded Text: {recorded_text}")
+                    )
+                )
+                if all:
+                    llm_output_full = self.llm_text_generate(recorded_text)
+                    self.textToSpeech.synthesize(llm_output_full)
+            else:
+                print(self.term.center(self.term.bold_red("No audio data recorded.")))
+        else:
+            self.audio_service.start_recording()
+
+    def run_speech_to_text_service(self):
+        """
+        Run the speech to text service
+        """
+        self.run_keyboard_command()
+
+    def run_gen_llama_service(self):
+        """
+        Run the language model service
+        """
+        while True:
+            input_text = input(
+                self.term.center(
+                    "Write something for text generation service or back: "
+                )
+            ).strip()
+            if input_text.lower() == "back":
+                break
+            self.llm_text_generate(input_text)
+
+    def run_text_to_speech_service(self):
+        """
+        Run the text to speech service
+        """
+        while True:
+            input_text = input(
+                self.term.center("Write something for text to speech service or back: ")
+            ).strip()
+            if input_text.lower() == "back":
+                break
+            self.textToSpeech.synthesize(input_text)
+
+    def llm_text_generate(self, input_text):
+        """
+        The language model generate text based on user's input text
+        Print the language model's generated text
+        :param input_text: str, The user's input text
+        :return: str, The generated text from the language model
+        """
+        llm_output = self.textGenLlamaService.chat_generate(input_text)
+        llm_output_list = []
+        for token in llm_output:
+            text = token["choices"][0]["delta"].get("content", "")
+            llm_output_list.append(text)
+            print(self.term.bold_green(text), end="", flush=True)
+        print()
+        print(self.term.center("-" * self.term.width))
+
+        llm_output_full = "".join(llm_output_list)
+        return llm_output_full
