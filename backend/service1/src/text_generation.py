@@ -4,6 +4,7 @@ from llama_cpp import Llama
 MODEL_NAME = "Ahma-3B-Instruct.Q4_K_S"  # Replace with the specific model you want
 LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
 
+
 class TextGenLlamaService:
     def __init__(
         self,

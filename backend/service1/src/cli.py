@@ -29,17 +29,25 @@ else:
 
 
 def create_env_file():
-    f = open(ENV_PATH, 'w')
+    f = open(ENV_PATH, "w")
     # Initialize with default values if .env file does not exist
     f.write("INPUT_DEVICE_INDEX=0\n")
     f.write("OUTPUT_DEVICE_INDEX=0\n")
     f.close()
 
+
 def display_neon_title(term):
     app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
 
     # Define colors for a neon effect
-    title_flicker_colors = [term.red, term.magenta, term.blue, term.cyan, term.green, term.yellow]
+    title_flicker_colors = [
+        term.red,
+        term.magenta,
+        term.blue,
+        term.cyan,
+        term.green,
+        term.yellow,
+    ]
 
     # Split the title into individual characters
     title_lines = app_ascii_title.split("\n")
@@ -56,7 +64,9 @@ def display_neon_title(term):
                 styled_line = ""
                 for char in line:
                     if char.strip():  # Apply color effect only to non-space characters
-                        styled_line += title_flicker_colors[color_index % len(title_flicker_colors)](char)
+                        styled_line += title_flicker_colors[
+                            color_index % len(title_flicker_colors)
+                        ](char)
                     else:
                         styled_line += char
                 print(term.center(styled_line))
@@ -72,12 +82,13 @@ def display_neon_title(term):
             color_index += 1
             time.sleep(0.1)  # Adjust speed of color changing
 
+
 def display_settings_menu(term):
     print(term.clear)
     print(term.move_y(term.height // 2 - 5))
     print(term.center(term.bold_underline("Settings Menu")))
     print(term.move_down(2))
-    
+
     # This is where the testing mode is selected, later on the selection can
     # be moved to the settings menu or after the hardware selection
 
@@ -106,14 +117,16 @@ def display_settings_menu(term):
     print(term.center(term.bold("Available Input Devices:")))
     input_devices = sd.query_devices()
     for i, device in enumerate(input_devices):
-        if device['max_input_channels'] > 0:
-            print(term.center(term.cyan(f"{i}: {device['name']}")))  
+        if device["max_input_channels"] > 0:
+            print(term.center(term.cyan(f"{i}: {device['name']}")))
     print()
 
     # Prompt for input device
     print(term.center(term.bold_yellow("Select Input Device Index: ")), end="")
     input_device_index = input().strip()
-    while not input_device_index.isdigit() or int(input_device_index) not in range(len(input_devices)):
+    while not input_device_index.isdigit() or int(input_device_index) not in range(
+        len(input_devices)
+    ):
         print(term.bold_red("Invalid input. Please enter a valid device index."))
         print(term.bold_yellow("Select Input Device Index: "), end="")
         input_device_index = input().strip()
@@ -122,14 +135,16 @@ def display_settings_menu(term):
     print(term.center(term.bold("Available Output Devices:")))
     output_devices = sd.query_devices()
     for i, device in enumerate(output_devices):
-        if device['max_output_channels'] > 0:
+        if device["max_output_channels"] > 0:
             print(term.center(term.cyan(f"{i}: {device['name']}")))
     print()
 
     # Prompt for output device
     print(term.center(term.bold_yellow("Select Output Device Index: ")), end="")
     output_device_index = input().strip()
-    while not output_device_index.isdigit() or int(output_device_index) not in range(len(output_devices)):
+    while not output_device_index.isdigit() or int(output_device_index) not in range(
+        len(output_devices)
+    ):
         print(term.bold_red("Invalid input. Please enter a valid device index."))
         print(term.bold_yellow("Select Output Device Index: "), end="")
         output_device_index = input().strip()
@@ -143,14 +158,17 @@ def display_settings_menu(term):
 
     print(term.center(term.bold_green("Settings successfully saved to .env file!")))
 
-    time.sleep(1) # Pause for a second before continuing
+    time.sleep(1)  # Pause for a second before continuing
+
 
 def run_cli():
     term = Terminal()
 
     # Check if .env file exists
     if not os.path.exists(ENV_PATH):
-        print(term.center(term.bold_red("No .env file found. Opening settings menu...")))
+        print(
+            term.center(term.bold_red("No .env file found. Opening settings menu..."))
+        )
         time.sleep(1)
         create_env_file()
         display_settings_menu(term)
@@ -175,7 +193,11 @@ def run_cli():
 
     print(term.clear)
     print(term.move_down(2))
-    print(term.center("Press F12 once to start and again to stop recording. Press 'Esc' to exit."))
+    print(
+        term.center(
+            "Press F12 once to start and again to stop recording. Press 'Esc' to exit."
+        )
+    )
 
     with term.cbreak(), term.hidden_cursor():
         while True:
@@ -192,11 +214,15 @@ def run_cli():
                     audio_data = audio_service.stop_recording()
                     if audio_data is not None:
                         recorded_text = stt_service.process_audio(audio_data)
-                        print(term.center(term.bold_green(f"Recorded Text: {recorded_text}")))
+                        print(
+                            term.center(
+                                term.bold_green(f"Recorded Text: {recorded_text}")
+                            )
+                        )
                         llm_output = textGenLlamaService.text_generate(recorded_text)
-                        print(term.center('-' * term.width))
+                        print(term.center("-" * term.width))
                         print(term.center(term.bold_green(llm_output)))
-                        print(term.center('-' * term.width))
+                        print(term.center("-" * term.width))
                         textToSpeech.synthesize(llm_output)
                     else:
                         print(term.center(term.bold_red("No audio data recorded.")))
@@ -204,6 +230,7 @@ def run_cli():
                     audio_service.start_recording()
 
             time.sleep(0.5)  # Adjust the sleep time as needed
+
 
 def run_tests():
     test_dir = "/tests"
@@ -236,5 +263,3 @@ def run_tests():
         key = term.inkey(timeout=1)
         if key.lower() == "q":
             break
-
-
