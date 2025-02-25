@@ -4,9 +4,9 @@ import pyfiglet
 import sounddevice as sd
 from blessed import Terminal
 from dotenv import load_dotenv, set_key
-from text_generation import TextGenService
-from TTS import TextToSpeech
-from STT import AudioRecordingService, SpeechToTextService
+from text_gen import TextGenService
+from tts import TextToSpeech
+from stt import AudioRecordingService, SpeechToTextService
 
 APP_TITLE = "SLT-VIBE"
 
