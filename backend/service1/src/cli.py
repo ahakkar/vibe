@@ -194,11 +194,11 @@ class CommandLineService:
             elif command_input == "2":
                 self.run_speech_to_text_service()
             elif command_input == "3":
-                self.run_gen_llama_service()
+                self.run_text_gen_service()
             elif command_input == "4":
                 self.run_text_to_speech_service()
 
-    def run_keyboard_command(self, all=False):
+    def run_keyboard_command(self, all_services=False):
         """
         This function will run the keyboard command to start and stop recording or exit the program.
         :param all: bool, If True, the program will run all services
@@ -216,7 +216,7 @@ class CommandLineService:
                     self.exit()
                     return
                 elif key.name == "KEY_F12":
-                    self.record(all)
+                    self._toggle_recording(all_services)
 
                 time.sleep(0.5)
 
@@ -224,37 +224,38 @@ class CommandLineService:
         """
         Run all services: Speech to text, Language model, Text to speech
         """
-        self.run_keyboard_command(all=True)
-
-    def exit(self):
+        self.run_keyboard_command(all_services=True)
+    
+    def _toggle_recording(self, all_services):
         """
-        Exit the program
-        """
-        print(self.term.center(self.term.bold_red("Exiting the program.")))
-        self.audio_service.terminate_audio()
-        return
-
-    def record(self, all=False):
-        """
-        Start and stop recording audio
-        :param all: bool, If True, the program will run all services
+        Toggle recording state and process audio if recording is stopped.
+        :param all_services: bool, If True, the program will run all services
         """
         if self.audio_service.recording:
-            audio_data = self.audio_service.stop_recording()
-            if audio_data is not None:
-                recorded_text = self.stt_service.process_audio(audio_data)
-                print(
-                    self.term.center(
-                        self.term.bold_green(f"Recorded Text: {recorded_text}")
-                    )
-                )
-                if all:
-                    llm_output_full = self.llm_text_generate(recorded_text)
-                    self.textToSpeech.synthesize(llm_output_full)
-            else:
-                print(self.term.center(self.term.bold_red("No audio data recorded.")))
+            self._stop_and_process_recording(all_services)
         else:
             self.audio_service.start_recording()
+
+    def _stop_and_process_recording(self, all_services):
+        """
+        Stop recording and process the recorded audio.
+        :param all_services: bool, If True, the program will run all services
+        """
+        audio_data = self.audio_service.stop_recording()
+        if audio_data is not None:
+            recorded_text = self.stt_service.process_audio(audio_data)
+            print(self.term.center(self.term.bold_green(f"Recorded Text: {recorded_text}")))
+            if all_services:
+                self._process_all_services(recorded_text)
+        else:
+            print(self.term.center(self.term.bold_red("No audio data recorded.")))
+
+    def _process_all_services(self, recorded_text):
+        """
+        Process all services with the recorded text.
+        :param recorded_text: str, The text obtained from the recorded audio
+        """
+        self.llm_text_generate(recorded_text, synthesize=True)
 
     def run_speech_to_text_service(self):
         """
@@ -262,7 +263,7 @@ class CommandLineService:
         """
         self.run_keyboard_command()
 
-    def run_gen_llama_service(self):
+    def run_text_gen_service(self):
         """
         Run the language model service
         """
@@ -288,22 +289,44 @@ class CommandLineService:
                 break
             self.textToSpeech.synthesize(input_text)
 
-    def llm_text_generate(self, input_text):
+    def llm_text_generate(self, input_text, synthesize=False):
         """
-        The language model generate text based on user's input text
+        The language model generates text based on user's input text
         Print the language model's generated text
         :param input_text: str, The user's input text
+        :param synthesize: bool, If True, synthesize the generated text
         :return: str, The generated text from the language model
         """
-        llm_output = self.textGenLlamaService.chat_generate(input_text)
+        llm_output = self.text_gen_service.chat_generate(input_text)
         llm_output_list = []
+        sentence = ""
         for token in llm_output:
+            # Check if the user wants to stop generating
+            if self.stop_generating:
+                break
+
             text = token["choices"][0]["delta"].get("content", "")
             llm_output_list.append(text)
+            sentence += text
+
+            # Check if the sentence is complete
+            if synthesize and ("." in sentence or "!" in sentence or "?" in sentence):
+                self.textToSpeech.synthesize(sentence)
+                sentence = ""
+
+            # Print the generated text token by token
             print(self.term.bold_green(text), end="", flush=True)
         print()
-        print(self.term.center("-" * self.term.width))
+        print(self.term.center("-" * self.term.width))  # Print a separator line after text generation
 
         llm_output_full = "".join(llm_output_list)
         return llm_output_full
     
+    def exit(self):
+        """
+        Exit the program
+        """
+        print(self.term.center(self.term.bold_red("Exiting the program.")))
+        self.audio_service.terminate_audio()
+        self.textToSpeech.stop()
+        return

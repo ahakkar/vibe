@@ -1,6 +1,8 @@
 import numpy as np
 import sounddevice as sd
 import sox
+import threading
+import queue
 from piper.voice import PiperVoice
 
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
@@ -14,6 +16,10 @@ class TextToSpeech:
         self.stream = None
         self.piper_sample_rate = self.voice.config.sample_rate
         self.output_sample_rate = 44100  # Desired output sample rate
+        self.sentence_queue = queue.Queue()
+        self._stop_event = threading.Event()
+        self._thread = threading.Thread(target=self._process_queue)
+        self._thread.start()
 
     def initialize_stream(self):
         try:
@@ -39,6 +45,17 @@ class TextToSpeech:
         return resampled_audio.astype(np.int16)
 
     def synthesize(self, text):
+        self.sentence_queue.put(text)
+
+    def _process_queue(self):
+        while not self._stop_event.is_set():
+            try:
+                text = self.sentence_queue.get(timeout=1)
+                self._synthesize_text(text)
+            except queue.Empty:
+                continue
+
+    def _synthesize_text(self, text):
         if self.stream is None:
             self.initialize_stream()
         if self.stream is not None:
@@ -54,3 +71,9 @@ class TextToSpeech:
             self.stream.stop()
         else:
             print("Audio stream is not available.")
+
+    def stop(self):
+        self._stop_event.set()
+        self._thread.join()
+        if self.stream is not None:
+            self.stream.close()
