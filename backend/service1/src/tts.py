@@ -74,6 +74,8 @@ class TextToSpeech:
 
     def stop(self):
         self._stop_event.set()
-        self._thread.join()
+        self.sentence_queue.queue.clear()  # Clear the queue to stop any pending synthesis
         if self.stream is not None:
-            self.stream.close()
+            self.stream.abort() # Stop the audio stream immediately
+        self._thread.join() # Wait for the processing thread to finish
+        self._stop_event.clear()  # Reset the stop event for future use

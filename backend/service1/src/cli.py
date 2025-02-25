@@ -30,7 +30,6 @@ else:
 class CommandLineService:
     def __init__(self):
         self.term = Terminal()
-        self.stop_generating = False
 
     def create_env_file(self):
         """
@@ -295,32 +294,37 @@ class CommandLineService:
         Print the language model's generated text
         :param input_text: str, The user's input text
         :param synthesize: bool, If True, synthesize the generated text
-        :return: str, The generated text from the language model
         """
         llm_output = self.text_gen_service.chat_generate(input_text)
-        llm_output_list = []
         sentence = ""
-        for token in llm_output:
-            # Check if the user wants to stop generating
-            if self.stop_generating:
-                break
+        with self.term.cbreak():
+            for token in llm_output:
+                # Check for key press to stop generation
+                if self.term.inkey(timeout=0.1):
+                    self.textToSpeech.stop()
+                    self.print_separator()
+                    return
 
-            text = token["choices"][0]["delta"].get("content", "")
-            llm_output_list.append(text)
-            sentence += text
+                text = token["choices"][0]["delta"].get("content", "")
+                sentence += text
 
-            # Check if the sentence is complete
-            if synthesize and ("." in sentence or "!" in sentence or "?" in sentence):
-                self.textToSpeech.synthesize(sentence)
-                sentence = ""
+                # Check if the sentence is complete
+                if synthesize and ("." in sentence or "!" in sentence or "?" in sentence):
+                    self.textToSpeech.synthesize(sentence)
+                    sentence = ""
 
-            # Print the generated text token by token
-            print(self.term.bold_green(text), end="", flush=True)
+                # Print the generated text token by token
+                print(self.term.bold_green(text), end="", flush=True)
+
+        self.print_separator()
+        return
+    
+    def print_separator(self):
+        """
+        Print a terminal width separator line
+        """
         print()
-        print(self.term.center("-" * self.term.width))  # Print a separator line after text generation
-
-        llm_output_full = "".join(llm_output_list)
-        return llm_output_full
+        print(self.term.center("-" * self.term.width))
     
     def exit(self):
         """
