@@ -215,9 +215,17 @@ class CommandLineService:
                     self.exit()
                     return
                 elif key.name == "KEY_F12":
+                    self._flush_input_buffer()
                     self._toggle_recording(all_services)
 
                 time.sleep(0.5)
+
+    def _flush_input_buffer(self):
+        """
+        Flush the input buffer to clear any queued key events to prevent spamming
+        """
+        while self.term.inkey(timeout=0.1):
+            pass
 
     def run_all_services(self):
         """
