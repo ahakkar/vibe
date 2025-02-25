@@ -12,6 +12,7 @@ from blessed import Terminal
 
 ONNX_MODEL_PATH = "/models/wav2vec2_model.onnx"
 PROCESSOR_PATH = "/models/wav2vec2_processor"
+OUTPUT_FILENAME = "recorded_audio.wav"
 
 term = Terminal()
 
@@ -62,7 +63,7 @@ class AudioRecordingService:
         except IOError as e:
             print(term.center(f"Error recording: {e}"))
 
-    def stop_recording(self):
+    def stop_recording(self, save_audio=False):
         if not self.recording:
             print(term.center("Not recording."))
             return
@@ -86,27 +87,26 @@ class AudioRecordingService:
             / 32768.0
         )
 
-        # Determine the correct .env path based if running in Docker
-        if os.getenv("RUNNING_IN_DOCKER"):
-            save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
-        else:
-            save_path = os.path.join(os.path.dirname(__file__), "recorded_audio.wav")
-
-        # Save the recorded audio to a file for debugging
-        save_path = os.path.join("/usr/src/app", "recorded_audio.wav")
-        self.save_audio_to_file(save_path)
+        if save_audio:
+            self.save_audio_to_file()
 
         return audio_data
 
-    def save_audio_to_file(self, filename):
+    def save_audio_to_file(self):
+        # Determine the correct .env path based if running in Docker
+        if os.getenv("RUNNING_IN_DOCKER"):
+            save_path = os.path.join("/usr/src/app", OUTPUT_FILENAME)
+        else:
+            save_path = os.path.join(os.path.dirname(__file__), OUTPUT_FILENAME)
+        
         try:
-            wave_file = wave.open(filename, "wb")
+            wave_file = wave.open(save_path, "wb")
             wave_file.setnchannels(self.channels)
             wave_file.setsampwidth(self.audio.get_sample_size(pyaudio.paInt16))
             wave_file.setframerate(self.sample_rate)
             wave_file.writeframes(b"".join(self.frames))
             wave_file.close()
-            print(term.center(f"Audio saved to {filename}"))
+            print(term.center(f"Audio saved to {save_path}"))
         except Exception as e:
             print(term.center(f"Failed to save audio file: {e}"))
 
