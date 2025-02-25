@@ -4,7 +4,7 @@ import pyfiglet
 import sounddevice as sd
 from blessed import Terminal
 from dotenv import load_dotenv, set_key
-from text_generation import TextGenLlamaService
+from text_generation import TextGenService
 from TTS import TextToSpeech
 from STT import AudioRecordingService, SpeechToTextService
 
@@ -196,7 +196,7 @@ class CommandLineService:
         self.input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
         self.output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX"))
 
-        self.textGenLlamaService = TextGenLlamaService()
+        self.text_gen_service = TextGenService()
         self.audio_service = AudioRecordingService(device_index=self.input_device_index)
         self.stt_service = SpeechToTextService()
         self.textToSpeech = TextToSpeech(device_index=self.output_device_index)
@@ -347,7 +347,7 @@ class CommandLineService:
         :param input_text: str, The user's input text
         :return: str, The generated text from the language model
         """
-        llm_output = self.textGenLlamaService.chat_generate(input_text)
+        llm_output = self.text_gen_service.chat_generate(input_text)
         llm_output_list = []
         for token in llm_output:
             text = token["choices"][0]["delta"].get("content", "")

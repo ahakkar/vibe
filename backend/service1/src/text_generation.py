@@ -1,88 +1,75 @@
-# With a python version 3.12 or lower, required libraries are transformers, torch, and sentencepiece.
 from llama_cpp import Llama
 
-MODEL_NAME = "Ahma-3B-Instruct.Q4_K_S"  # Replace with the specific model you want
+MODEL_NAME = "Gemma2:2b_unsloth.Q4_K_M"  # Replace with your actual GGUF model filename
 LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
 
-
-class TextGenLlamaService:
+class TextGenService:
     def __init__(
         self,
-        max_new_tokens=30,
-        no_repeat_ngram_size=2,
-        tempreature=0.2,
+        max_new_tokens=100,
+        temperature=0.6,
         top_p=0.95,
         top_k=40,
+        repeat_penalty=1.2,
         do_sample=True,
     ):
         """
-        Initialize the TextGenerationService
-        :param max_new_tokens: int, the maximum number of tokens that the language model can generate
-        :param no_repeat_ngram_size: int, the number of ngram that prevent repetition
-        :param temperature: float, controls the determinism of the language model, the lower the value the more determinisitc the output, and vice versa
-        :param top_p: float, determines properbility threshold. The higher the value, the more diverse and creative response. the lower the value, the more predictable
-        :param top_k: int, manages the selection range for the next word in a sequence.
-        :param do_sample: bool, enable sampling to prevent deterministic
+        Initializes the text generation service for a fine-tuned Gemma 2:2B GGUF model.
         """
         self.max_new_tokens = max_new_tokens
-        self.no_repeat_ngram_size = no_repeat_ngram_size
-        self.temperature = tempreature
+        self.temperature = temperature
         self.top_p = top_p
         self.top_k = top_k
+        self.repeat_penalty = repeat_penalty
         self.do_sample = do_sample
+
+        # Load GGUF model using llama.cpp
         self.llm_model = Llama(
-            LLM_MODEL_PATH, chat_format="llama-2", verbose=False, n_ctx=2048
+            model_path=LLM_MODEL_PATH, chat_format="gemma", verbose=False, n_ctx=2048
         )
 
-    def text_generate(self, input):
+    def text_generate(self, input_text):
         """
-        Small language model will generate text based given user input
-        :param input: String, given user input
-        :return: String, llm responded output
+        Generates text from the model based on user input.
         """
+        try:
+            llm_output = self.llm_model(
+                input_text,
+                max_tokens=self.max_new_tokens,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                top_k=self.top_k,
+                repeat_penalty=self.repeat_penalty,
+            )
+            return llm_output["choices"][0]["text"].strip()
+        except Exception as e:
+            return f"Error generating text: {e}"
 
-        llm_output = self.llm_model(
-            input,
-            max_tokens=self.max_new_tokens,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            top_k=self.top_k,
-            repeat_penalty=1.1,
-        )
-
-        return llm_output["choices"][0]["text"]
-
-    def chat_generate(self, input, message=""):
+    def chat_generate(self, user_input, system_prompt=""):
         """
-        Small language model will generate text based given user input with instructed message.
-        :param input: String, given user input
-        :param message: String, message which instructs how language model should behave
-        :return: Generator object, llm responded output
-        Usage:
-        textGenLlamaService = TextGenLlamaService()
-            for token in textGenLlamaService.chat_generate("Moi, mitä kuulu"):
-                text = token["choices"][0]["delta"].get("content", "")
-                print(text, end="", flush=True)
+        Generates a response in a chat-like format, ensuring correct system message handling.
         """
+        if not system_prompt:
+            system_prompt = (
+                "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
+            )
 
-        if message == "":
-            message = "Olet Kari. Olet käyttäjän ystävä. Sinä olet iloinen ja hauska ystävä. Puhu positiivisesti"
         messages = [
-            {
-                "role": "assistant",
-                "content": "Olet Kari. Olet käyttäjän ystävä. Sinä olet iloinen ja hauska ystävä. Puhu positiivisesti",
-            },
-            {"role": "user", "content": input},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input},
         ]
 
-        llm_output = self.llm_model.create_chat_completion(
-            messages=messages,
-            max_tokens=self.max_new_tokens,
-            temperature=self.temperature,
-            top_p=self.top_p,
-            top_k=self.top_k,
-            stream=True,
-            repeat_penalty=1.1,
-        )
+        try:
+            llm_output = self.llm_model.create_chat_completion(
+                messages=messages,
+                max_tokens=self.max_new_tokens,
+                temperature=self.temperature,
+                top_p=self.top_p,
+                top_k=self.top_k,
+                stream=False,
+                repeat_penalty=self.repeat_penalty,
+            )
 
-        return llm_output
+            return llm_output["choices"][0]["message"]["content"].strip()
+        except Exception as e:
+            return f"Error in chat generation: {e}"
