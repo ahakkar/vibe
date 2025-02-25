@@ -28,23 +28,6 @@ class TextGenService:
             model_path=LLM_MODEL_PATH, chat_format="gemma", verbose=False, n_ctx=2048
         )
 
-    def text_generate(self, input_text):
-        """
-        Generates text from the model based on user input.
-        """
-        try:
-            llm_output = self.llm_model(
-                input_text,
-                max_tokens=self.max_new_tokens,
-                temperature=self.temperature,
-                top_p=self.top_p,
-                top_k=self.top_k,
-                repeat_penalty=self.repeat_penalty,
-            )
-            return llm_output["choices"][0]["text"].strip()
-        except Exception as e:
-            return f"Error generating text: {e}"
-
     def chat_generate(self, user_input, system_prompt=""):
         """
         Generates a response in a chat-like format, ensuring correct system message handling.
@@ -60,16 +43,16 @@ class TextGenService:
         ]
 
         try:
-            llm_output = self.llm_model.create_chat_completion(
+            generator = self.llm_model.create_chat_completion(
                 messages=messages,
                 max_tokens=self.max_new_tokens,
                 temperature=self.temperature,
                 top_p=self.top_p,
                 top_k=self.top_k,
-                stream=False,
+                stream=True,
                 repeat_penalty=self.repeat_penalty,
             )
-
-            return llm_output["choices"][0]["message"]["content"].strip()
+            return generator
+        
         except Exception as e:
             return f"Error in chat generation: {e}"
