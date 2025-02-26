@@ -9,7 +9,11 @@ sys.stderr = open(os.devnull, "w")
 MODEL_NAME = "Gemma2:2b_unsloth.Q4_K_M"  # Replace with your actual GGUF model filename
 LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
 
+
 class TextGenService:
+    """
+    Text generation service for a fine-tuned Gemma 2:2B GGUF model.
+    """
     def __init__(
         self,
         max_new_tokens=100,
@@ -20,7 +24,14 @@ class TextGenService:
         do_sample=True,
     ):
         """
-        Initializes the text generation service for a fine-tuned Gemma 2:2B GGUF model.
+        Initializes the text generation service with the specified parameters.
+
+        :param int max_new_tokens: The maximum number of new tokens to generate, defaults to 100
+        :param float temperature: The sampling temperature, higher values mean more random completions, defaults to 0.6
+        :param float top_p: The cumulative probability for nucleus sampling, defaults to 0.95
+        :param int top_k: The number of highest probability vocabulary tokens to keep for top-k filtering, defaults to 40
+        :param float repeat_penalty: The penalty for repeated tokens, defaults to 1.2
+        :param bool do_sample: Whether to use sampling; if False, greedy decoding is used, defaults to True
         """
         self.max_new_tokens = max_new_tokens
         self.temperature = temperature
@@ -37,7 +48,12 @@ class TextGenService:
     def chat_generate(self, user_input, system_prompt=""):
         """
         Generates a response in a chat-like format, ensuring correct system message handling.
+
+        :param str user_input: The input text from the user.
+        :param str system_prompt: The system prompt to guide the model's responses, defaults to "".
+        :return generator: A generator that yields the model's response in a streaming fashion.
         """
+
         if not system_prompt:
             system_prompt = (
                 "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
