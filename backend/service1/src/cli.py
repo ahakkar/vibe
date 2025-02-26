@@ -1,5 +1,7 @@
 import os
+import sys
 import time
+import signal
 import pyfiglet
 import sounddevice as sd
 from blessed import Terminal
@@ -30,6 +32,13 @@ else:
 class CommandLineService:
     def __init__(self):
         self.term = Terminal()
+        signal.signal(signal.SIGINT, self._signal_handler)
+
+    def _signal_handler(self, signal, frame):
+        print(self.term.center(self.term.bold_red("Exiting the program.")))
+        self.audio_service.terminate_audio()
+        self.textToSpeech.stop()
+        sys.exit(0)
 
     def create_env_file(self):
         """
