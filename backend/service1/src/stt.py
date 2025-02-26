@@ -18,7 +18,15 @@ term = Terminal()
 
 
 class AudioRecordingService:
+    """
+    Service for recording audio using the PyAudio library.
+    """
     def __init__(self, device_index):
+        """
+        Initialize the audio recording service.
+
+        :param int device_index: Index of the audio input device to use.
+        """
         self.sample_rate = 16_000
         self.channels = 1
         self.CHUNK = 1024
@@ -30,6 +38,9 @@ class AudioRecordingService:
         self.recording_thread = None
 
     def start_recording(self):
+        """
+        Start recording audio from the specified input device.
+        """
         if self.recording:
             print(term.center("Already recording!"))
             return
@@ -56,6 +67,9 @@ class AudioRecordingService:
         self.recording_thread.start()
 
     def _record_audio(self):
+        """
+        Record audio data in a separate thread.
+        """
         try:
             while self.recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
@@ -64,6 +78,12 @@ class AudioRecordingService:
             print(term.center(f"Error recording: {e}"))
 
     def stop_recording(self, save_audio=False):
+        """
+        Stop recording audio and optionally save the recorded audio to a file.
+
+        :param bool save_audio: Whether to save the recorded audio to a file, defaults to False.
+        :return np.ndarray: The recorded audio data as a NumPy array.
+        """
         if not self.recording:
             print(term.center("Not recording."))
             return
@@ -93,6 +113,9 @@ class AudioRecordingService:
         return audio_data
 
     def save_audio_to_file(self):
+        """
+        Save the recorded audio to a file.
+        """
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
             save_path = os.path.join("/usr/src/app", OUTPUT_FILENAME)
@@ -111,17 +134,29 @@ class AudioRecordingService:
             print(term.center(f"Failed to save audio file: {e}"))
 
     def terminate_audio(self):
+        """
+        Terminate the PyAudio instance.
+        """
         self.audio.terminate()
 
 
 class SpeechToTextService:
+    """
+    Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
+    """
     def __init__(self):
+        """
+        Initialize the speech-to-text service.
+        """
         self.processor = Wav2Vec2Processor.from_pretrained(PROCESSOR_PATH)
         self.ort_session = ort.InferenceSession(ONNX_MODEL_PATH)
 
     def process_audio(self, audio_data: np.ndarray) -> str:
         """
         Process raw audio data using the ONNX model.
+
+        :param np.ndarray audio_data: The raw audio data to process.
+        :return str: The transcribed text from the audio data.
         """
         # Normalize the audio data (Is this necessary?)
         audio_data = (audio_data - audio_data.mean()) / audio_data.std()
