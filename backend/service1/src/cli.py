@@ -32,6 +32,7 @@ class CommandLineService:
     """
     Service for handling command-line interactions and application flow.
     """
+
     def __init__(self):
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
@@ -65,8 +66,12 @@ class CommandLineService:
         """
         app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
         title_flicker_colors = [
-            self.term.red, self.term.magenta, self.term.blue,
-            self.term.cyan, self.term.green, self.term.yellow,
+            self.term.red,
+            self.term.magenta,
+            self.term.blue,
+            self.term.cyan,
+            self.term.green,
+            self.term.yellow,
         ]
         title_chars = [[char for char in line] for line in app_ascii_title.split("\n")]
 
@@ -110,7 +115,11 @@ class CommandLineService:
         set_key(ENV_PATH, "OUTPUT_DEVICE_NAME", output_device_name)
         os.chmod(ENV_PATH, 0o644)
 
-        print(self.term.center(self.term.bold_green("Settings successfully saved to .env file!")))
+        print(
+            self.term.center(
+                self.term.bold_green("Settings successfully saved to .env file!")
+            )
+        )
         time.sleep(1)
 
     def _select_device(self, device_type):
@@ -121,26 +130,49 @@ class CommandLineService:
         :return: str, The selected device name
         """
         devices = sd.query_devices()
-        print(self.term.center(self.term.bold(f"Available {device_type.capitalize()} Devices:")))
+        print(
+            self.term.center(
+                self.term.bold(f"Available {device_type.capitalize()} Devices:")
+            )
+        )
         # Print the available input/output devices
         for i, device in enumerate(devices):
-            if (device_type == "input" and device["max_input_channels"] > 0) or \
-               (device_type == "output" and device["max_output_channels"] > 0):
+            if (device_type == "input" and device["max_input_channels"] > 0) or (
+                device_type == "output" and device["max_output_channels"] > 0
+            ):
                 print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
         print()
 
         while True:
-            index = input(self.term.center(self.term.bold_yellow(f"Select {device_type.capitalize()} Device Index: "))).strip()
+            index = input(
+                self.term.center(
+                    self.term.bold_yellow(
+                        f"Select {device_type.capitalize()} Device Index: "
+                    )
+                )
+            ).strip()
             if index.isdigit() and int(index) in range(len(devices)):
                 selected_device = devices[int(index)]
                 # Check that the selected device of appropriate type
-                if (device_type == "input" and selected_device["max_input_channels"] > 0) or \
-                (device_type == "output" and selected_device["max_output_channels"] > 0):
+                if (
+                    device_type == "input" and selected_device["max_input_channels"] > 0
+                ) or (
+                    device_type == "output"
+                    and selected_device["max_output_channels"] > 0
+                ):
                     return selected_device["name"]
                 else:
-                    print(self.term.bold_red(f"Selected device is not a valid {device_type} device."))
+                    print(
+                        self.term.bold_red(
+                            f"Selected device is not a valid {device_type} device."
+                        )
+                    )
             else:
-                print(self.term.bold_red("Invalid input. Please enter a valid device index."))
+                print(
+                    self.term.bold_red(
+                        "Invalid input. Please enter a valid device index."
+                    )
+                )
 
     def setup_env(self):
         """
@@ -175,7 +207,13 @@ class CommandLineService:
 
         # Check that saved device names are still valid
         if self.input_device_index is None or self.output_device_index is None:
-            print(self.term.center(self.term.bold_red("Invalid device name found. Opening settings menu...")))
+            print(
+                self.term.center(
+                    self.term.bold_red(
+                        "Invalid device name found. Opening settings menu..."
+                    )
+                )
+            )
             time.sleep(1)
             self.display_settings_menu()
             self.load_services()  # Reload services after updating settings
@@ -196,9 +234,9 @@ class CommandLineService:
         """
         devices = sd.query_devices()
         for i, device in enumerate(devices):
-            if device['name'] == device_name and (
-                (device_type == "input" and device["max_input_channels"] > 0) or
-                (device_type == "output" and device["max_output_channels"] > 0)
+            if device["name"] == device_name and (
+                (device_type == "input" and device["max_input_channels"] > 0)
+                or (device_type == "output" and device["max_output_channels"] > 0)
             ):
                 return i
         return None
@@ -286,7 +324,7 @@ class CommandLineService:
         Run all services: Speech to text, Language model, Text to speech
         """
         self.run_keyboard_command(all_services=True)
-    
+
     def _toggle_recording(self, all_services):
         """
         Toggle recording state and process audio if recording is stopped.
@@ -307,7 +345,11 @@ class CommandLineService:
         audio_data = self.audio_service.stop_recording()
         if audio_data is not None:
             recorded_text = self.stt_service.process_audio(audio_data)
-            print(self.term.center(self.term.bold_green(f"Recorded Text: {recorded_text}")))
+            print(
+                self.term.center(
+                    self.term.bold_green(f"Recorded Text: {recorded_text}")
+                )
+            )
             if all_services:
                 self._process_all_services(recorded_text)
         else:
@@ -334,7 +376,7 @@ class CommandLineService:
         while True:
             input_text = input(
                 self.term.center(
-                    "Write something for text generation service or back: "
+                    "Write something for text generation service or 'back': "
                 )
             ).strip()
             if input_text.lower() == "back":
@@ -347,7 +389,9 @@ class CommandLineService:
         """
         while True:
             input_text = input(
-                self.term.center("Write something for text to speech service or back: ")
+                self.term.center(
+                    "Write something for text to speech service or 'back': "
+                )
             ).strip()
             if input_text.lower() == "back":
                 break
@@ -375,7 +419,9 @@ class CommandLineService:
                 sentence += text
 
                 # Check if the sentence is complete
-                if synthesize and ("." in sentence or "!" in sentence or "?" in sentence):
+                if synthesize and (
+                    "." in sentence or "!" in sentence or "?" in sentence
+                ):
                     self.textToSpeech.synthesize(sentence)
                     sentence = ""
 
@@ -384,14 +430,14 @@ class CommandLineService:
 
         self.print_separator()
         return
-    
+
     def print_separator(self):
         """
         Print a terminal width separator line
         """
         print()
         print(self.term.center("-" * self.term.width))
-    
+
     def exit(self):
         """
         Exit the program

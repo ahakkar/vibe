@@ -3,7 +3,7 @@ import requests
 
 
 def download_file(url, dest_path):
-    """ Download a file from a URL to a destination path.
+    """Download a file from a URL to a destination path.
 
     Args:
         url String: The URL to download the file from.
@@ -33,7 +33,7 @@ def download_file(url, dest_path):
 
 
 def download_folder(repo_url, folder_path, dest_path):
-    """ Download an entire folder from a Hugging Face model repository.
+    """Download an entire folder from a Hugging Face model repository.
 
     Args:
         repo_url String: The Hugging Face model repository base URL.

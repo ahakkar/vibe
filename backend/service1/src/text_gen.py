@@ -14,6 +14,7 @@ class TextGenService:
     """
     Text generation service for a fine-tuned Gemma 2:2B GGUF model.
     """
+
     def __init__(
         self,
         max_new_tokens=100,
@@ -55,9 +56,7 @@ class TextGenService:
         """
 
         if not system_prompt:
-            system_prompt = (
-                "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
-            )
+            system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -75,6 +74,6 @@ class TextGenService:
                 repeat_penalty=self.repeat_penalty,
             )
             return generator
-        
+
         except Exception as e:
             return f"Error in chat generation: {e}"

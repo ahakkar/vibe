@@ -21,6 +21,7 @@ class AudioRecordingService:
     """
     Service for recording audio using the PyAudio library.
     """
+
     def __init__(self, device_index):
         """
         Initialize the audio recording service.
@@ -126,7 +127,7 @@ class AudioRecordingService:
             save_path = os.path.join("/usr/src/app", OUTPUT_FILENAME)
         else:
             save_path = os.path.join(os.path.dirname(__file__), OUTPUT_FILENAME)
-        
+
         try:
             wave_file = wave.open(save_path, "wb")
             wave_file.setnchannels(self.channels)
@@ -155,6 +156,7 @@ class SpeechToTextService:
     """
     Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
     """
+
     def __init__(self):
         """
         Initialize the speech-to-text service.

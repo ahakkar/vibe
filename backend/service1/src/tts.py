@@ -17,6 +17,7 @@ class TextToSpeech:
     The TTS service runs a separate thread to process text-to-speech synthesis requests
     from a queue, allowing for asynchronous operation and smooth audio playback.
     """
+
     def __init__(self, device_index=1):
         """
         Initialize the TextToSpeech service.
@@ -116,6 +117,6 @@ class TextToSpeech:
         self._stop_event.set()
         self.sentence_queue.queue.clear()  # Clear the queue to stop any pending synthesis
         if self.stream is not None:
-            self.stream.abort() # Stop the audio stream immediately
-        self._thread.join() # Wait for the processing thread to finish
+            self.stream.abort()  # Stop the audio stream immediately
+        self._thread.join()  # Wait for the processing thread to finish
         self._stop_event.clear()  # Reset the stop event for future use
