@@ -12,7 +12,6 @@ from stt import AudioRecordingService, SpeechToTextService
 
 APP_TITLE = "SLT-VIBE"
 
-# Define the theme
 THEME = {
     "title": "bold underline",
     "menu": "bold",
@@ -30,11 +29,23 @@ else:
 
 
 class CommandLineService:
+    """
+    Service for handling command-line interactions and application flow.
+    """
     def __init__(self):
+        """
+        Initialize the command-line service and set up the signal handler for SIGINT.
+        """
         self.term = Terminal()
         signal.signal(signal.SIGINT, self._signal_handler)
 
     def _signal_handler(self, signal, frame):
+        """
+        Handle the SIGINT signal (Ctrl+C) to gracefully terminate the program.
+
+        :param int signal: The signal number.
+        :param frame: The current stack frame.
+        """
         print(self.term.center(self.term.bold_red("Exiting the program.")))
         self.audio_service.terminate_audio()
         self.textToSpeech.stop()
@@ -105,6 +116,7 @@ class CommandLineService:
     def _select_device(self, device_type):
         """
         Select the device name for input or output devices
+
         :param device_type: str, The device type (input or output)
         :return: str, The selected device name
         """
@@ -177,6 +189,7 @@ class CommandLineService:
     def _get_device_index(self, device_name, device_type):
         """
         Get the device index for a given device name
+
         :param device_name: str, The device name to look up
         :param device_type: str, The device type (input or output)
         :return: int, The device index, or None if not found
@@ -193,7 +206,6 @@ class CommandLineService:
     def run_cli(self):
         """
         The CLI will first set up the env file, and then display the services available to the user.
-
         """
         self.setup_env()
         self.load_services()
@@ -241,6 +253,7 @@ class CommandLineService:
     def run_keyboard_command(self, all_services=False):
         """
         This function will run the keyboard command to start and stop recording or exit the program.
+
         :param all: bool, If True, the program will run all services
         """
         print(
@@ -277,6 +290,7 @@ class CommandLineService:
     def _toggle_recording(self, all_services):
         """
         Toggle recording state and process audio if recording is stopped.
+
         :param all_services: bool, If True, the program will run all services
         """
         if self.audio_service.recording:
@@ -287,6 +301,7 @@ class CommandLineService:
     def _stop_and_process_recording(self, all_services):
         """
         Stop recording and process the recorded audio.
+
         :param all_services: bool, If True, the program will run all services
         """
         audio_data = self.audio_service.stop_recording()
@@ -301,6 +316,7 @@ class CommandLineService:
     def _process_all_services(self, recorded_text):
         """
         Process all services with the recorded text.
+
         :param recorded_text: str, The text obtained from the recorded audio
         """
         self.llm_text_generate(recorded_text, synthesize=True)
@@ -341,6 +357,7 @@ class CommandLineService:
         """
         The language model generates text based on user's input text
         Print the language model's generated text
+
         :param input_text: str, The user's input text
         :param synthesize: bool, If True, synthesize the generated text
         """
