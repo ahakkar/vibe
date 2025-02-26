@@ -1,4 +1,10 @@
+import sys
+import os
 from llama_cpp import Llama
+
+# Suppress llama.cpp warnings from console output
+# e.g. llama_new_context_with_model: n_ctx_per_seq (2048) < n_ctx_train (8192) -- the full capacity of the model will not be utilized
+sys.stderr = open(os.devnull, "w")
 
 MODEL_NAME = "Gemma2:2b_unsloth.Q4_K_M"  # Replace with your actual GGUF model filename
 LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
