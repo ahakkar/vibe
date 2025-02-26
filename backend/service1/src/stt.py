@@ -76,6 +76,10 @@ class AudioRecordingService:
                 self.frames.append(data)
         except IOError as e:
             print(term.center(f"Error recording: {e}"))
+        finally:
+            if self.stream:
+                self.stream.stop_stream()
+                self.stream.close()
 
     def stop_recording(self, save_audio=False):
         """
@@ -89,7 +93,8 @@ class AudioRecordingService:
             return
 
         self.recording = False
-        self.recording_thread.join()  # Wait for the thread to finish
+        if self.recording_thread:
+            self.recording_thread.join()  # Wait for the thread to finish
         time.sleep(0.1)
         print(term.center("Finished recording."))
 
@@ -135,8 +140,14 @@ class AudioRecordingService:
 
     def terminate_audio(self):
         """
-        Terminate the PyAudio instance.
+        Terminate the PyAudio instance and ensure the recording thread is properly terminated.
         """
+        if self.recording:
+            self.stop_recording()
+
+        if self.recording_thread and self.recording_thread.is_alive():
+            self.recording_thread.join()
+
         self.audio.terminate()
 
 
