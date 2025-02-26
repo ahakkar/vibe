@@ -33,11 +33,11 @@ class CommandLineService:
 
     def create_env_file(self):
         """
-        Create env file by setting input device default and output device default
+        Create env file by setting default input and output device names
         """
         with open(ENV_PATH, "w") as f:
-            f.write("INPUT_DEVICE_INDEX=0\n")
-            f.write("OUTPUT_DEVICE_INDEX=0\n")
+            f.write("INPUT_DEVICE_NAME=None\n")
+            f.write("OUTPUT_DEVICE_NAME=None\n")
 
     def display_neon_title(self):
         """
@@ -83,11 +83,11 @@ class CommandLineService:
         print(self.term.center(self.term.bold_underline("Settings Menu")))
         print(self.term.move_down(2))
 
-        input_device_index = self._select_device("input")
-        output_device_index = self._select_device("output")
+        input_device_name = self._select_device("input")
+        output_device_name = self._select_device("output")
 
-        set_key(ENV_PATH, "INPUT_DEVICE_INDEX", input_device_index)
-        set_key(ENV_PATH, "OUTPUT_DEVICE_INDEX", output_device_index)
+        set_key(ENV_PATH, "INPUT_DEVICE_NAME", input_device_name)
+        set_key(ENV_PATH, "OUTPUT_DEVICE_NAME", output_device_name)
         os.chmod(ENV_PATH, 0o644)
 
         print(self.term.center(self.term.bold_green("Settings successfully saved to .env file!")))
@@ -95,26 +95,31 @@ class CommandLineService:
 
     def _select_device(self, device_type):
         """
-        Select the device index for input or output devices
+        Select the device name for input or output devices
         :param device_type: str, The device type (input or output)
-        :return: int, The selected device index
+        :return: str, The selected device name
         """
         devices = sd.query_devices()
-        available_devices = [
-            (i, device['name']) for i, device in enumerate(devices)
-            if (device_type == "input" and device["max_input_channels"] > 0) or
-               (device_type == "output" and device["max_output_channels"] > 0)
-        ]
         print(self.term.center(self.term.bold(f"Available {device_type.capitalize()} Devices:")))
-        for i, name in available_devices:
-            print(self.term.center(self.term.cyan(f"{i}: {name}")))
+        # Print the available input/output devices
+        for i, device in enumerate(devices):
+            if (device_type == "input" and device["max_input_channels"] > 0) or \
+               (device_type == "output" and device["max_output_channels"] > 0):
+                print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
         print()
 
-        index = input(self.term.center(self.term.bold_yellow(f"Select {device_type.capitalize()} Device Index: "))).strip()
-        while not index.isdigit() or int(index) not in [i for i, _ in available_devices]:
-            print(self.term.bold_red("Invalid input. Please enter a valid device index."))
-            index = input(self.term.bold_yellow(f"Select {device_type.capitalize()} Device Index: ")).strip()
-        return index
+        while True:
+            index = input(self.term.center(self.term.bold_yellow(f"Select {device_type.capitalize()} Device Index: "))).strip()
+            if index.isdigit() and int(index) in range(len(devices)):
+                selected_device = devices[int(index)]
+                # Check that the selected device of appropriate type
+                if (device_type == "input" and selected_device["max_input_channels"] > 0) or \
+                (device_type == "output" and selected_device["max_output_channels"] > 0):
+                    return selected_device["name"]
+                else:
+                    print(self.term.bold_red(f"Selected device is not a valid {device_type} device."))
+            else:
+                print(self.term.bold_red("Invalid input. Please enter a valid device index."))
 
     def setup_env(self):
         """
@@ -141,13 +146,40 @@ class CommandLineService:
         # Load environment variables after potentially creating .env
         load_dotenv(ENV_PATH)
 
-        self.input_device_index = int(os.getenv("INPUT_DEVICE_INDEX"))
-        self.output_device_index = int(os.getenv("OUTPUT_DEVICE_INDEX"))
+        input_device_name = os.getenv("INPUT_DEVICE_NAME")
+        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")
+
+        self.input_device_index = self._get_device_index(input_device_name, "input")
+        self.output_device_index = self._get_device_index(output_device_name, "output")
+
+        # Check that saved device names are still valid
+        if self.input_device_index is None or self.output_device_index is None:
+            print(self.term.center(self.term.bold_red("Invalid device name found. Opening settings menu...")))
+            time.sleep(1)
+            self.display_settings_menu()
+            self.load_services()  # Reload services after updating settings
+            return
 
         self.text_gen_service = TextGenService()
         self.audio_service = AudioRecordingService(device_index=self.input_device_index)
         self.stt_service = SpeechToTextService()
         self.textToSpeech = TextToSpeech(device_index=self.output_device_index)
+
+    def _get_device_index(self, device_name, device_type):
+        """
+        Get the device index for a given device name
+        :param device_name: str, The device name to look up
+        :param device_type: str, The device type (input or output)
+        :return: int, The device index, or None if not found
+        """
+        devices = sd.query_devices()
+        for i, device in enumerate(devices):
+            if device['name'] == device_name and (
+                (device_type == "input" and device["max_input_channels"] > 0) or
+                (device_type == "output" and device["max_output_channels"] > 0)
+            ):
+                return i
+        return None
 
     def run_cli(self):
         """
