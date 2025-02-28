@@ -47,9 +47,7 @@ class CommandLineService:
         :param int signal: The signal number.
         :param frame: The current stack frame.
         """
-        print(self.term.center(self.term.bold_red("Exiting the program.")))
-        self.audio_service.terminate_audio()
-        self.textToSpeech.stop()
+        exit()
         sys.exit(0)
 
     def create_env_file(self):
