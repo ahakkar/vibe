@@ -9,7 +9,7 @@ with patch.dict(
         "llama_cpp": MagicMock(),
     },
 ):
-    from backend.service1.src.text_gen import TextGenService
+    from backend.service1.src.text_gen import TextGenService, MODEL_NAME, LLM_MODEL_PATH
 
 
 @pytest.fixture
@@ -17,44 +17,29 @@ def text_gen_service():
     return TextGenService()
 
 
+def test_constants():
+    assert MODEL_NAME == "Gemma2:2b_unsloth.Q4_K_M"
+    assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
+
+
 # Checks that LLM gives a response
 def test_text_generate(text_gen_service):
     with patch.object(text_gen_service.llm_model, "__call__", return_value=MagicMock()):
-        result = text_gen_service.text_generate(
+        result = text_gen_service.chat_generate(
             "Hello"
         )  # This is a placeholder, the actual input can be decided later
         assert result is not None
 
 
-"""
-This is Copilot genearated code. I have to modify it to make it work.
 def test_init_default_values():
-    service = TextGenService()
-    assert service.max_new_tokens == 30
-    assert service.no_repeat_ngram_size == 2
-    assert service.temperature == 0.2
-    assert service.top_p == 0.95
-    assert service.top_k == 40
-    assert service.do_sample is True
-    assert isinstance(service.llm_model, Llama)
-
-def test_init_custom_values():
-    service = TextGenService(
-        max_new_tokens=50,
-        no_repeat_ngram_size=3,
-        tempreature=0.5,
-        top_p=0.9,
-        top_k=50,
-        do_sample=False,
-    )
-    assert service.max_new_tokens == 50
-    assert service.no_repeat_ngram_size == 3
-    assert service.temperature == 0.5
-    assert service.top_p == 0.9
-    assert service.top_k == 50
-    assert service.do_sample is False
-    assert isinstance(service.llm_model, Llama)
-"""
+    text_gen_service = TextGenService()
+    assert text_gen_service.max_new_tokens == 100
+    assert text_gen_service.temperature == 0.2
+    assert text_gen_service.top_p == 0.95
+    assert text_gen_service.top_k == 40
+    assert text_gen_service.repeat_penalty == 1.2
+    assert text_gen_service.do_sample is True
+    assert isinstance(text_gen_service.llm_model, MagicMock)
 
 
 # Checks that the response time is less than 5 seconds
@@ -65,7 +50,7 @@ def test_text_generate_response_time(text_gen_service):
         return_value={"choices": [{"text": "response"}]},
     ):
         start_time = time.time()
-        result = text_gen_service.text_generate(
+        result = text_gen_service.chat_generate(
             "Hello"
         )  # This is a placeholder, the actual input can be decided later
         end_time = time.time()
