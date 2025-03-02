@@ -3,3 +3,4 @@ models/
 .env
 .vscode/
 recorded_audio.wav
+.venv/

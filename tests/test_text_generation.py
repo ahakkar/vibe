@@ -3,15 +3,21 @@ import time
 from unittest.mock import patch, MagicMock
 from text_generation import TextGenLlamaService
 
+
 @pytest.fixture
 def text_gen_service():
     return TextGenLlamaService()
 
+
 # Checks that LLM gives a response
 def test_text_generate(text_gen_service):
-    with patch.object(text_gen_service.llm_model, '__call__', return_value=MagicMock()):
-        result = text_gen_service.text_generate("Hello") # This is a placeholder, the actual input can be decided later
+    with patch.object(text_gen_service.llm_model, "__call__", return_value=MagicMock()):
+        result = text_gen_service.text_generate(
+            "Hello"
+        )  # This is a placeholder, the actual input can be decided later
         assert result is not None
+
+
 """
 This is Copilot genearated code. I have to modify it to make it work.
 def test_init_default_values():
@@ -41,11 +47,19 @@ def test_init_custom_values():
     assert service.do_sample is False
     assert isinstance(service.llm_model, Llama)
 """
+
+
 # Checks that the response time is less than 5 seconds
 def test_text_generate_response_time(text_gen_service):
-            with patch.object(text_gen_service.llm_model, '__call__', return_value={"choices": [{"text": "response"}]}):
-                start_time = time.time()
-                result = text_gen_service.text_generate("Hello") # This is a placeholder, the actual input can be decided later
-                end_time = time.time()
-                assert result == "response"
-                assert (end_time - start_time) < 5
+    with patch.object(
+        text_gen_service.llm_model,
+        "__call__",
+        return_value={"choices": [{"text": "response"}]},
+    ):
+        start_time = time.time()
+        result = text_gen_service.text_generate(
+            "Hello"
+        )  # This is a placeholder, the actual input can be decided later
+        end_time = time.time()
+        assert result == "response"
+        assert (end_time - start_time) < 5

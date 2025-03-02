@@ -5,6 +5,7 @@ from piper.voice import PiperVoice
 
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
 
+
 class TextToSpeech:
     def __init__(self, device_index=1):
         self.model_path = MODEL_PATH
@@ -20,7 +21,7 @@ class TextToSpeech:
                 device=self.device_index,
                 samplerate=self.output_sample_rate,
                 channels=1,
-                dtype="int16"
+                dtype="int16",
             )
             self.stream.start()
             # print(f"Audio stream initialized with sample rate: {self.output_sample_rate}")
@@ -32,7 +33,9 @@ class TextToSpeech:
         # Use SoX to resample the audio data in memory
         tfm = sox.Transformer()
         tfm.set_output_format(rate=target_sample_rate)
-        resampled_audio = tfm.build_array(input_array=audio_data, sample_rate_in=orig_sample_rate)
+        resampled_audio = tfm.build_array(
+            input_array=audio_data, sample_rate_in=orig_sample_rate
+        )
         return resampled_audio.astype(np.int16)
 
     def synthesize(self, text):
@@ -44,7 +47,9 @@ class TextToSpeech:
                 int_data = np.frombuffer(audio_bytes, dtype=np.int16)
                 if self.output_sample_rate != self.piper_sample_rate:
                     # Resample the audio data to match the output stream's sample rate
-                    int_data = self.resample_audio(int_data, self.piper_sample_rate, self.output_sample_rate)
+                    int_data = self.resample_audio(
+                        int_data, self.piper_sample_rate, self.output_sample_rate
+                    )
                 self.stream.write(int_data)
             self.stream.stop()
         else:
