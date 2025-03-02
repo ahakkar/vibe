@@ -1,4 +1,6 @@
 __pycache__/
 models/
+.env
+.vscode/
 recorded_audio.wav
 .venv/
