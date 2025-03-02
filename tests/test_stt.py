@@ -1,7 +1,20 @@
 import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
-from STT import AudioRecordingService, SpeechToTextService
+
+# Mock the imports of the modules that are not installed
+with patch.dict(
+    "sys.modules",
+    {
+        "torch": MagicMock(),
+        "torchaudio": MagicMock(),
+        "pyaudio": MagicMock(),
+        "onnxruntime": MagicMock(),
+        "transformers": MagicMock(),
+        "blessed": MagicMock(),
+    },
+):
+    from backend.service1.src.stt import AudioRecordingService, SpeechToTextService
 
 
 @pytest.fixture

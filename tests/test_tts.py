@@ -2,7 +2,16 @@ import pytest
 import numpy as np
 import sounddevice as sd
 from unittest.mock import patch, MagicMock
-from TTS import TextToSpeech
+
+# Mock the imports of the modules that are not installed
+with patch.dict(
+    "sys.modules",
+    {
+        "sox": MagicMock(),
+        "piper.voice": MagicMock(),
+    },
+):
+    from backend.service1.src.tts import TextToSpeech
 
 
 @pytest.fixture

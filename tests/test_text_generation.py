@@ -1,12 +1,20 @@
 import pytest
 import time
 from unittest.mock import patch, MagicMock
-from text_generation import TextGenLlamaService
+
+# Mock the imports of the modules that are not installed
+with patch.dict(
+    "sys.modules",
+    {
+        "llama_cpp": MagicMock(),
+    },
+):
+    from backend.service1.src.text_gen import TextGenService
 
 
 @pytest.fixture
 def text_gen_service():
-    return TextGenLlamaService()
+    return TextGenService()
 
 
 # Checks that LLM gives a response
@@ -21,7 +29,7 @@ def test_text_generate(text_gen_service):
 """
 This is Copilot genearated code. I have to modify it to make it work.
 def test_init_default_values():
-    service = TextGenLlamaService()
+    service = TextGenService()
     assert service.max_new_tokens == 30
     assert service.no_repeat_ngram_size == 2
     assert service.temperature == 0.2
@@ -31,7 +39,7 @@ def test_init_default_values():
     assert isinstance(service.llm_model, Llama)
 
 def test_init_custom_values():
-    service = TextGenLlamaService(
+    service = TextGenService(
         max_new_tokens=50,
         no_repeat_ngram_size=3,
         tempreature=0.5,
