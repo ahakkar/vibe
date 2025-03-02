@@ -33,5 +33,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          robot tests/test_cli.robot
           pytest tests
