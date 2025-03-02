@@ -1,0 +1,32 @@
+name: Run Python Tests
+
+on:
+  push:
+    branches:
+      - robotTesting
+  pull_request:
+    branches:
+      - robotTesting
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'  # Change to the version you need
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements.txt  # Install dependencies
+
+      - name: Run Tests
+        run: |
+          robot tests/test_cli.robot
+          # pytest --junitxml=reports/results.xml  # Run tests using pytest
