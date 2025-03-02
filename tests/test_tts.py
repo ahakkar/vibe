@@ -16,17 +16,17 @@ with patch.dict(
 
 @pytest.fixture
 def tts():
-    return TextToSpeech()
+    tts_instance = TextToSpeech()
+    yield tts_instance
+    tts_instance.stop()
 
 
 # Tests check the correct actions of the individual methods against mock objects.
-
-
 def test_initialize_stream_success(tts):
     with patch.object(sd, "OutputStream", return_value=MagicMock()) as mock_stream:
         tts.initialize_stream()
         mock_stream.assert_called_once_with(
-            samplerate=tts.voice.config.sample_rate, channels=1, dtype="int16"
+            device=1, samplerate=44100, channels=1, dtype="int16"
         )
         assert tts.stream is not None
 

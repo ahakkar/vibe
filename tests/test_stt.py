@@ -19,7 +19,9 @@ with patch.dict(
 
 @pytest.fixture
 def audio_service():
-    return AudioRecordingService(device_index=7)
+    audio_service_instance = AudioRecordingService(device_index=7)
+    yield audio_service_instance
+    audio_service_instance.stop_recording()
 
 
 @pytest.fixture
@@ -28,8 +30,6 @@ def stt_service():
 
 
 # Tests check the correct actions of the individual methods against mock objects.
-
-
 def test_start_recording(audio_service):
     with patch.object(
         audio_service.audio, "open", return_value=MagicMock()
