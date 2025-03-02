@@ -1,2 +1,4 @@
 __pycache__/
 models/
+recorded_audio.wav
+.venv/
