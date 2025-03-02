@@ -3,7 +3,7 @@ import requests
 
 
 def download_file(url, dest_path):
-    """ Download a file from a URL to a destination path.
+    """Download a file from a URL to a destination path.
 
     Args:
         url String: The URL to download the file from.
@@ -33,7 +33,7 @@ def download_file(url, dest_path):
 
 
 def download_folder(repo_url, folder_path, dest_path):
-    """ Download an entire folder from a Hugging Face model repository.
+    """Download an entire folder from a Hugging Face model repository.
 
     Args:
         repo_url String: The Hugging Face model repository base URL.
@@ -60,7 +60,7 @@ def main():
     """
     # Define the models to download
     models = {
-        "Ahma-3B-Instruct.Q4_K_S.gguf": "https://huggingface.co/mradermacher/Ahma-3B-Instruct-GGUF/resolve/main/Ahma-3B-Instruct.Q4_K_S.gguf",
+        "Gemma2:2b_unsloth.Q4_K_M.gguf": "https://huggingface.co/KalleLaht/Gemma2_2b-fine-tuned-finnish/resolve/main/Gemma2%3A2b_unsloth.Q4_K_M.gguf",
         "fi_FI-harri-medium.onnx": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx",
         "fi_FI-harri-medium.onnx.json": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx.json",
         "wav2vec2_model.onnx": "https://huggingface.co/KalleLaht/wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX/resolve/main/wav2vec2_model.onnx",
