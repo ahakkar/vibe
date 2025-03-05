@@ -29,45 +29,48 @@ def test_constants():
 
 
 # Checks that LLM gives a response
-# def test_text_generate(text_gen_service):
-#     """
-#     Test the chat_generate method of the TextGenService class.
-#     """
-#     with patch.object(text_gen_service.llm_model, "__call__", return_value=MagicMock()):
-#         result = text_gen_service.chat_generate(
-#             "Hello"
-#         )  # This is a placeholder, the actual input can be decided later
-#         assert result is not None
+@pytest.mark.skip()
+def test_text_generate(text_gen_service):
+    """
+    Test the chat_generate method of the TextGenService class.
+    """
+    with patch.object(text_gen_service.llm_model, "__call__", return_value=MagicMock()):
+        result = text_gen_service.chat_generate(
+            "Hello"
+        )  # This is a placeholder, the actual input can be decided later
+        assert result is not None
 
 
-# def test_init_default_values():
-#     """
-#     Test the default values of the TextGenService class.
-#     """
-#     text_gen_service = TextGenService()
-#     assert text_gen_service.max_new_tokens == 100
-#     assert text_gen_service.temperature == 0.2
-#     assert text_gen_service.top_p == 0.95
-#     assert text_gen_service.top_k == 40
-#     assert text_gen_service.repeat_penalty == 1.2
-#     assert text_gen_service.do_sample is True
-#     assert isinstance(text_gen_service.llm_model, MagicMock)
+@pytest.mark.skip()
+def test_init_default_values():
+    """
+    Test the default values of the TextGenService class.
+    """
+    text_gen_service = TextGenService()
+    assert text_gen_service.max_new_tokens == 100
+    assert text_gen_service.temperature == 0.2
+    assert text_gen_service.top_p == 0.95
+    assert text_gen_service.top_k == 40
+    assert text_gen_service.repeat_penalty == 1.2
+    assert text_gen_service.do_sample is True
+    assert isinstance(text_gen_service.llm_model, MagicMock)
 
 
 # # Checks that the response time is less than 5 seconds
-# def test_text_generate_response_time(text_gen_service):
-#     """
-#     Test the chat_generate method of the TextGenService class.
-#     """
-#     with patch.object(
-#         text_gen_service.llm_model,
-#         "__call__",
-#         return_value={"choices": [{"text": "response"}]},
-#     ):
-#         start_time = time.time()
-#         result = text_gen_service.chat_generate(
-#             "Hello"
-#         )  # This is a placeholder, the actual input can be decided later
-#         end_time = time.time()
-#         assert result == "response"
-#         assert (end_time - start_time) < 5
+@pytest.mark.skip()
+def test_text_generate_response_time(text_gen_service):
+    """
+    Test the chat_generate method of the TextGenService class.
+    """
+    with patch.object(
+        text_gen_service.llm_model,
+        "__call__",
+        return_value={"choices": [{"text": "response"}]},
+    ):
+        start_time = time.time()
+        result = text_gen_service.chat_generate(
+            "Hello"
+        )  # This is a placeholder, the actual input can be decided later
+        end_time = time.time()
+        assert result == "response"
+        assert (end_time - start_time) < 5

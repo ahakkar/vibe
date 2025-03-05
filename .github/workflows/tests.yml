@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - unitTestingInitialize
-      - robotTesting
   pull_request:
     branches:
       - main
