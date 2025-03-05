@@ -14,16 +14,25 @@ with patch.dict(
 
 @pytest.fixture
 def text_gen_service():
+    """
+    Fixture for the TextGenService class.
+    """
     return TextGenService()
 
 
 def test_constants():
+    """
+    Test the constants MODEL_NAME and LLM_MODEL_PATH.
+    """
     assert MODEL_NAME == "Gemma2:2b_unsloth.Q4_K_M"
     assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
 
 
 # Checks that LLM gives a response
 def test_text_generate(text_gen_service):
+    """
+    Test the chat_generate method of the TextGenService class.
+    """
     with patch.object(text_gen_service.llm_model, "__call__", return_value=MagicMock()):
         result = text_gen_service.chat_generate(
             "Hello"
@@ -32,6 +41,9 @@ def test_text_generate(text_gen_service):
 
 
 def test_init_default_values():
+    """
+    Test the default values of the TextGenService class.
+    """
     text_gen_service = TextGenService()
     assert text_gen_service.max_new_tokens == 100
     assert text_gen_service.temperature == 0.2
@@ -44,6 +56,9 @@ def test_init_default_values():
 
 # Checks that the response time is less than 5 seconds
 def test_text_generate_response_time(text_gen_service):
+    """
+    Test the chat_generate method of the TextGenService class.
+    """
     with patch.object(
         text_gen_service.llm_model,
         "__call__",

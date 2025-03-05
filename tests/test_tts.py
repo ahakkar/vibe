@@ -16,16 +16,25 @@ with patch.dict(
 
 @pytest.fixture
 def tts():
+    """
+    Fixture for the TextToSpeech class.
+    """
     tts_instance = TextToSpeech()
     yield tts_instance
     tts_instance.stop()
 
 
 def test_constants():
+    """
+    Test the constant values.
+    """
     assert MODEL_PATH == "/models/fi_FI-harri-medium.onnx"
 
 
 def test_test_to_speech_init(tts):
+    """
+    Test the initialization of the TextToSpeech class.
+    """
     assert tts.model_path == MODEL_PATH
     assert tts.voice is not None
     assert tts.device_index == 1
@@ -39,6 +48,9 @@ def test_test_to_speech_init(tts):
 
 # Tests check the correct actions of the individual methods against mock objects.
 def test_initialize_stream_success(tts):
+    """
+    Test the initialize_stream method when the stream is successfully initialized.
+    """
     with patch.object(sd, "OutputStream", return_value=MagicMock()) as mock_stream:
         tts.initialize_stream()
         mock_stream.assert_called_once_with(
@@ -48,12 +60,18 @@ def test_initialize_stream_success(tts):
 
 
 def test_initialize_stream_failure(tts):
+    """
+    Test the initialize_stream method when the stream initialization fails.
+    """
     with patch.object(sd, "OutputStream", side_effect=sd.PortAudioError("Test Error")):
         tts.initialize_stream()
         assert tts.stream is None
 
 
 def test_synthesize_with_stream(tts):
+    """
+    Test the synthesize method when the stream is available.
+    """
     tts.stream = MagicMock()
     tts.voice.synthesize_stream_raw = MagicMock(return_value=[b"\x00\x01", b"\x02\x03"])
     with patch.object(
@@ -66,6 +84,9 @@ def test_synthesize_with_stream(tts):
 
 
 def test_synthesize_without_stream(tts):
+    """
+    Test the synthesize method when the stream is not available.
+    """
     with patch.object(tts, "initialize_stream") as mock_initialize_stream:
         tts.stream = None
         tts.synthesize("test text")
@@ -74,6 +95,9 @@ def test_synthesize_without_stream(tts):
 
 
 def test_synthesize_stream_initialization_failure(tts):
+    """
+    Test the synthesize method when the stream initialization fails.
+    """
     with patch.object(tts, "initialize_stream") as mock_initialize_stream:
         tts.stream = None
         mock_initialize_stream.side_effect = lambda: setattr(tts, "stream", None)
