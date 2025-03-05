@@ -1,5 +1,15 @@
 name: Run Python Tests
 
+on:
+  push:
+    branches:
+      - main
+      - unitTestingInitialize
+      - robotTesting
+  pull_request:
+    branches:
+      - main
+
 jobs:
   test:
     runs-on: ubuntu-latest
