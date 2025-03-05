@@ -8,7 +8,6 @@ services:
     volumes:
       - ./backend:/usr/src/app
       - ./models:/models
-      - ./tests:/tests
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering
       - RUNNING_IN_DOCKER=true # Indicate that the code is running inside Docker
