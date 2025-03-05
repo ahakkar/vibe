@@ -3,3 +3,5 @@ models/
 .env
 .vscode/
 recorded_audio.wav
+.venv/
+.pytest_cache/
