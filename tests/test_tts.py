@@ -2,22 +2,47 @@ import pytest
 import numpy as np
 import sounddevice as sd
 from unittest.mock import patch, MagicMock
-from TTS import TextToSpeech
+
+# Mock the imports of the modules that are not installed
+with patch.dict(
+    "sys.modules",
+    {
+        "sox": MagicMock(),
+        "piper.voice": MagicMock(),
+    },
+):
+    from backend.service1.src.tts import TextToSpeech, MODEL_PATH
 
 
 @pytest.fixture
 def tts():
-    return TextToSpeech()
+    tts_instance = TextToSpeech()
+    yield tts_instance
+    tts_instance.stop()
+
+
+def test_constants():
+    assert MODEL_PATH == "/models/fi_FI-harri-medium.onnx"
+
+
+def test_test_to_speech_init(tts):
+    assert tts.model_path == MODEL_PATH
+    assert tts.voice is not None
+    assert tts.device_index == 1
+    assert tts.stream is None
+    assert tts.piper_sample_rate == tts.voice.config.sample_rate
+    assert tts.output_sample_rate == 44100
+    assert tts.sentence_queue is not None
+    assert tts._stop_event is not None
+    assert tts._thread is not None
 
 
 # Tests check the correct actions of the individual methods against mock objects.
-
-
 def test_initialize_stream_success(tts):
     with patch.object(sd, "OutputStream", return_value=MagicMock()) as mock_stream:
         tts.initialize_stream()
         mock_stream.assert_called_once_with(
-            samplerate=tts.voice.config.sample_rate, channels=1, dtype="int16"
+            device=1, samplerate=44100, channels=1, dtype="int16"
         )
         assert tts.stream is not None
 
