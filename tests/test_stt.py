@@ -13,7 +13,7 @@ with patch.dict(
         "transformers": MagicMock(),
         "blessed": MagicMock(),
     },
-):
+) as sttModules:
     from backend.service1.src.stt import (
         AudioRecordingService,
         SpeechToTextService,
@@ -23,16 +23,12 @@ with patch.dict(
         term,
     )
 
-
 @pytest.fixture
 def audio_service():
     """
     Fixture for the AudioRecordingService class
     """
-    audio_service_instance = AudioRecordingService(device_index=7)
-    yield audio_service_instance
-    audio_service_instance.stop_recording()
-
+    return AudioRecordingService(device_index=7)
 
 @pytest.fixture
 def stt_service():
@@ -66,7 +62,6 @@ def test_audio_recording_service_init(audio_service):
     assert audio_service.device_index == 7
     assert audio_service.recording_thread is None
 
-
 def test_speech_to_text_service_init(stt_service):
     """
     Test the initialization of the SpeechToTextService class
@@ -74,48 +69,86 @@ def test_speech_to_text_service_init(stt_service):
     assert stt_service.processor is not None
     assert stt_service.ort_session is not None
 
+def test_start_recording_when_already_recording(audio_service):
+    audio_service.recording = True
+    audio_service.start_recording()
+    term.center.assert_called_with("Already recording!")
 
-# Tests check the correct actions of the individual methods against mock objects.
-@pytest.mark.skip()
-def test_start_recording(audio_service):
+def test_start_recording_success(audio_service, mocker):
     """
     Test the start_recording method of the AudioRecordingService class
     """
-    with patch.object(
-        audio_service.audio, "open", return_value=MagicMock()
-    ) as mock_open:
-        audio_service.start_recording()
-        mock_open.assert_called_once()
-        assert audio_service.recording is True
-        assert audio_service.recording_thread.is_alive()
+    mock_open = mocker.patch.object(audio_service.audio, "open", return_value=MagicMock())
+    audio_service.start_recording()
+    mock_open.assert_called_once()
+    assert audio_service.recording is True
+    term.center.assert_called_with("Recording...")
+    assert audio_service.recording_thread.is_alive()
 
+    # Stop recording
+    audio_service.recording = False
+    audio_service.recording_thread.join() 
+    audio_service.stream.stop_stream()
+    audio_service.stream.close()
 
-@pytest.mark.skip()
-def test_stop_recording(audio_service):
+def test_start_recording_device_error(audio_service, mocker):
+    mock_open = mocker.patch.object(audio_service.audio, "open", side_effect=Exception("Device Error"))
+    audio_service.start_recording()
+    mock_open.assert_called_once()
+    assert audio_service.recording is False
+
+    term.bold.assert_called_once_with("Please check the audio device index.")
+
+    term.center.assert_any_call("Failed to open audio stream: Device Error")
+    term.center.assert_any_call(term.bold("Please check the audio device index."))
+
+def test_stop_recordisng(audio_service, mocker):
     """
     Test the stop_recording method of the AudioRecordingService class
     """
-    with patch.object(
-        audio_service.audio, "open", return_value=MagicMock()
-    ) as mock_open:
-        audio_service.start_recording()
-        audio_service.stop_recording()
-        assert audio_service.recording is False
-        assert not audio_service.recording_thread.is_alive()
+    mocker.patch.object(audio_service.audio, "open", return_value=MagicMock())
+    audio_service.start_recording()
 
+    # Stop recording
+    audio_service.recording = False
+    audio_service.recording_thread.join() 
+    audio_service.stream.stop_stream()
+    audio_service.stream.close()
 
-@pytest.mark.skip()
-def test_save_audio_to_file(audio_service):
+    assert audio_service.recording is False
+    assert not audio_service.recording_thread.is_alive()
+
+def test_save_audio_to_file_path(audio_service, mocker):
     """
     Test the save_audio_to_file method of the AudioRecordingService class
     """
-    audio_service.frames = [b"\x00\x01", b"\x02\x03"]
-    with patch("wave.open", new_callable=MagicMock) as mock_wave_open:
-        audio_service.save_audio_to_file("test.wav")
-        mock_wave_open.assert_called_once_with("test.wav", "wb")
+    mock_getenv = mocker.patch("os.getenv")
+    mock_join = mocker.patch("os.path.join")
+    mock_dirname = mocker.patch("os.path.dirname")
 
+    mock_wave_file = MagicMock()
+    mock_wave_file._file = MagicMock()
+
+    for docker_env, expected_path in [
+        (True, "/usr/src/app/recorded_audio.wav"),
+        (False, "/backend/service1/src/recorded_audio.wav")
+    ]:
+        mock_getenv.return_value = docker_env
+        mock_join.return_value = expected_path
+        mock_dirname.return_value = "/mock/dir"
+
+        audio_service.save_audio_to_file()
+
+        if docker_env:
+            mock_join.assert_called_with("/usr/src/app", "recorded_audio.wav")
+        else:
+            mock_join.assert_called_with("/mock/dir", "recorded_audio.wav")
 
 @pytest.mark.skip()
+def test_save_audio_to_file_failed(audio_service):
+    audio_service.save_audio_to_file()
+    term.center.assert_called_with("Failed to save audio file:")
+
 def test_process_audio(stt_service):
     """
     Test the process_audio method of the SpeechToTextService class
