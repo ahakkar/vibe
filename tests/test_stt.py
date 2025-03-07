@@ -78,6 +78,13 @@ def test_speech_to_text_service_init(stt_service):
 
 
 @pytest.mark.unit()
+def test_start_recording_when_already_recording(audio_service):
+    audio_service.recording = True
+    audio_service.start_recording()
+    term.center.assert_called_with("Already recording!")
+
+
+@pytest.mark.unit()
 def test_start_recording(audio_service):
     """
     Test the start_recording method of the AudioRecordingService class
@@ -92,6 +99,19 @@ def test_start_recording(audio_service):
         mock_open.assert_called_once()
         assert audio_service.recording is True
         assert audio_service.recording_thread.is_alive()
+
+
+@pytest.mark.unit()
+def test_start_recording_device_error(audio_service):
+    with patch.object(audio_service.audio, "open", side_effect=Exception("Device Error")) as mock_open:
+        audio_service.start_recording()
+        mock_open.assert_called_once()
+        assert audio_service.recording is False
+
+        term.bold.assert_called_once_with("Please check the audio device index.")
+
+        term.center.assert_any_call("Failed to open audio stream: Device Error")
+        term.center.assert_any_call(term.bold("Please check the audio device index."))
 
 
 @pytest.mark.unit()
