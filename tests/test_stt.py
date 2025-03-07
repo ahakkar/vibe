@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
 
+
 # Mock the imports of the modules that are not installed
 with patch.dict(
     "sys.modules",
@@ -23,7 +24,6 @@ with patch.dict(
         term,
     )
 
-
 @pytest.fixture
 def audio_service():
     """
@@ -31,7 +31,7 @@ def audio_service():
     """
     audio_service_instance = AudioRecordingService(device_index=7)
     yield audio_service_instance
-    audio_service_instance.stop_recording()
+    audio_service_instance.terminate_audio()
 
 
 @pytest.fixture
@@ -42,6 +42,7 @@ def stt_service():
     return SpeechToTextService()
 
 
+@pytest.mark.unit()
 def test_constants():
     """
     Test the constants defined in the STT module
@@ -52,6 +53,7 @@ def test_constants():
     assert term is not None
 
 
+@pytest.mark.unit()
 def test_audio_recording_service_init(audio_service):
     """
     Test the initialization of the AudioRecordingService class
@@ -66,7 +68,7 @@ def test_audio_recording_service_init(audio_service):
     assert audio_service.device_index == 7
     assert audio_service.recording_thread is None
 
-
+@pytest.mark.unit()
 def test_speech_to_text_service_init(stt_service):
     """
     Test the initialization of the SpeechToTextService class
@@ -75,14 +77,16 @@ def test_speech_to_text_service_init(stt_service):
     assert stt_service.ort_session is not None
 
 
-# Tests check the correct actions of the individual methods against mock objects.
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_start_recording(audio_service):
     """
     Test the start_recording method of the AudioRecordingService class
     """
+    mock_audio_stream = MagicMock()
+    mock_audio_stream.read.return_value = b'\x00\x01'  # Mock bytes-like object
+
     with patch.object(
-        audio_service.audio, "open", return_value=MagicMock()
+        audio_service.audio, "open", return_value=mock_audio_stream
     ) as mock_open:
         audio_service.start_recording()
         mock_open.assert_called_once()
@@ -90,13 +94,16 @@ def test_start_recording(audio_service):
         assert audio_service.recording_thread.is_alive()
 
 
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_stop_recording(audio_service):
     """
     Test the stop_recording method of the AudioRecordingService class
     """
+    mock_audio_stream = MagicMock()
+    mock_audio_stream.read.return_value = b'\x00\x01'  # Mock bytes-like object
+
     with patch.object(
-        audio_service.audio, "open", return_value=MagicMock()
+        audio_service.audio, "open", return_value=mock_audio_stream
     ) as mock_open:
         audio_service.start_recording()
         audio_service.stop_recording()
@@ -105,17 +112,74 @@ def test_stop_recording(audio_service):
 
 
 @pytest.mark.skip()
-def test_save_audio_to_file(audio_service):
+def test_save_audio_to_file_local(audio_service):
     """
     Test the save_audio_to_file method of the AudioRecordingService class
     """
-    audio_service.frames = [b"\x00\x01", b"\x02\x03"]
-    with patch("wave.open", new_callable=MagicMock) as mock_wave_open:
-        audio_service.save_audio_to_file("test.wav")
-        mock_wave_open.assert_called_once_with("test.wav", "wb")
+    pass
+    
+
 
 
 @pytest.mark.skip()
+def test_save_audio_to_file_docker(audio_service):
+    """
+    Test the save_audio_to_file method of the AudioRecordingService class when running in Docker
+    """
+    pass
+  
+
+@pytest.mark.unit()
+def test_terminate_audio(audio_service):
+    """
+    Test the terminate_audio method of the AudioRecordingService class
+    """
+    with patch.object(audio_service, 'stop_recording') as mock_stop_recording, \
+         patch.object(audio_service, 'audio') as mock_audio, \
+         patch.object(audio_service, 'recording_thread') as mock_recording_thread:
+        
+        # Mock the recording state and thread state
+        audio_service.recording = True
+        mock_recording_thread.is_alive.return_value = True
+
+        audio_service.terminate_audio()
+
+        # Assert that stop_recording is called if recording is True
+        mock_stop_recording.assert_called_once()
+
+        # Assert that join is called if the recording thread is alive
+        mock_recording_thread.join.assert_called_once()
+
+        # Assert that audio.terminate is called
+        mock_audio.terminate.assert_called_once()
+
+
+@pytest.mark.unit()
+def test_terminate_audio_not_recording(audio_service):
+    """
+    Test the terminate_audio method when not recording
+    """
+    with patch.object(audio_service, 'stop_recording') as mock_stop_recording, \
+         patch.object(audio_service, 'audio') as mock_audio, \
+         patch.object(audio_service, 'recording_thread') as mock_recording_thread:
+        
+        # Mock the recording state and thread state
+        audio_service.recording = False
+        mock_recording_thread.is_alive.return_value = False
+
+        audio_service.terminate_audio()
+
+        # Assert that stop_recording is not called if recording is False
+        mock_stop_recording.assert_not_called()
+
+        # Assert that join is not called if the recording thread is not alive
+        mock_recording_thread.join.assert_not_called()
+
+        # Assert that audio.terminate is called
+        mock_audio.terminate.assert_called_once()
+
+
+@pytest.mark.unit()
 def test_process_audio(stt_service):
     """
     Test the process_audio method of the SpeechToTextService class
