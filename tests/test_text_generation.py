@@ -29,6 +29,20 @@ def test_constants():
     assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
 
 
+@pytest.mark.unit()
+def test_init_default_values():
+    """
+    Test the default values of the TextGenService class.
+    """
+    text_gen_service = TextGenService()
+    assert text_gen_service.max_new_tokens == 100
+    assert text_gen_service.temperature == 0.6
+    assert text_gen_service.top_p == 0.95
+    assert text_gen_service.top_k == 40
+    assert text_gen_service.repeat_penalty == 1.2
+    assert text_gen_service.do_sample is True
+    assert isinstance(text_gen_service.llm_model, MagicMock)
+
 
 # Checks that LLM gives a response
 @pytest.mark.unit()
@@ -41,21 +55,6 @@ def test_text_generate(text_gen_service):
             "Hello"
         )  # This is a placeholder, the actual input can be decided later
         assert result is not None
-
-
-@pytest.mark.skip()
-def test_init_default_values():
-    """
-    Test the default values of the TextGenService class.
-    """
-    text_gen_service = TextGenService()
-    assert text_gen_service.max_new_tokens == 100
-    assert text_gen_service.temperature == 0.2
-    assert text_gen_service.top_p == 0.95
-    assert text_gen_service.top_k == 40
-    assert text_gen_service.repeat_penalty == 1.2
-    assert text_gen_service.do_sample is True
-    assert isinstance(text_gen_service.llm_model, MagicMock)
 
 
 # # Checks that the response time is less than 5 seconds
