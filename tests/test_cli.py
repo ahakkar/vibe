@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock, mock_open
 import os
 
+
 ENV_PATH = 'test.env'
 
 with patch.dict(
@@ -22,9 +23,8 @@ with patch.dict(
         "stt": MagicMock(),
     },
 ):
-    from backend.service1.src.cli import THEME
+    from backend.service1.src.cli import THEME, ENV_PATH, CommandLineService, APP_TITLE
 
-# Test case for the THEME
 def test_theme():
     expected_theme = {
         "title": "bold underline",
@@ -42,7 +42,6 @@ def test_theme():
         assert THEME[key] == value, f"Value for key '{key}' is incorrect. Expected: '{value}', got: '{THEME[key]}'"
 
 
-# Assuming the CommandLineService class is defined as follows
 class CommandLineService:
     def create_env_file(self):
         """
@@ -54,44 +53,58 @@ class CommandLineService:
                 f.write("OUTPUT_DEVICE_NAME=None\n")
 
 
-# Test for the create_env_file method
 def test_create_env_file_when_not_exists():
-    # Ensure that the ENV_PATH doesn't exist before the test
     if os.path.exists(ENV_PATH):
         os.remove(ENV_PATH)
 
-    # Create an instance of CommandLineService
     cls = CommandLineService()
 
-    # Mock the open() function to simulate writing to a file
     with patch('builtins.open', mock_open()) as mock_file:
-        with patch('os.path.exists', return_value=False):  # Mocking that the file doesn't exist
+        with patch('os.path.exists', return_value=False): 
             cls.create_env_file()
 
-            # Check that the file was created (open was called)
             mock_file.assert_called_once_with(ENV_PATH, 'w')
 
-            # Check that the correct content was written to the file
             mock_file().write.assert_any_call("INPUT_DEVICE_NAME=None\n")
             mock_file().write.assert_any_call("OUTPUT_DEVICE_NAME=None\n")
 
 
 def test_create_env_file_when_exists():
-    # Make sure the ENV_PATH exists before the test
     with open(ENV_PATH, 'w') as f:
         f.write("INPUT_DEVICE_NAME=None\n")
         f.write("OUTPUT_DEVICE_NAME=None\n")
 
-    # Create an instance of CommandLineService
     cls = CommandLineService()
 
-    # Mock the open() function to simulate writing to a file
     with patch('builtins.open', mock_open()) as mock_file:
-        with patch('os.path.exists', return_value=True):  # Mocking that the file exists
+        with patch('os.path.exists', return_value=True): 
             cls.create_env_file()
 
-            # Check that the open() method was not called since the file already exists
             mock_file.assert_not_called()
 
-    # Clean up the test file after running the test
     os.remove(ENV_PATH)
+
+@pytest.fixture
+def test_display_neon_title():
+    with patch('pyfiglet.figlet_format', return_value="Mocked ASCII Title") as mock_figlet:
+        
+        app = CommandLineService()
+
+        app.term.red = MagicMock()
+        app.term.magenta = MagicMock()
+        app.term.blue = MagicMock()
+        app.term.cyan = MagicMock()
+        app.term.green = MagicMock()
+        app.term.yellow = MagicMock()
+        app.term.fullscreen = MagicMock()
+        app.term.cbreak = MagicMock()
+        app.term.hidden_cursor = MagicMock()
+        app.term.inkey = MagicMock(return_value=None)
+        
+        app.display_neon_title()
+
+        mock_figlet.assert_called_once_with("Your App Title")  
+        
+        app.term.fullscreen.assert_called_once()
+        app.term.cbreak.assert_called_once()
+        app.term.hidden_cursor.assert_called_once()
