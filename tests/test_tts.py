@@ -1,3 +1,4 @@
+import queue
 import pytest
 import numpy as np
 import sounddevice as sd
@@ -24,6 +25,7 @@ def tts():
     tts_instance.stop()
 
 
+@pytest.mark.unit()
 def test_constants():
     """
     Test the constant values.
@@ -31,6 +33,7 @@ def test_constants():
     assert MODEL_PATH == "/models/fi_FI-harri-medium.onnx"
 
 
+@pytest.mark.unit()
 def test_test_to_speech_init(tts):
     """
     Test the initialization of the TextToSpeech class.
@@ -41,26 +44,34 @@ def test_test_to_speech_init(tts):
     assert tts.stream is None
     assert tts.piper_sample_rate == tts.voice.config.sample_rate
     assert tts.output_sample_rate == 44100
-    assert tts.sentence_queue is not None
-    assert tts._stop_event is not None
-    assert tts._thread is not None
+    assert isinstance(tts.sentence_queue, queue.Queue)
+    assert tts._stop_event.is_set() is False
+    assert tts._thread.is_alive()
 
 
 # Tests check the correct actions of the individual methods against mock objects.
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_initialize_stream_success(tts):
     """
     Test the initialize_stream method when the stream is successfully initialized.
     """
-    with patch.object(sd, "OutputStream", return_value=MagicMock()) as mock_stream:
+    with patch("sounddevice.OutputStream") as mock_output_stream:
+        mock_stream_instance = MagicMock()
+        mock_output_stream.return_value = mock_stream_instance
+
         tts.initialize_stream()
-        mock_stream.assert_called_once_with(
-            device=1, samplerate=44100, channels=1, dtype="int16"
+
+        mock_output_stream.assert_called_once_with(
+            device=tts.device_index,
+            samplerate=tts.output_sample_rate,
+            channels=1,
+            dtype="int16",
         )
-        assert tts.stream is not None
+        mock_stream_instance.start.assert_called_once()
+        assert tts.stream == mock_stream_instance
 
 
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_initialize_stream_failure(tts):
     """
     Test the initialize_stream method when the stream initialization fails.
@@ -71,41 +82,48 @@ def test_initialize_stream_failure(tts):
 
 
 @pytest.mark.skip()
-def test_synthesize_with_stream(tts):
+def test_resample_audio(tts):
     """
-    Test the synthesize method when the stream is available.
+    Test the resample_audio method of the TextToSpeech service
     """
-    tts.stream = MagicMock()
-    tts.voice.synthesize_stream_raw = MagicMock(return_value=[b"\x00\x01", b"\x02\x03"])
-    with patch.object(
-        np, "frombuffer", return_value=np.array([1, 2], dtype=np.int16)
-    ) as mock_frombuffer:
-        tts.synthesize("test text")
-        tts.stream.start.assert_called_once()
-        assert tts.stream.write.call_count == 2
-        tts.stream.stop.assert_called_once()
+    pass
+
+
+@pytest.mark.unit()
+def test_synthesize(tts):
+    """
+    Test the synthesize method of the TextToSpeech service
+    """
+    test_text = "Moi, minä olen Harri, miten menee?"
+    with patch.object(tts.sentence_queue, "put") as mock_put:
+        tts.synthesize(test_text)
+        mock_put.assert_called_once_with(test_text)
 
 
 @pytest.mark.skip()
-def test_synthesize_without_stream(tts):
+def test_process_queue(tts):
     """
-    Test the synthesize method when the stream is not available.
+    Test the _process_queue method of the TextToSpeech service
     """
-    with patch.object(tts, "initialize_stream") as mock_initialize_stream:
-        tts.stream = None
-        tts.synthesize("test text")
-        mock_initialize_stream.assert_called_once()
-        assert tts.stream is None
+    test_text = "Moi, minä olen Harri, miten menee?"
+    tts.sentence_queue.put(test_text)
+
+    with patch.object(tts, "_synthesize_text") as mock_synthesize_text:
+        tts._process_queue()
+        mock_synthesize_text.assert_called_once_with(test_text)
 
 
 @pytest.mark.skip()
-def test_synthesize_stream_initialization_failure(tts):
+def test_synthesize_text(tts):
     """
-    Test the synthesize method when the stream initialization fails.
+    Test the _synthesize_text method of the TextToSpeech service
     """
-    with patch.object(tts, "initialize_stream") as mock_initialize_stream:
-        tts.stream = None
-        mock_initialize_stream.side_effect = lambda: setattr(tts, "stream", None)
-        tts.synthesize("test text")
-        mock_initialize_stream.assert_called_once()
-        assert tts.stream is None
+    pass
+
+
+@pytest.mark.skip()
+def test_stop(tts):
+    """
+    Test the stop method of the TextToSpeech service
+    """
+    pass
