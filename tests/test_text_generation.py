@@ -20,6 +20,7 @@ def text_gen_service():
     return TextGenService()
 
 
+@pytest.mark.unit()
 def test_constants():
     """
     Test the constants MODEL_NAME and LLM_MODEL_PATH.
@@ -28,8 +29,9 @@ def test_constants():
     assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
 
 
+
 # Checks that LLM gives a response
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_text_generate(text_gen_service):
     """
     Test the chat_generate method of the TextGenService class.
@@ -57,8 +59,9 @@ def test_init_default_values():
 
 
 # # Checks that the response time is less than 5 seconds
-@pytest.mark.skip()
-def test_text_generate_response_time(text_gen_service):
+@pytest.mark.perf()
+@pytest.mark.parametrize("question", ["Mikä on Suomen Pääkaupunki?", "Onko Turussa hyvä asua?", "Missä Joulupukki asuu?"])
+def test_text_generate_response_time(text_gen_service, question):
     """
     Test the chat_generate method of the TextGenService class.
     """
@@ -68,9 +71,6 @@ def test_text_generate_response_time(text_gen_service):
         return_value={"choices": [{"text": "response"}]},
     ):
         start_time = time.time()
-        result = text_gen_service.chat_generate(
-            "Hello"
-        )  # This is a placeholder, the actual input can be decided later
-        end_time = time.time()
-        assert result == "response"
-        assert (end_time - start_time) < 5
+        text_gen_service.chat_generate(question)
+        first_token_time = time.time()
+        assert (first_token_time - start_time) < 5
