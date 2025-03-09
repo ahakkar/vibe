@@ -70,6 +70,9 @@ def test_speech_to_text_service_init(stt_service):
     assert stt_service.ort_session is not None
 
 def test_start_recording_when_already_recording(audio_service):
+    """
+    Test the start_recording method of the AudioRecordingService class when the service is already recording
+    """
     audio_service.recording = True
     audio_service.start_recording()
     term.center.assert_called_with("Already recording!")
@@ -92,6 +95,9 @@ def test_start_recording_success(audio_service, mocker):
     audio_service.stream.close()
 
 def test_start_recording_device_error(audio_service, mocker):
+    """
+    Test the start_recording method of the AudioRecordingService class when device error occurs
+    """
     mock_open = mocker.patch.object(audio_service.audio, "open", side_effect=Exception("Device Error"))
     audio_service.start_recording()
     mock_open.assert_called_once()
@@ -102,7 +108,7 @@ def test_start_recording_device_error(audio_service, mocker):
     term.center.assert_any_call("Failed to open audio stream: Device Error")
     term.center.assert_any_call(term.bold("Please check the audio device index."))
 
-def test_stop_recordisng(audio_service, mocker):
+def test_stop_recording(audio_service, mocker):
     """
     Test the stop_recording method of the AudioRecordingService class
     """
@@ -146,6 +152,9 @@ def test_save_audio_to_file_path(audio_service, mocker):
 
 @pytest.mark.skip()
 def test_save_audio_to_file_failed(audio_service):
+    """
+    Test save_audio_to_file method of the SpeechToTextService class when the audio service fails to start recording.
+    """
     audio_service.save_audio_to_file()
     term.center.assert_called_with("Failed to save audio file:")
 
