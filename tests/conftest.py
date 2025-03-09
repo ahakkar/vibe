@@ -9,10 +9,10 @@ sys.path.insert(
 )
 
 def pytest_configure(config):
-    config.addinivalue_line("markers", "unit: mark a test as a unit test")
+    config.addinivalue_line("markers", "unit: mark a test as an unit test")
     config.addinivalue_line("markers", "int: mark a test as an integration test")
-    config.addinivalue_line("markers", "sys: mark a test as an system test")
-    config.addinivalue_line("markers", "perf: mark a test as an performance test")
-    config.addinivalue_line("markers", "sec: mark a test as an security test")
+    config.addinivalue_line("markers", "sys: mark a test as a system test")
+    config.addinivalue_line("markers", "perf: mark a test as a performance test")
+    config.addinivalue_line("markers", "sec: mark a test as a security test")
 
     
