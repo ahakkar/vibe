@@ -69,3 +69,11 @@ def test_play_audio_failure(cli):
     with patch.object(sd, "play", side_effect=sd.PortAudioError("Playback Error")):
         with pytest.raises(sd.PortAudioError):
             cli.play_audio(b"\x00\x01\x02\x03", samplerate=44100)
+
+def test_run_all_services(cli):
+    """
+    Test the run_all_services method to ensure it calls run_keyboard_command with all_services=True.
+    """
+    with patch.object(cli, "run_keyboard_command") as mock_run_keyboard_command:
+        cli.run_all_services()
+        mock_run_keyboard_command.assert_called_once_with(all_services=True)
