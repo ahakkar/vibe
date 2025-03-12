@@ -123,18 +123,18 @@ class AudioRecordingService:
         Save the recorded audio to a file.
         """
         # Determine the correct .env path based if running in Docker
+        
         if os.getenv("RUNNING_IN_DOCKER"):
             save_path = os.path.join("/usr/src/app", OUTPUT_FILENAME)
         else:
             save_path = os.path.join(os.path.dirname(__file__), OUTPUT_FILENAME)
 
         try:
-            wave_file = wave.open(save_path, "wb")
-            wave_file.setnchannels(self.channels)
-            wave_file.setsampwidth(self.audio.get_sample_size(pyaudio.paInt16))
-            wave_file.setframerate(self.sample_rate)
-            wave_file.writeframes(b"".join(self.frames))
-            wave_file.close()
+            with wave.open(save_path, "wb") as wave_file:
+                wave_file.setnchannels(self.channels)
+                wave_file.setsampwidth(self.audio.get_sample_size(pyaudio.paInt16))
+                wave_file.setframerate(self.sample_rate)
+                wave_file.writeframes(b"".join(self.frames))
             print(term.center(f"Audio saved to {save_path}"))
         except Exception as e:
             print(term.center(f"Failed to save audio file: {e}"))

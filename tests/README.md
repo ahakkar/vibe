@@ -16,3 +16,16 @@ or
 ```bash
 pytest tests
 ```
+
+# Run tests by mark
+
+{mark}
+unit    -   unit tests
+int     -   integration tests
+sys     -   system tests
+perf    -   performance tests
+sec     -   security tests
+
+```bash
+pytest -v -m {mark}
+```
