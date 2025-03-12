@@ -13,6 +13,7 @@ with patch.dict(
         "torch": MagicMock(),
         "torchaudio": MagicMock(),
         "onnxruntime": MagicMock(),
+        "pyaudio": MagicMock(),
         "transformers": MagicMock(),
         "blessed": MagicMock(),
     },
