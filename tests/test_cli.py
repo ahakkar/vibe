@@ -44,6 +44,9 @@ def cli():
     Fixture for the CLI class.
     """
     cli_instance = CommandLineService()
+    cli_instance.text_gen_service = MagicMock()
+    cli_instance.textToSpeech = MagicMock()
+    cli_instance.term = MagicMock()
     yield cli_instance
 
 def test_cli_init(cli):
@@ -77,3 +80,23 @@ def test_run_all_services(cli):
     with patch.object(cli, "run_keyboard_command") as mock_run_keyboard_command:
         cli.run_all_services()
         mock_run_keyboard_command.assert_called_once_with(all_services=True)
+
+def test_llm_text_generate(cli):
+    """
+    Test the llm_text_generate method to ensure it generates text and optionally synthesizes it.
+    """
+    input_text = "Hello, world!"
+    mock_llm_output = [{"choices": [{"delta": {"content": "Hello, world!"}}]}]
+
+    with patch.object(cli.text_gen_service, "chat_generate", return_value=mock_llm_output):
+        with patch.object(cli.textToSpeech, "synthesize") as mock_synthesize:
+            with patch.object(cli.term, "inkey", side_effect=[None] * 10):
+                cli.llm_text_generate(input_text, synthesize=True)
+                mock_synthesize.assert_called_with("Hello, world!")
+
+
+def run_text_to_speech_service(self):
+    input_text = input("Enter text: ")
+    print(f"[DEBUG] Input received: {input_text}") 
+    self.llm_text_generate(input_text, synthesize=True)
+    print("[DEBUG] Called llm_text_generate successfully")
