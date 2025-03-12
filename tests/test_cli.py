@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 import os
+import time
+
 
 with patch.dict(
     "sys.modules",
@@ -100,3 +102,25 @@ def run_text_to_speech_service(self):
     print(f"[DEBUG] Input received: {input_text}") 
     self.llm_text_generate(input_text, synthesize=True)
     print("[DEBUG] Called llm_text_generate successfully")
+
+
+def test_run_keyboard_command(cli):
+
+    mock_f12 = MagicMock()
+    mock_f12.name = "KEY_F12"
+
+    mock_esc = MagicMock()
+    mock_esc.name = "KEY_ESCAPE"
+
+    with patch.object(cli.term, "inkey", side_effect=[mock_f12, mock_esc]), \
+         patch.object(cli, "_flush_input_buffer") as mock_flush, \
+         patch.object(cli, "_toggle_recording") as mock_toggle, \
+         patch.object(cli, "exit") as mock_exit, \
+         patch("time.sleep", return_value=None):
+        cli.run_keyboard_command()
+
+        mock_flush.assert_called_once()
+        mock_toggle.assert_called_once_with(False)  
+
+        mock_exit.assert_called_once()
+
