@@ -51,6 +51,7 @@ def cli():
     cli_instance.term = MagicMock()
     yield cli_instance
 
+@pytest.mark.unit()
 def test_cli_init(cli):
     """
     Test CLI initialization.
@@ -75,6 +76,7 @@ def test_play_audio_failure(cli):
         with pytest.raises(sd.PortAudioError):
             cli.play_audio(b"\x00\x01\x02\x03", samplerate=44100)
 
+@pytest.mark.unit()
 def test_run_all_services(cli):
     """
     Test the run_all_services method to ensure it calls run_keyboard_command with all_services=True.
@@ -83,6 +85,7 @@ def test_run_all_services(cli):
         cli.run_all_services()
         mock_run_keyboard_command.assert_called_once_with(all_services=True)
 
+@pytest.mark.unit()
 def test_llm_text_generate(cli):
     """
     Test the llm_text_generate method to ensure it generates text and optionally synthesizes it.
@@ -98,12 +101,16 @@ def test_llm_text_generate(cli):
 
 
 def run_text_to_speech_service(self):
+    """
+    Test the text_to_speech 
+    """
     input_text = input("Enter text: ")
     print(f"[DEBUG] Input received: {input_text}") 
     self.llm_text_generate(input_text, synthesize=True)
     print("[DEBUG] Called llm_text_generate successfully")
 
 
+@pytest.mark.unit()
 def test_run_keyboard_command(cli):
 
     mock_f12 = MagicMock()
