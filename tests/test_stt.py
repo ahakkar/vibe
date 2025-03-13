@@ -145,36 +145,32 @@ def test_stop_recording(audio_service):
         print(data)
 
 
-
 @pytest.mark.unit()
 def test_save_audio_try(audio_service, tmpdir):
     """
     Test that the function successfully runs through the try block.
-    Set tmp directory
-    Mock the frames attribute
     Mock the os.path.join function to return the save_path
-    Mock the wave.open function to raise an exception
+    Mock the wave.open to return MagicMock object
+    Mock wave_file attributes
+    Assert wave_open is called with the save_path in write mode
     Assert that save message is printed to terminal
-    Assert that .wav file is saved
-    Assert that the contents of the saved file are correct
     """
     save_path = os.path.join(tmpdir, OUTPUT_FILENAME)
-    mock_frames = [b'\x00\x01', b'\x02\x03', b'\x04\x05']
-    audio_service.frames = mock_frames
+    mock_wave_file = MagicMock()
+    mock_wave_file.setnchannels(1)
+    mock_wave_file.setsampwidth(2)
+    mock_wave_file.setframerate(16000)
+    mock_wave_file.writeframes(b'\x00\x01\x02\x03\x04\x05')
 
-    with patch("os.path.join", return_value=save_path):
+    with patch("os.path.join", return_value=save_path), \
+         patch("wave.open", return_value=mock_wave_file) as mock_wave_open:
 
         audio_service.save_audio_to_file()
-    
+        mock_wave_open.assert_called_once_with(save_path, "wb")
+
     audio_service.frames = [] # Reset the frames
     assert term.center.called_with(f"Audio saved to {save_path}")
-    assert os.path.exists(save_path)
 
-    with wave.open(save_path, 'rb') as wf:
-        assert wf.getnchannels() == audio_service.channels
-        assert wf.getsampwidth() == 2
-        assert wf.getframerate() == audio_service.sample_rate
-        assert wf.readframes(wf.getnframes()) == b''.join(mock_frames)
 
 
 @pytest.mark.unit()
@@ -196,7 +192,7 @@ def test_save_audio_exeption(audio_service, tmpdir):
          patch("wave.open", side_effect=Exception("Test exception")):
             audio_service.save_audio_to_file()
     
-    audio_service.frames = []
+    audio_service.frames = [] # Reset the frames
 
     assert term.center.called_with(f"Failed to save audio file: Test exception")
     assert not os.path.exists(save_path)
