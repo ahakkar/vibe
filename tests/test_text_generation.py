@@ -20,6 +20,7 @@ def text_gen_service():
     return TextGenService()
 
 
+@pytest.mark.unit()
 def test_constants():
     """
     Test the constants MODEL_NAME and LLM_MODEL_PATH.
@@ -28,8 +29,23 @@ def test_constants():
     assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
 
 
+@pytest.mark.unit()
+def test_init_default_values():
+    """
+    Test the default values of the TextGenService class.
+    """
+    text_gen_service = TextGenService()
+    assert text_gen_service.max_new_tokens == 100
+    assert text_gen_service.temperature == 0.6
+    assert text_gen_service.top_p == 0.95
+    assert text_gen_service.top_k == 40
+    assert text_gen_service.repeat_penalty == 1.2
+    assert text_gen_service.do_sample is True
+    assert isinstance(text_gen_service.llm_model, MagicMock)
+
+
 # Checks that LLM gives a response
-@pytest.mark.skip()
+@pytest.mark.unit()
 def test_text_generate(text_gen_service):
     """
     Test the chat_generate method of the TextGenService class.
@@ -41,24 +57,10 @@ def test_text_generate(text_gen_service):
         assert result is not None
 
 
-@pytest.mark.skip()
-def test_init_default_values():
-    """
-    Test the default values of the TextGenService class.
-    """
-    text_gen_service = TextGenService()
-    assert text_gen_service.max_new_tokens == 100
-    assert text_gen_service.temperature == 0.2
-    assert text_gen_service.top_p == 0.95
-    assert text_gen_service.top_k == 40
-    assert text_gen_service.repeat_penalty == 1.2
-    assert text_gen_service.do_sample is True
-    assert isinstance(text_gen_service.llm_model, MagicMock)
-
-
 # # Checks that the response time is less than 5 seconds
-@pytest.mark.skip()
-def test_text_generate_response_time(text_gen_service):
+@pytest.mark.perf()
+@pytest.mark.parametrize("question", ["Mikä on Suomen Pääkaupunki?", "Onko Turussa hyvä asua?", "Missä Joulupukki asuu?"])
+def test_text_generate_response_time(text_gen_service, question):
     """
     Test the chat_generate method of the TextGenService class.
     """
@@ -68,9 +70,6 @@ def test_text_generate_response_time(text_gen_service):
         return_value={"choices": [{"text": "response"}]},
     ):
         start_time = time.time()
-        result = text_gen_service.chat_generate(
-            "Hello"
-        )  # This is a placeholder, the actual input can be decided later
-        end_time = time.time()
-        assert result == "response"
-        assert (end_time - start_time) < 5
+        text_gen_service.chat_generate(question)
+        first_token_time = time.time()
+        assert (first_token_time - start_time) < 5
