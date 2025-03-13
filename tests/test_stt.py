@@ -92,6 +92,11 @@ def test_start_recording_when_already_recording(audio_service):
 
 @pytest.mark.unit()
 def test_start_recording_when_already_recording(audio_service):
+    """
+    Test the start recording method of the AudioRecordingService class
+    when the service already records
+    Assert that the terminal will display Already recording!
+    """
     audio_service.recording = True
     audio_service.start_recording()
     term.center.assert_called_with("Already recording!")
@@ -120,6 +125,12 @@ def test_start_recording(audio_service):
 
 @pytest.mark.unit()
 def test_start_recording_device_error(audio_service):
+    """
+    Test the start recording method of the AudioRecordingService class
+    when the service has device error
+    Assert that the term will called once with Please check the audio device index
+    Assert that the term will called with Failed to open audio stream: Device Error
+    """
     with patch.object(audio_service.audio, "open", side_effect=Exception("Device Error")) as mock_open:
         audio_service.start_recording()
         mock_open.assert_called_once()
