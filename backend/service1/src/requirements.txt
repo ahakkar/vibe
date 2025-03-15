@@ -14,7 +14,7 @@ typing_extensions==4.12.2
 numpy==2.0.0
 torchaudio==2.6.0
 diskcache==5.6.3
-llama_cpp_python==0.3.4
+llama_cpp_python==0.3.8
 sounddevice==0.5.1
 cffi==1.17.1
 pycparser==2.22
