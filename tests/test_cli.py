@@ -115,7 +115,6 @@ def test_llm_text_generate(cli):
 
 @pytest.mark.unit()
 def test_run_keyboard_command(cli):
-
     mock_f12 = MagicMock()
     mock_f12.name = "KEY_F12"
 
