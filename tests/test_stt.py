@@ -83,6 +83,13 @@ def test_speech_to_text_service_init(stt_service):
     assert stt_service.processor is not None
     assert stt_service.ort_session is not None
 
+def test_start_recording_when_already_recording(audio_service):
+    """
+    Test the start_recording method of the AudioRecordingService class when the service is already recording
+    """
+    audio_service.recording = True
+    audio_service.start_recording()
+    term.center.assert_called_with("Already recording!")
 
 @pytest.mark.unit()
 def test_start_recording_when_already_recording(audio_service):
