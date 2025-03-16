@@ -21,6 +21,8 @@ THEME = {
     "success": "bold green",
 }
 
+PUNCTATIONS = ["...", ".", "!", "?", ":", ";"]
+
 # Determine the correct .env path based if running in Docker
 if os.getenv("RUNNING_IN_DOCKER"):
     ENV_PATH = os.path.join("/usr/src/app", ".env")
@@ -417,9 +419,7 @@ class CommandLineService:
                 sentence += text
 
                 # Check if the sentence is complete
-                if synthesize and (
-                    "." in sentence or "!" in sentence or "?" in sentence
-                ):
+                if synthesize and (any(punc in sentence for punc in PUNCTATIONS)):
                     self.textToSpeech.synthesize(sentence)
                     sentence = ""
 
