@@ -1,9 +1,11 @@
 # Run pytest locally
 
-First install all test's packages requirements.
-Recommend to install packages in virtual environment
+# Quick start with bash
+
+Install all the packages by running install_test.sh
+
 ```bash
-pip install -r tests/requirements.txt
+./install_test.sh
 ```
 
 Then run all the tests using pytest
@@ -28,4 +30,13 @@ sec     -   security tests
 
 ```bash
 pytest -v -m {mark}
+```
+
+# Install packages manually
+
+First install all test's packages requirements.
+Recommend to install packages in virtual environment
+```bash
+sudo apt install portaudio19-dev
+pip install -r tests/requirements.txt
 ```
