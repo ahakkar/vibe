@@ -123,7 +123,7 @@ class AudioRecordingService:
         Save the recorded audio to a file.
         """
         # Determine the correct .env path based if running in Docker
-        
+
         if os.getenv("RUNNING_IN_DOCKER"):
             save_path = os.path.join("/usr/src/app", OUTPUT_FILENAME)
         else:
