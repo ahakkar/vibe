@@ -43,7 +43,11 @@ class TextGenService:
 
         # Load GGUF model using llama.cpp
         self.llm_model = Llama(
-            model_path=LLM_MODEL_PATH, chat_format="gemma", verbose=True, n_ctx=2048, n_threads=6
+            model_path=LLM_MODEL_PATH,
+            chat_format="gemma",
+            verbose=True,
+            n_ctx=2048,
+            n_threads=6,
         )
 
     def chat_generate(self, user_input, system_prompt=""):
