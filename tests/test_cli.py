@@ -113,19 +113,8 @@ def test_llm_text_generate(cli):
                 mock_synthesize.assert_called_with("Hello, world!")
 
 
-def run_text_to_speech_service(self):
-    """
-    Test the text_to_speech
-    """
-    input_text = input("Enter text: ")
-    print(f"[DEBUG] Input received: {input_text}")
-    self.llm_text_generate(input_text, synthesize=True)
-    print("[DEBUG] Called llm_text_generate successfully")
-
-
 @pytest.mark.unit()
 def test_run_keyboard_command(cli):
-
     mock_f12 = MagicMock()
     mock_f12.name = "KEY_F12"
 

@@ -84,6 +84,15 @@ def test_speech_to_text_service_init(stt_service):
     assert stt_service.ort_session is not None
 
 
+def test_start_recording_when_already_recording(audio_service):
+    """
+    Test the start_recording method of the AudioRecordingService class when the service is already recording
+    """
+    audio_service.recording = True
+    audio_service.start_recording()
+    term.center.assert_called_with("Already recording!")
+
+
 @pytest.mark.unit()
 def test_start_recording_when_already_recording(audio_service):
     """
@@ -178,7 +187,6 @@ def test_save_audio_try(audio_service, tmpdir):
     with patch("os.path.join", return_value=save_path), patch(
         "wave.open", return_value=mock_wave_file
     ) as mock_wave_open:
-
         audio_service.save_audio_to_file()
         mock_wave_open.assert_called_once_with(save_path, "wb")
 
@@ -228,7 +236,6 @@ def test_terminate_audio(audio_service):
     ) as mock_audio, patch.object(
         audio_service, "recording_thread"
     ) as mock_recording_thread:
-
         audio_service.recording = True
         mock_recording_thread.is_alive.return_value = True
 
@@ -255,7 +262,6 @@ def test_terminate_audio_not_recording(audio_service):
     ) as mock_audio, patch.object(
         audio_service, "recording_thread"
     ) as mock_recording_thread:
-
         audio_service.recording = False
         mock_recording_thread.is_alive.return_value = False
 
