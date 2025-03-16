@@ -8,6 +8,19 @@
       - `requirements.txt`: this text file contains all the required python packages for running the pre-trained models
 - `docker-compose.yml`: This file run all the services in the backend
 
+## Quickstart with Bash
+
+Run install.sh file to download all the packages
+
+```bash
+./install.sh
+```
+
+Run the program with docker by running run.sh
+```bash
+./run.sh
+```
+
 ## Quickstart with Docker
 
 Run download_models.py to download STT/TSS/LLM models to correct folders.
