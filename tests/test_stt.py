@@ -5,7 +5,6 @@ import numpy as np
 from unittest.mock import patch, MagicMock
 
 
-
 # Mock the imports of the modules that are not installed
 with patch.dict(
     "sys.modules",
@@ -26,6 +25,7 @@ with patch.dict(
         OUTPUT_FILENAME,
         term,
     )
+
 
 @pytest.fixture
 def audio_service():
@@ -73,6 +73,7 @@ def test_audio_recording_service_init(audio_service):
     assert audio_service.device_index == 7
     assert audio_service.recording_thread is None
 
+
 @pytest.mark.unit()
 def test_speech_to_text_service_init(stt_service):
     """
@@ -112,7 +113,7 @@ def test_start_recording(audio_service):
     Assert that the recording thread is alive
     """
     mock_audio_stream = MagicMock()
-    mock_audio_stream.read.return_value = b'\x00\x01'
+    mock_audio_stream.read.return_value = b"\x00\x01"
 
     with patch.object(
         audio_service.audio, "open", return_value=mock_audio_stream
@@ -131,7 +132,9 @@ def test_start_recording_device_error(audio_service):
     Assert that the term will called once with Please check the audio device index
     Assert that the term will called with Failed to open audio stream: Device Error
     """
-    with patch.object(audio_service.audio, "open", side_effect=Exception("Device Error")) as mock_open:
+    with patch.object(
+        audio_service.audio, "open", side_effect=Exception("Device Error")
+    ) as mock_open:
         audio_service.start_recording()
         mock_open.assert_called_once()
         assert audio_service.recording is False
@@ -152,10 +155,9 @@ def test_stop_recording(audio_service):
     Assert that the returned data is the same as the mocked audio stream return value
     """
     mock_audio_stream = MagicMock()
-    mock_audio_stream.read.return_value = b'\x00\x01'
+    mock_audio_stream.read.return_value = b"\x00\x01"
 
-    with patch.object(
-        audio_service.audio, "open", return_value=mock_audio_stream):
+    with patch.object(audio_service.audio, "open", return_value=mock_audio_stream):
         audio_service.start_recording()
         data = audio_service.stop_recording()
         assert audio_service.recording is False
@@ -178,17 +180,17 @@ def test_save_audio_try(audio_service, tmpdir):
     mock_wave_file.setnchannels(1)
     mock_wave_file.setsampwidth(2)
     mock_wave_file.setframerate(16000)
-    mock_wave_file.writeframes(b'\x00\x01\x02\x03\x04\x05')
+    mock_wave_file.writeframes(b"\x00\x01\x02\x03\x04\x05")
 
-    with patch("os.path.join", return_value=save_path), \
-         patch("wave.open", return_value=mock_wave_file) as mock_wave_open:
+    with patch("os.path.join", return_value=save_path), patch(
+        "wave.open", return_value=mock_wave_file
+    ) as mock_wave_open:
 
         audio_service.save_audio_to_file()
         mock_wave_open.assert_called_once_with(save_path, "wb")
 
-    audio_service.frames = [] # Reset the frames
+    audio_service.frames = []  # Reset the frames
     assert term.center.called_with(f"Audio saved to {save_path}")
-
 
 
 @pytest.mark.unit()
@@ -203,14 +205,15 @@ def test_save_audio_exeption(audio_service, tmpdir):
     Assert that the exception is raised and message is printed
     """
     save_path = os.path.join(tmpdir, OUTPUT_FILENAME)
-    mock_frames = [b'\x00\x01', b'\x02\x03', b'\x04\x05']
+    mock_frames = [b"\x00\x01", b"\x02\x03", b"\x04\x05"]
     audio_service.frames = mock_frames
 
-    with patch("os.path.join", return_value=save_path), \
-         patch("wave.open", side_effect=Exception("Test exception")):
-            audio_service.save_audio_to_file()
-    
-    audio_service.frames = [] # Reset the frames
+    with patch("os.path.join", return_value=save_path), patch(
+        "wave.open", side_effect=Exception("Test exception")
+    ):
+        audio_service.save_audio_to_file()
+
+    audio_service.frames = []  # Reset the frames
 
     assert term.center.called_with(f"Failed to save audio file: Test exception")
     assert not os.path.exists(save_path)
@@ -225,16 +228,20 @@ def test_terminate_audio(audio_service):
     Assert that join is called if the recording thread is alive
     Assert that audio.terminate is called
     """
-    with patch.object(audio_service, 'stop_recording') as mock_stop_recording, \
-         patch.object(audio_service, 'audio') as mock_audio, \
-         patch.object(audio_service, 'recording_thread') as mock_recording_thread:
-        
+    with patch.object(
+        audio_service, "stop_recording"
+    ) as mock_stop_recording, patch.object(
+        audio_service, "audio"
+    ) as mock_audio, patch.object(
+        audio_service, "recording_thread"
+    ) as mock_recording_thread:
+
         audio_service.recording = True
         mock_recording_thread.is_alive.return_value = True
 
         audio_service.terminate_audio()
 
-        mock_stop_recording.assert_called_once() 
+        mock_stop_recording.assert_called_once()
         mock_recording_thread.join.assert_called_once()
         mock_audio.terminate.assert_called_once()
 
@@ -248,10 +255,14 @@ def test_terminate_audio_not_recording(audio_service):
     Assert that join is not called if the recording thread is not alive
     Assert that audio.terminate is called
     """
-    with patch.object(audio_service, 'stop_recording') as mock_stop_recording, \
-         patch.object(audio_service, 'audio') as mock_audio, \
-         patch.object(audio_service, 'recording_thread') as mock_recording_thread:
-        
+    with patch.object(
+        audio_service, "stop_recording"
+    ) as mock_stop_recording, patch.object(
+        audio_service, "audio"
+    ) as mock_audio, patch.object(
+        audio_service, "recording_thread"
+    ) as mock_recording_thread:
+
         audio_service.recording = False
         mock_recording_thread.is_alive.return_value = False
 
@@ -274,11 +285,10 @@ def test_process_audio(stt_service):
 
     with patch.object(
         stt_service.ort_session, "run", return_value=[np.random.randn(1, 100, 32)]
-    ) as mock_run, \
-         patch.object(
+    ) as mock_run, patch.object(
         stt_service.processor, "batch_decode", return_value=["test transcription"]
     ) as mock_decode:
-            result = stt_service.process_audio(audio_data)
-            mock_run.assert_called_once()
-            mock_decode.assert_called_once()
-            assert result == "test transcription"
+        result = stt_service.process_audio(audio_data)
+        mock_run.assert_called_once()
+        mock_decode.assert_called_once()
+        assert result == "test transcription"

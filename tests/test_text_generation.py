@@ -59,7 +59,14 @@ def test_text_generate(text_gen_service):
 
 # # Checks that the response time is less than 5 seconds
 @pytest.mark.perf()
-@pytest.mark.parametrize("question", ["Mikä on Suomen Pääkaupunki?", "Onko Turussa hyvä asua?", "Missä Joulupukki asuu?"])
+@pytest.mark.parametrize(
+    "question",
+    [
+        "Mikä on Suomen Pääkaupunki?",
+        "Onko Turussa hyvä asua?",
+        "Missä Joulupukki asuu?",
+    ],
+)
 def test_text_generate_response_time(text_gen_service, question):
     """
     Test the chat_generate method of the TextGenService class.
