@@ -25,7 +25,7 @@ def test_constants():
     """
     Test the constants MODEL_NAME and LLM_MODEL_PATH.
     """
-    assert MODEL_NAME == "Gemma2:2b_unsloth.Q4_K_M"
+    assert MODEL_NAME == "google_gemma-3-1b-it-Q4_0"
     assert LLM_MODEL_PATH == f"/models/{MODEL_NAME}.gguf"
 
 
