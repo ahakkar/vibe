@@ -16,11 +16,6 @@ Run run.sh file to download all the packages
 ./run.sh
 ```
 
-Run the program with docker by running run.sh
-```bash
-./run.sh
-```
-
 ## Quickstart with Docker
 
 Run download_models.py to download STT/TSS/LLM models to correct folders.
