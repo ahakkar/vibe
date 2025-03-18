@@ -2,10 +2,10 @@
 
 # Quick start with bash
 
-Install all the packages by running install_test.sh
+Install all the packages by running run.sh
 
 ```bash
-./install_test.sh
+./run.sh
 ```
 
 Then run all the tests using pytest

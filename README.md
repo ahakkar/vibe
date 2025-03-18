@@ -10,10 +10,10 @@
 
 ## Quickstart with Bash
 
-Run install.sh file to download all the packages
+Run run.sh file to download all the packages
 
 ```bash
-./install.sh
+./run.sh
 ```
 
 Run the program with docker by running run.sh
