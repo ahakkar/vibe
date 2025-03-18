@@ -31,17 +31,6 @@ install_docker() {
     echo -e "${GREEN}Docker installation completed successfully!${RESET}"
 }
 
-# Install Docker if not installed
-if ! command -v docker &> /dev/null; then
-    echo -e "\n${RED}Docker is NOT installed. Installing now...${RESET}"
-    install_docker
-else
-    if ! sudo systemctl is-active --quiet docker; then
-        echo -e "${YELLOW}Starting Docker...${RESET}"
-        sudo systemctl start docker
-    fi
-fi
-
 install_pip() {
     if ! command -v pip &> /dev/null; then
         echo -e "\n${YELLOW}Installing pip...${RESET}"
@@ -61,7 +50,6 @@ install_pip() {
     fi
 }
 
-# Install required packages only if missing
 install_requirements() {
     if [[ -f "$REQ_FILE_TEST" ]]; then
         while IFS= read -r package || [[ -n "$package" ]]; do
@@ -83,7 +71,6 @@ install_requirements() {
     fi
 }
 
-# Install portaudio19-dev if not installed
 install_portaudio() {
     if ! dpkg-query -s "$PACKAGE_NAME" &> /dev/null; then
         echo -e "${YELLOW}Installing $PACKAGE_NAME...${RESET}"
@@ -105,7 +92,7 @@ install_portaudio() {
 
 run_application() {
     echo -e "${CYAN}Building and running the application using Docker Compose...${RESET}"
-    docker compose build && sudo docker compose run --rm --service-ports app
+    docker compose build && docker compose run --rm --service-ports app
 }
 
 while true; do
@@ -118,7 +105,14 @@ while true; do
     read -p "Enter your choice (1-4): " choice
 
     case $choice in
-        1) install_docker ;;
+        1)
+            if ! command -v docker &> /dev/null; then
+                echo -e "\n${RED}Docker is NOT installed. Installing now...${RESET}"
+                install_docker
+            else
+                echo -e "${GREEN}Docker is already installed.${RESET}"
+            fi
+            ;;
         2) install_pip && install_requirements && install_portaudio ;;
         3) run_application ;;
         4) 
@@ -127,8 +121,7 @@ while true; do
             ;;
         *)
             echo -e "${RED}Invalid choice! Please enter a valid number (1-4).${RESET}"
-            sleep 1  # Short pause before re-displaying the menu
+            sleep 1
             ;;
     esac
 done
-
