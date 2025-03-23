@@ -1,0 +1,12 @@
+language: "fi"
+intents:
+  HaeUutiset:
+    data:
+      - sentences:
+          - "kerro [tämän] päivän uutiset"
+  HaeKellonaika:
+    data:
+      - sentences:
+          - "(kuinka paljon | paljonko | mitä) kello on"
+skip_words:
+  - "kiitos"

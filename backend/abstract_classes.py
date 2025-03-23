@@ -60,15 +60,15 @@ class Translator(ABC):
         pass
 
 
-class IntentClassification(ABC):
+class IntentRecognition(ABC):
     @abstractmethod
-    def classify_intent(self, text: str, language: str) -> dict:
+    def recognize_intent(self, text: str, lang: str) -> dict:
         """
         Parse natural language text into structured intent data.
 
         Parameters:
         text (str): Input text from the user.
-        source_language (str): Input text language.
+        lang (str): Input text language.
 
         Returns:
         dict: Structured intent.
