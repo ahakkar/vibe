@@ -1,9 +1,11 @@
 import os
 import time
 import signal
+from typing import Optional
 from dotenv import set_key
 import pyfiglet
 import local.constants
+from blessed import Terminal
 
 
 class CommandLineService:
@@ -15,8 +17,7 @@ class CommandLineService:
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
         """
-        from blessed import Terminal
-        
+
         self.term = Terminal()
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -30,8 +31,11 @@ class CommandLineService:
         """
         self.app.exit()
 
-    def print_text(self, msg, color=None):
-        print(self.term.center(msg))
+    def print_text(self, msg, color=None, nl=True):
+        if not nl:
+            print(msg, end="")
+        else:
+            print(self.term.ljust(msg))
 
     def display_neon_title(self):
         """
@@ -57,30 +61,42 @@ class CommandLineService:
                 color_index += 1
                 time.sleep(0.1)
 
-    def display_settings_menu(self, ENV_PATH):
+    def display_settings_menu(self):
         """
         Display the settings menu for the user to choose input and output devices
         """
+        
+        input_device_name = self._select_device("input")
+        output_device_name = self._select_device("output")
+        
+        if input_device_name == None or output_device_name == None:
+            print(self.term.ljust(self.term.bold(f"No audio devices detected.")))   
+            time.sleep(2.0)       
+            return
+        
         print(self.term.clear)
         print(self.term.move_y(self.term.height // 2 - 5))
         print(self.term.center(self.term.bold_underline("Settings Menu")))
-        print(self.term.move_down(2))
+        print(self.term.move_down(2))        
 
-        input_device_name = self._select_device("input")
-        output_device_name = self._select_device("output")
+        try:
+            set_key(self.app.root, "INPUT_DEVICE_NAME", input_device_name)
+            set_key(self.app.root, "OUTPUT_DEVICE_NAME", output_device_name)
+            # os.chmod(self.app.root, 0o644)       
 
-        set_key(ENV_PATH, "INPUT_DEVICE_NAME", input_device_name)
-        set_key(ENV_PATH, "OUTPUT_DEVICE_NAME", output_device_name)
-        os.chmod(ENV_PATH, 0o644)
-
-        print(
-            self.term.center(
-                self.term.bold_green("Settings successfully saved to .env file!")
+            print(
+                self.term.center(
+                    self.term.bold_green("Settings successfully saved to .env file!")
+                )
             )
-        )
+        
+        except Exception as e:
+            print(f"Failed to write to .env at: {self.app.root}/.env")
+            print(f"While updating env in settings menu. Error: {e}")
+        
         time.sleep(1)
 
-    def display_services(self):
+    def display_cli(self):
         """
         Display the services available to the user.
         There are 4 services:
@@ -89,35 +105,41 @@ class CommandLineService:
         3. Only language model service
         4. Only text to speech service
         """
+
         while True:
-            print(self.term.clear)
+            #print(self.term.clear)
             print(self.term.move_down(2))
-            print(self.term("Available services:\n"))
+            print(self.term.ljust("Available services:\n"))
             print(
-                self.term(
+                self.term.ljust(
                     "1: All services (Speech to text, Language model, Text to speech)"
                 )
             )
-            print(self.term("2: Only speech to text service"))
-            print(self.term("3: Only language model service"))
-            print(self.term("4: Only text to speech service"))
+            print(self.term.ljust("2: Only speech to text service"))
+            print(self.term.ljust("3: Only language model service"))
+            print(self.term.ljust("4: Only text to speech service"))
+            print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
-                self.term("Choose service (from 1 to 4) or exit:")
+                self.term.ljust("Choose service (from 0 to 4) or (q)uit:")
             ).strip()
 
-            if command_input == "exit":
+            if command_input == "q" or command_input == "quit":
                 self.app.exit()
+            elif command_input == "0":
+                self.display_settings_menu()
             elif command_input == "1":
+                self.app.synthesize = True
                 self._toggle_recording(True)
             elif command_input == "2":
+                self.app.synthesize = False
                 self._toggle_recording()
             elif command_input == "3":
-                inp = self._input_text("text generation")
-                self.app.text_gen(inp)
+                self._input_text_gen()                             
             elif command_input == "4":
-                inp = self._input_text("text to speech")
-                self.app.text_to_speech()
+                self.app.synthesize = True
+                self._input_tts()
+                
 
     def _toggle_recording(self, all=False):
         """
@@ -143,22 +165,37 @@ class CommandLineService:
 
                 time.sleep(0.5)
 
-    def _input_text(self, service_name: str) -> str:
+    def _input_from_user(self, prompt, service_method):
         """
-        Query text input from user
+        Query text input from user for a specific service.
+        
+        :param prompt: The prompt to display to the user.
+        :param service_method: The method of self to call with the user's input.
         """
-        input_text = ""
-
         while True:
-            input_text = input(
-                self.term.center(
-                    f"Write something for {service_name} service or 'back': "
-                )
-            ).strip()
+            input_text = input(self.term.ljust(prompt)).strip()
             if input_text.lower() == "back":
                 break
+            else:
+                service_method(input_text)
 
-        return input_text
+    def _input_text_gen(self):
+        """
+        Query text input from user for text generation service.
+        """
+        self._input_from_user(
+            f"Write something for text generation service or 'back': ",
+            self.app.text_gen
+        )
+
+    def _input_tts(self):
+        """
+        Query text input from user for text generation service.
+        """
+        self._input_from_user(
+            f"Write something for text to speech service or 'back': ",
+            self.app.text_to_speech
+        )        
 
     def _flush_input_buffer(self):
         """
@@ -167,7 +204,7 @@ class CommandLineService:
         while self.term.inkey(timeout=0.1):
             pass
 
-    def _print_separator(self):
+    def print_separator(self):
         """
         Print a terminal width separator line
         """
@@ -189,14 +226,17 @@ class CommandLineService:
         print(self.term.move_y(self.term.height - 3))
         print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
 
-    def _select_device(self, device_type):
+    def _select_device(self, device_type) -> Optional[str]:
         """
         Select the device name for input or output devices
 
         :param device_type: str, The device type (input or output)
         :return: str, The selected device name
         """
-        devices = self.get_service("audio").query_devices()
+        devices = self.app.get_service("audio").query_devices()
+        
+        if len(devices) == 0:            
+            return None
 
         print(
             self.term.center(

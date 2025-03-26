@@ -115,7 +115,7 @@ class AudioService:
 
         return audio_data
 
-    def _stop_and_process_recording(self):
+    def stop_and_process_recording(self):
         """
         Stop recording and process the recorded audio.
 
@@ -163,7 +163,7 @@ class AudioService:
 
         self.audio.terminate()
 
-    def query_devices():
+    def query_devices(self):
         return sd.query_devices()
 
     def _get_device_index(self, device_name, device_type):

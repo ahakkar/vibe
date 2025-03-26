@@ -17,6 +17,7 @@ try:
 except Exception as e:
     print(f"Failed to import: {e}")
 
+
 class AppManager:
     def __init__(self):
         desc = [
@@ -31,6 +32,7 @@ class AppManager:
         self.args = parser.parse_args()
 
         self.root = self._find_project_root()
+        self.synthesize = False
 
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
@@ -49,8 +51,31 @@ class AppManager:
 
         self._setup_env()
         self._load_services()
-        print("loaded services OK!")    
+        print("loaded services OK!")
         self._run()
+
+    def toggle_recording(self, all):
+        """
+        Toggle recording state and process audio if recording is stopped.
+
+        :param all_services: bool, If True, the program will run all services
+        """
+        if not self.services["audio"].recording:
+            result = self.services["audio"].stop_and_process_recording()
+            if result:
+                if all:
+                    audio_text = self.services("stt").transcribe(result)
+                    # TODO call IR here first
+
+                    # Then process it and pass to LLM
+                    llm_text = self.services["llm"].generate(audio_text)
+                    self.services["tts"].synthesize(llm_text)
+                    pass
+            else:
+                self.services["cli"].print_text("No audio recorded.")
+
+        else:
+            self.services["audio"].start_recording()
 
     def get_service(self, service_name: str):
         return self.services.get(service_name)
@@ -73,38 +98,17 @@ class AppManager:
         if self.args.cli:
             try:
                 self.services["cli"] = CommandLineService(self)
-                self.services["cli"].display_neon_title()                
-                self.services["cli"].display_services()                
+                #self.services["cli"].display_neon_title()
+                self.services["cli"].display_cli()
+                self.exit()
             except Exception as e:
-                print(f"Failed to load cli service: {e}")
+                print(f"Error while running CLI service: {e}")
                 traceback.print_exc()
                 self.exit()
 
         # Could run as a background if we had voice activation detection
 
         # Could perhaps run the web server here too
-
-    def toggle_recording(self, all):
-        """
-        Toggle recording state and process audio if recording is stopped.
-
-        :param all_services: bool, If True, the program will run all services
-        """
-        if not self.services["audio"].recording:
-            result = self.services["audio"].stop_and_process_recording()
-            if result:
-                if all:
-                    audio_text = self.services("stt").transcribe(result)
-                    # TODO call IR here first
-
-                    # Then process it and pass to LLM
-                    llm_text = self.services["llm"].generate(audio_text)
-                    pass
-            else:
-                self.services["cli"].print_text("No audio recorded.")
-
-        else:
-            self.services["audio"].start_recording()
 
     def speech_to_text(self, audio) -> str:
         """
@@ -113,14 +117,14 @@ class AppManager:
 
         return self.services["stt"].transcribe(audio)
 
-    def text_to_speech(self, text):
+    def text_to_speech(self, input_text):
         """
         Run the text to speech service
         """
 
-        self.services["tts"].synthesize(text)
+        self.services["tts"].synthesize(input_text)
 
-    def text_gen(self, input_text, synthesize=False):
+    def text_gen(self, input_text):
         """
         The language model generates text based on user's input text
         Print the language model's generated text
@@ -128,22 +132,24 @@ class AppManager:
         :param input_text: str, The user's input text
         :param synthesize: bool, If True, synthesize the generated text
         """
-        llm_output = self.services["llm"].generate(input_text)
-        sentence = ""
+        llm_output = self.services["text_gen"].generate(input_text)
+        sentence = "LLM: "
 
         for token in llm_output:
             text = token["choices"][0]["delta"].get("content", "")
             sentence += text
 
             # Check if the sentence is complete
-            if synthesize and (
+            if self.synthesize and (
                 any(punc in sentence for punc in local.constants.PUNCTATIONS)
             ):
                 self.services["tts"].synthesize(sentence)
                 sentence = ""
 
-            self.services["cli"].print_text(text)
+            self.services["cli"].print_text(text, None, False)
 
+        self.services["cli"].print_separator()
+        
         return
 
     def _load_services(self):
@@ -151,39 +157,41 @@ class AppManager:
         This function loads all the services based on the chosen input and output devices
         """
 
-        try:            
-            self.services["audio"] = AudioService(self)    
+        try:
+            self.services["audio"] = AudioService(self)
         except Exception as e:
             print(f"Failed to load audio service: {e}")
             traceback.print_exc()
-            
+
         try:
-            self.services["stt"] = SpeechToTextService(self.root)   
+            self.services["stt"] = SpeechToTextService(self.root)
         except Exception as e:
-            print(f"Failed to load stt service: {e}")  
+            print(f"Failed to load stt service: {e}")
             traceback.print_exc()
-            
-        try:    
-            self.services["tts"] = TextToSpeech(self, device_index=self.services["audio"].output_device_index)
+
+        try:
+            self.services["tts"] = TextToSpeech(
+                self, device_index=self.services["audio"].output_device_index
+            )
         except Exception as e:
             print(f"Failed to load tts service: {e}")
             traceback.print_exc()
-            
+
         try:
             self.services["text_gen"] = TextGenService(self.root)
         except Exception as e:
             print(f"Failed to text gen service: {e}")
             traceback.print_exc()
-            
+
         try:
-            self.services["ir"] = IrService()   
+            self.services["ir"] = IrService()
         except Exception as e:
             print(f"Failed to load ir service: {e}")
             traceback.print_exc()
-            
+
     def get_env(self, key):
         """Retrieve an environment variable by its key."""
-        return self.env_vars.get(key) 
+        return self.env_vars.get(key)
 
     def _setup_env(self):
         """
@@ -195,7 +203,7 @@ class AppManager:
 
         print(f"env path: {self.ENV_PATH}")
         print(f"loading env, result: {load_dotenv(self.ENV_PATH)}")
-        self.env_vars = dict(os.environ)   
+        self.env_vars = dict(os.environ)
 
     def _create_env_file(self):
         """
@@ -205,7 +213,7 @@ class AppManager:
         try:
             with open(self.ENV_PATH, "w") as f:
                 f.write("INPUT_DEVICE_NAME=None\n")
-                f.write("OUTPUT_DEVICE_NAME=None\n")   
+                f.write("OUTPUT_DEVICE_NAME=None\n")
                 f.write('LLM_MODEL="Gemma2:2b_unsloth.Q4_K_M.gguf"\n')
                 f.write('TTS_MODEL="fi_FI-harri-medium.onnx"\n')
                 f.write('MODEL_FOLDER="models"\n')

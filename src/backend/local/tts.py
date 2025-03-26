@@ -8,6 +8,7 @@ from piper.voice import PiperVoice
 
 from abstract_classes import TextToSpeechInterface
 
+
 class TextToSpeech(TextToSpeechInterface):
     """
     A Text-to-Speech (TTS) service that converts text to speech using the PiperVoice model.
@@ -29,9 +30,9 @@ class TextToSpeech(TextToSpeechInterface):
             + "/"
             + app.get_env("MODEL_FOLDER")
             + "/"
-            + app.get_env("TTS_MODEL")        
-        )        
-        
+            + app.get_env("TTS_MODEL")
+        )
+
         self.voice = PiperVoice.load(model_path)
         self.device_index = device_index
         self.stream = None

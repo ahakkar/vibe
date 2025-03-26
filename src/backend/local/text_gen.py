@@ -49,16 +49,16 @@ class TextGenService(TextGenerationInterface):
             + "/"
             + os.getenv("LLM_MODEL")
         )
-            
-        self.llm_model = Llama(            
-            model_path= tg_path,
+
+        self.llm_model = Llama(
+            model_path=tg_path,
             chat_format="gemma",
             verbose=True,
             n_ctx=2048,
             n_threads=6,
         )
 
-    def generate(self, user_input, system_prompt=""):
+    def generate(self, user_input, system_prompt=""):     
         if not system_prompt:
             system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 
