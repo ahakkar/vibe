@@ -1,1 +1,0 @@
-from .ir_service import IrService

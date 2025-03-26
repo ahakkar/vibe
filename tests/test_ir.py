@@ -1,5 +1,6 @@
 import pytest
-from backend.ir import IrService 
+from src.backend.service1.ir_service import IrService
+
 
 class TestIrService:
     def setup_method(self):
@@ -16,8 +17,7 @@ class TestIrService:
     def test_recognize_intent_news(self, text, expected_intent):
         """Test intent recognition for news requests."""
         result = self.ir_service.recognize_intent(text, "fi")
-        assert result["intent"].name == expected_intent 
-        
+        assert result["intent"].name == expected_intent
 
     @pytest.mark.parametrize(
         "text, expected_intent",
@@ -31,6 +31,3 @@ class TestIrService:
         """Test intent recognition for time requests with multiple inputs."""
         result = self.ir_service.recognize_intent(text, "fi")
         assert result["intent"].name == expected_intent
-
-
-
