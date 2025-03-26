@@ -1,3 +1,4 @@
+from pathlib import Path
 import sys
 import os
 from llama_cpp import Llama
@@ -15,6 +16,7 @@ class TextGenService(TextGenerationInterface):
 
     def __init__(
         self,
+        project_root,
         max_new_tokens=100,
         temperature=0.6,
         top_p=0.95,
@@ -40,8 +42,16 @@ class TextGenService(TextGenerationInterface):
         self.do_sample = do_sample
 
         # Load GGUF model using llama.cpp
-        self.llm_model = Llama(
-            model_path=os.getenv("LLM_MODEL_PATH"),
+        tg_path = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("LLM_MODEL")
+        )
+            
+        self.llm_model = Llama(            
+            model_path= tg_path,
             chat_format="gemma",
             verbose=True,
             n_ctx=2048,

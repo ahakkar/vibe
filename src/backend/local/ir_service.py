@@ -12,7 +12,7 @@ class IrService(IntentRecognitionInterface):
         """
 
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        filepath = Path(project_root) / "service1" / "intents" / "fi.yaml"
+        filepath = Path(project_root) / "local" / "intents" / "fi.yaml"
 
         with open(filepath, "r", encoding="utf-8") as f:
             self.intents = Intents.from_yaml(f)

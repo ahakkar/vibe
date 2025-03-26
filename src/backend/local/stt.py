@@ -20,14 +20,14 @@ class SpeechToTextService(SpeechToTextInterface):
         proc_filepath = (
             str(project_root)
             + "/"
-            + os.getenv("MODEL_PATH")
+            + os.getenv("MODEL_FOLDER")
             + "/"
             + os.getenv("PROCESSOR")
         )
         onnx_filepath = (
             str(project_root)
             + "/"
-            + os.getenv("MODEL_PATH")
+            + os.getenv("MODEL_FOLDER")
             + "/"
             + os.getenv("ONNX_MODEL")
         )

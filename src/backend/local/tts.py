@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import sounddevice as sd
 import sox
@@ -6,9 +7,6 @@ import queue
 from piper.voice import PiperVoice
 
 from abstract_classes import TextToSpeechInterface
-
-MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
-
 
 class TextToSpeech(TextToSpeechInterface):
     """
@@ -20,14 +18,21 @@ class TextToSpeech(TextToSpeechInterface):
     from a queue, allowing for asynchronous operation and smooth audio playback.
     """
 
-    def __init__(self, device_index=1):
+    def __init__(self, app, device_index=1):
         """
         Initialize the TextToSpeech service.
 
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
-        self.model_path = MODEL_PATH
-        self.voice = PiperVoice.load(self.model_path)
+        model_path = (
+            str(app.root)
+            + "/"
+            + app.get_env("MODEL_FOLDER")
+            + "/"
+            + app.get_env("TTS_MODEL")        
+        )        
+        
+        self.voice = PiperVoice.load(model_path)
         self.device_index = device_index
         self.stream = None
         self.piper_sample_rate = self.voice.config.sample_rate

@@ -3,15 +3,19 @@ import os
 import sys
 import abstract_classes
 import local.constants
-from pathlib import Path
-from local.cli import CommandLineService
-from local.ir_service import IrService
-from local.text_gen import TextGenService
-from local.tts import TextToSpeech
-from local.audio import AudioService
-from local.stt import SpeechToTextService
-from dotenv import load_dotenv
+import traceback
 
+try:
+    from dotenv import load_dotenv
+    from local.cli import CommandLineService
+    from local.ir_service import IrService
+    from local.text_gen import TextGenService
+    from local.tts import TextToSpeech
+    from local.audio import AudioService
+    from local.stt import SpeechToTextService
+    from pathlib import Path
+except Exception as e:
+    print(f"Failed to import: {e}")
 
 class AppManager:
     def __init__(self):
@@ -45,6 +49,7 @@ class AppManager:
 
         self._setup_env()
         self._load_services()
+        print("loaded services OK!")    
         self._run()
 
     def get_service(self, service_name: str):
@@ -68,10 +73,12 @@ class AppManager:
         if self.args.cli:
             try:
                 self.services["cli"] = CommandLineService(self)
-                self.services["cli"].display_neon_title()
-                self.services["cli"].display_services()
+                self.services["cli"].display_neon_title()                
+                self.services["cli"].display_services()                
             except Exception as e:
                 print(f"Failed to load cli service: {e}")
+                traceback.print_exc()
+                self.exit()
 
         # Could run as a background if we had voice activation detection
 
@@ -144,37 +151,39 @@ class AppManager:
         This function loads all the services based on the chosen input and output devices
         """
 
-        try:
-            self.services["audio"] = AudioService()
+        try:            
+            self.services["audio"] = AudioService(self)    
         except Exception as e:
             print(f"Failed to load audio service: {e}")
-
-        if self.args.cli:
-            if os.getenv("STT_ENABLED"):
-                try:
-                    self.services["stt"] = SpeechToTextService(self.root)
-                except Exception as e:
-                    print(f"Failed to load STT service: {e}")
-
-            elif os.getenv("TTS_ENABLED"):
-                print("Loading TTS")
-                self.services["tts"] = TextToSpeech(
-                    device_index=self.output_device_index
-                )
-
-            elif os.getenv("LLM_ENABLED"):
-                print("Loading Text Gen")
-                self.services["text_gen"] = TextGenService()
-
-            elif os.getenv("IR_ENABLED"):
-                print("Loading IR")
-                self.services["ir"] = IrService()
-
-        else:
-            self.services["stt"] = SpeechToTextService(self.root)
-            self.services["tts"] = TextToSpeech(device_index=self.output_device_index)
-            self.services["text_gen"] = TextGenService()
-            self.services["ir"] = IrService()
+            traceback.print_exc()
+            
+        try:
+            self.services["stt"] = SpeechToTextService(self.root)   
+        except Exception as e:
+            print(f"Failed to load stt service: {e}")  
+            traceback.print_exc()
+            
+        try:    
+            self.services["tts"] = TextToSpeech(self, device_index=self.services["audio"].output_device_index)
+        except Exception as e:
+            print(f"Failed to load tts service: {e}")
+            traceback.print_exc()
+            
+        try:
+            self.services["text_gen"] = TextGenService(self.root)
+        except Exception as e:
+            print(f"Failed to text gen service: {e}")
+            traceback.print_exc()
+            
+        try:
+            self.services["ir"] = IrService()   
+        except Exception as e:
+            print(f"Failed to load ir service: {e}")
+            traceback.print_exc()
+            
+    def get_env(self, key):
+        """Retrieve an environment variable by its key."""
+        return self.env_vars.get(key) 
 
     def _setup_env(self):
         """
@@ -184,7 +193,9 @@ class AppManager:
         if not os.path.exists(self.ENV_PATH):
             self._create_env_file()
 
-        load_dotenv(self.ENV_PATH)
+        print(f"env path: {self.ENV_PATH}")
+        print(f"loading env, result: {load_dotenv(self.ENV_PATH)}")
+        self.env_vars = dict(os.environ)   
 
     def _create_env_file(self):
         """
@@ -194,12 +205,10 @@ class AppManager:
         try:
             with open(self.ENV_PATH, "w") as f:
                 f.write("INPUT_DEVICE_NAME=None\n")
-                f.write("OUTPUT_DEVICE_NAME=None\n")
-                f.write("STT_ENABLED=False\n")
-                f.write("TTS_ENABLED=False\n")
-                f.write("LLM_ENABLED=False\n")
-                f.write('LLM_MODEL="google_gemma-3-1b-it-Q4_0.gguf"\n')
-                f.write('MODEL_PATH="models"\n')
+                f.write("OUTPUT_DEVICE_NAME=None\n")   
+                f.write('LLM_MODEL="Gemma2:2b_unsloth.Q4_K_M.gguf"\n')
+                f.write('TTS_MODEL="fi_FI-harri-medium.onnx"\n')
+                f.write('MODEL_FOLDER="models"\n')
                 f.write('ONNX_MODEL="wav2vec2_model.onnx"\n')
                 f.write('PROCESSOR="wav2vec2_processor"\n')
                 f.write('OUTPUT_FILENAME="recorded_audio.wav"\n')

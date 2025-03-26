@@ -6,15 +6,13 @@ import os
 import wave
 import sounddevice as sd
 
-from app import AppManager
-
 
 class AudioService:
     """
     Service for recording audio using the PyAudio library.
     """
 
-    def __init__(self, app: AppManager):
+    def __init__(self, app):
         """
         Initialize the audio recording service.
         """

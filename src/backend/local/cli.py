@@ -4,7 +4,6 @@ import signal
 from dotenv import set_key
 import pyfiglet
 import local.constants
-from blessed import Terminal
 
 
 class CommandLineService:
@@ -16,6 +15,8 @@ class CommandLineService:
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
         """
+        from blessed import Terminal
+        
         self.term = Terminal()
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -29,7 +30,7 @@ class CommandLineService:
         """
         self.app.exit()
 
-    def print_text(self, msg, color):
+    def print_text(self, msg, color=None):
         print(self.term.center(msg))
 
     def display_neon_title(self):
