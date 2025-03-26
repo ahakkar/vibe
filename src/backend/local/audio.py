@@ -4,18 +4,21 @@ import time
 import numpy as np
 import os
 import wave
+import sounddevice as sd
 
-class AudioRecordingService:
+class AudioService:
     """
     Service for recording audio using the PyAudio library.
     """
 
-    def __init__(self, device_index):
+    def __init__(self):
         """
         Initialize the audio recording service.
-
-        :param int device_index: Index of the audio input device to use.
         """
+        
+        input_device_name = os.getenv("INPUT_DEVICE_NAME")
+        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")        
+        
         self.sample_rate = 16_000
         self.channels = 1
         self.CHUNK = 1024
@@ -23,7 +26,8 @@ class AudioRecordingService:
         self.stream = None
         self.frames = []
         self.recording = False
-        self.device_index = device_index
+        self.input_device_index = self._get_device_index(input_device_name, "input")
+        self.output_device_index = self._get_device_index(output_device_name, "output")
         self.recording_thread = None
 
     def start_recording(self):
@@ -42,13 +46,13 @@ class AudioRecordingService:
                 rate=self.sample_rate,
                 input=True,
                 frames_per_buffer=self.CHUNK,
-                input_device_index=self.device_index,
+                input_device_index=self.input_device_index,
             )
         except Exception as e:
             print(f"Failed to open audio stream: {e}")
             print("Please check the audio device index.")
             return
-        
+
         self.recording = True
 
         # Start a new thread for recording
@@ -105,7 +109,6 @@ class AudioRecordingService:
             self.save_audio_to_file()
 
         return audio_data
-    
 
     def save_audio_to_file(self):
         """
@@ -116,7 +119,9 @@ class AudioRecordingService:
         if os.getenv("RUNNING_IN_DOCKER"):
             save_path = os.path.join("/usr/src/app", os.getenv("OUTPUT_FILENAME"))
         else:
-            save_path = os.path.join(os.path.dirname(__file__), os.getenv("OUTPUT_FILENAME"))
+            save_path = os.path.join(
+                os.path.dirname(__file__), os.getenv("OUTPUT_FILENAME")
+            )
 
         try:
             with wave.open(save_path, "wb") as wave_file:
@@ -127,7 +132,6 @@ class AudioRecordingService:
             print(f"Audio saved to {save_path}")
         except Exception as e:
             print(f"Failed to save audio file: {e}")
-            
 
     def terminate_audio(self):
         """
@@ -140,3 +144,25 @@ class AudioRecordingService:
             self.recording_thread.join()
 
         self.audio.terminate()
+        
+        
+    def query_devices():
+        return sd.query_devices()
+        
+        
+    def _get_device_index(self, device_name, device_type):
+        """
+        Get the device index for a given device name
+
+        :param device_name: str, The device name to look up
+        :param device_type: str, The device type (input or output)
+        :return: int, The device index, or None if not found
+        """
+        devices = sd.query_devices()
+        for i, device in enumerate(devices):
+            if device["name"] == device_name and (
+                (device_type == "input" and device["max_input_channels"] > 0)
+                or (device_type == "output" and device["max_output_channels"] > 0)
+            ):
+                return i
+        return None

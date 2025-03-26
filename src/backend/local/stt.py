@@ -9,20 +9,32 @@ import threading
 from transformers import Wav2Vec2Processor
 import wave
 from blessed import Terminal
+from pathlib import Path
 
 term = Terminal()
+
 
 class SpeechToTextService:
     """
     Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
     """
 
-    def __init__(self):
+    def __init__(self, project_root: Path):
         """
         Initialize the speech-to-text service.
-        """
-        self.processor = Wav2Vec2Processor.from_pretrained(os.getenv("PROCESSOR_PATH"))
-        self.ort_session = ort.InferenceSession(os.getenv("ONNX_MODEL_PATH"))
+        """         
+        proc_filepath = str(project_root) + "/" + os.getenv("MODEL_PATH") + "/" + os.getenv("PROCESSOR")
+        onnx_filepath = str(project_root) + "/" + os.getenv("MODEL_PATH") + "/" + os.getenv("ONNX_MODEL")
+        
+        try: 
+            self.processor = Wav2Vec2Processor.from_pretrained(proc_filepath)
+        except Exception as e:
+            print(f"Failed to wav2vec processor: {proc_filepath}\n{e}")     
+            
+        try: 
+            self.ort_session = ort.InferenceSession(onnx_filepath)
+        except Exception as e:
+            print(f"Failed to wav2vec onnx file: {onnx_filepath}\n{e}")     
 
     def process_audio(self, audio_data: np.ndarray) -> str:
         """

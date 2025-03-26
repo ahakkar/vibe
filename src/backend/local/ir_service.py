@@ -1,10 +1,8 @@
-from src.backend.abstract_classes import IntentRecognition
+from abstract_classes import IntentRecognition
 from pathlib import Path
 from hassil import recognize
 from hassil import Intents
-
 import os.path
-
 
 class IrService(IntentRecognition):
     def __init__(self):

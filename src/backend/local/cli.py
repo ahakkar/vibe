@@ -2,28 +2,23 @@ import os
 import sys
 import time
 import signal
+from dotenv import set_key
 import pyfiglet
-import constants
-import sounddevice as sd
+from local.audio import AudioService
+import local.constants
 from blessed import Terminal
-from dotenv import load_dotenv, set_key
-from text_gen import TextGenService
-from tts import TextToSpeech
-from stt import AudioRecordingService, SpeechToTextService
-
-
-
 
 class CommandLineService:
     """
     Service for handling command-line interactions and application flow.
     """
 
-    def __init__(self):
+    def __init__(self, audio: AudioService):
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
         """
         self.term = Terminal()
+        self.audio = audio
         signal.signal(signal.SIGINT, self._signal_handler)
 
     def _signal_handler(self, signal, frame):
@@ -36,13 +31,11 @@ class CommandLineService:
         self.exit()
         sys.exit(0)
 
-
-
     def display_neon_title(self):
         """
         Display the neon title for the application
         """
-        app_ascii_title = pyfiglet.figlet_format(constants.APP_TITLE)
+        app_ascii_title = pyfiglet.figlet_format(local.constants.APP_TITLE)
         title_flicker_colors = [
             self.term.red,
             self.term.magenta,
@@ -107,7 +100,8 @@ class CommandLineService:
         :param device_type: str, The device type (input or output)
         :return: str, The selected device name
         """
-        devices = sd.query_devices()
+        devices = self.audio.query_devices()
+        
         print(
             self.term.center(
                 self.term.bold(f"Available {device_type.capitalize()} Devices:")
@@ -151,34 +145,7 @@ class CommandLineService:
                         "Invalid input. Please enter a valid device index."
                     )
                 )
-
-       
-
-    def _get_device_index(self, device_name, device_type):
-        """
-        Get the device index for a given device name
-
-        :param device_name: str, The device name to look up
-        :param device_type: str, The device type (input or output)
-        :return: int, The device index, or None if not found
-        """
-        devices = sd.query_devices()
-        for i, device in enumerate(devices):
-            if device["name"] == device_name and (
-                (device_type == "input" and device["max_input_channels"] > 0)
-                or (device_type == "output" and device["max_output_channels"] > 0)
-            ):
-                return i
-        return None
-
-    def run_cli(self):
-        """
-        The CLI will first set up the env file, and then display the services available to the user.
-        """
-        self.setup_env()
-        self.load_services()
-        self.display_neon_title()
-        self.display_services()
+        
 
     def display_services(self):
         """
@@ -192,18 +159,18 @@ class CommandLineService:
         while True:
             print(self.term.clear)
             print(self.term.move_down(2))
-            print(self.term.center("All services"))
+            print(self.term("Available services:\n"))
             print(
-                self.term.center(
+                self.term(
                     "1: All services (Speech to text, Language model, Text to speech)"
                 )
             )
-            print(self.term.center("2: Only speech to text service"))
-            print(self.term.center("3: Only language model service"))
-            print(self.term.center("4: Only text to speech service"))
+            print(self.term("2: Only speech to text service"))
+            print(self.term("3: Only language model service"))
+            print(self.term("4: Only text to speech service"))
 
             command_input = input(
-                self.term.center("Choose service (from 1 to 4) or exit:")
+                self.term("Choose service (from 1 to 4) or exit:")
             ).strip()
 
             if command_input == "exit":
@@ -349,7 +316,9 @@ class CommandLineService:
                 sentence += text
 
                 # Check if the sentence is complete
-                if synthesize and (any(punc in sentence for punc in constants.PUNCTATIONS)):
+                if synthesize and (
+                    any(punc in sentence for punc in local.constants.PUNCTATIONS)
+                ):
                     self.textToSpeech.synthesize(sentence)
                     sentence = ""
 

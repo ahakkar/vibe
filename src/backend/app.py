@@ -1,83 +1,145 @@
-
 import os
-import time
+from pathlib import Path
+from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
 from local.tts import TextToSpeech
-from local.audio_record import AudioRecordingService
+from local.audio import AudioService
 from local.stt import SpeechToTextService
-from dotenv import load_dotenv, set_key
+from dotenv import load_dotenv
+import argparse
 
 class AppManager:
     def __init__(self):
+        desc = ['App runs by default on background. Enable web server with --web',
+                'And command line interface with --cli argument']
+        
+        # https://docs.python.org/3/library/argparse.html
+        parser = argparse.ArgumentParser(prog='SLT-VIBE', usage='\n'.join(desc))
+        parser.add_argument('--cli', action='store_true', help='Enable CLI')
+        parser.add_argument('--web', action='store_true', help='Enable Web server')
+        self.args = parser.parse_args()
+                
+        self.root = self._find_project_root()
+
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
             self.ENV_PATH = os.path.join("/usr/src/app", ".env")
         else:
-            self.ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
-            
-        print("app initializing")
-        self._setup_env()
-        self._load_services
+            self.ENV_PATH = self.root / ".env"           
         
-    
-    def run(self):
-        pass
-    
-    
+            
+        self.stt_service = None
+        self.tts_service = None
+        self.text_gen_service = None
+        self.ir_service = None
+        self.audio_service = None        
+        self.cli = None
+        
+        self._setup_env()
+        self._load_services()
+        self._run()
+
+    def _run(self):
+        """
+        Starts the app
+        """
+
+        if self.args.cli:
+            try:
+                self.cli = CommandLineService(self.audio_service)
+                self.cli.display_neon_title()
+                self.cli.display_services()
+            except Exception as e:
+                print(f"Failed to load cli service: {e}")    
+
     def _load_services(self):
         """
         This function loads all the services based on the chosen input and output devices
         """
-
-        input_device_name = os.getenv("INPUT_DEVICE_NAME")
-        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")
-
-        self.input_device_index = self._get_device_index(input_device_name, "input")
-        self.output_device_index = self._get_device_index(output_device_name, "output")
         
-        if os.getenv("STT_ENABLED"):
-             self.stt_service = SpeechToTextService()
-        elif os.getenv("TTS_ENABLED"):
-             self.tts_service = TextToSpeech(device_index=self.output_device_index)
-        elif os.getenv("LLM_ENABLED"):
-             self.text_gen_service = TextGenService()
-        elif os.getenv("IR_ENABLED"):
-            self.ir_service = IrService()     
+        try:
+            self.audio_service = AudioService()   
+        except Exception as e:
+            print(f"Failed to load audio service: {e}")     
+      
         
-        self.audio_service = AudioRecordingService(device_index=self.input_device_index)
-       
-       
-    
-    
+        if self.args.cli:
+            if os.getenv("STT_ENABLED"):
+                try:            
+                    self.stt_service = SpeechToTextService(self.root)
+                except Exception as e:
+                    print(f"Failed to load STT service: {e}")   
+                    
+            elif os.getenv("TTS_ENABLED"):
+                print("Loading TTS")
+                self.tts_service = TextToSpeech(device_index=self.output_device_index)
+                
+            elif os.getenv("LLM_ENABLED"):
+                print("Loading Text Gen")
+                self.text_gen_service = TextGenService()
+                
+            elif os.getenv("IR_ENABLED"):
+                print("Loading IR")
+                self.ir_service = IrService()
+                
+        else:
+            self.stt_service = SpeechToTextService(self.root)
+            self.tts_service = TextToSpeech(device_index=self.output_device_index)
+            self.text_gen_service = TextGenService()   
+            self.ir_service = IrService()  
+                
+          
+        
+
     def _setup_env(self):
         """
         Set up env file if it doesn't exist, the user can choose input and output devices.
         """
         
         if not os.path.exists(self.ENV_PATH):
-            self.create_env_file()
-            # self.display_settings_menu(self.ENV_PATH)
-            
+            self._create_env_file()
+
         load_dotenv(self.ENV_PATH)
-            
-    
+
     def _create_env_file(self):
         """
         Create env file by setting default input and output device names
         """
-        with open(self.ENV_PATH, "w") as f:
-            f.write("INPUT_DEVICE_NAME=None\n")
-            f.write("OUTPUT_DEVICE_NAME=None\n")
-            f.write("STT_ENABLED=False\n")
-            f.write("TTS_ENABLED=False\n")
-            f.write("LLM_ENABLED=False\n")
-            f.write("ONNX_MODEL_PATH=\"/models/wav2vec2_model.onnx\"")
-            f.write("PROCESSOR_PATH=\"/models/wav2vec2_processor\"")
-            f.write("OUTPUT_FILENAME=\"recorded_audio.wav\"")
+        
+        try:
+            with open(self.ENV_PATH, "w") as f:
+                f.write("INPUT_DEVICE_NAME=None\n")
+                f.write("OUTPUT_DEVICE_NAME=None\n")
+                f.write("STT_ENABLED=False\n")
+                f.write("TTS_ENABLED=False\n")
+                f.write("LLM_ENABLED=False\n")
+                f.write('LLM_MODEL="google_gemma-3-1b-it-Q4_0.gguf"\n')
+                f.write('MODEL_PATH="models"\n')
+                f.write('ONNX_MODEL="wav2vec2_model.onnx"\n')
+                f.write('PROCESSOR="wav2vec2_processor"\n')
+                f.write('OUTPUT_FILENAME="recorded_audio.wav"\n')
+                
+        except IOError as e: 
+            print(f"Error writing to .env file ({self.ENV_PATH}): {e}")
+        except OSError as e:
+            print(f"OS Error writing to .env file ({self.ENV_PATH}): {e}")
+        except Exception as e:
+            print(f"An unexpected error occurred while writing to .env: {e}")
+          
             
-    
+    def _find_project_root(self) -> Path:
+        current_path = Path(__file__).resolve()
+        
+        while True:
+            if (current_path / 'README.md').exists():     
+                return current_path
+            elif current_path == "/":
+                return None
+            else:
+                current_path = current_path.parent     
+            
+
 if __name__ == "__main__":
     app = AppManager()
     app.run()
-    
