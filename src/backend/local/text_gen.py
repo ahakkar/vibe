@@ -1,13 +1,14 @@
 import sys
 import os
 from llama_cpp import Llama
+from abstract_classes import TextGenerationInterface
 
 # Suppress llama.cpp warnings from console output
 # e.g. llama_new_context_with_model: n_ctx_per_seq (2048) < n_ctx_train (8192) -- the full capacity of the model will not be utilized
 sys.stderr = open(os.devnull, "w")
 
 
-class TextGenService:
+class TextGenService(TextGenerationInterface):
     """
     Text generation service for a fine-tuned Gemma 2:2B GGUF model.
     """
@@ -47,15 +48,7 @@ class TextGenService:
             n_threads=6,
         )
 
-    def chat_generate(self, user_input, system_prompt=""):
-        """
-        Generates a response in a chat-like format, ensuring correct system message handling.
-
-        :param str user_input: The input text from the user.
-        :param str system_prompt: The system prompt to guide the model's responses, defaults to "".
-        :return generator: A generator that yields the model's response in a streaming fashion.
-        """
-
+    def generate(self, user_input, system_prompt=""):
         if not system_prompt:
             system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 

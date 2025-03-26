@@ -1,20 +1,14 @@
 import os
-import time
 import torch
-import torchaudio
 import numpy as np
-import pyaudio
 import onnxruntime as ort
-import threading
+
 from transformers import Wav2Vec2Processor
-import wave
-from blessed import Terminal
+from abstract_classes import SpeechToTextInterface
 from pathlib import Path
 
-term = Terminal()
 
-
-class SpeechToTextService:
+class SpeechToTextService(SpeechToTextInterface):
     """
     Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
     """
@@ -22,26 +16,35 @@ class SpeechToTextService:
     def __init__(self, project_root: Path):
         """
         Initialize the speech-to-text service.
-        """         
-        proc_filepath = str(project_root) + "/" + os.getenv("MODEL_PATH") + "/" + os.getenv("PROCESSOR")
-        onnx_filepath = str(project_root) + "/" + os.getenv("MODEL_PATH") + "/" + os.getenv("ONNX_MODEL")
-        
-        try: 
+        """
+        proc_filepath = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_PATH")
+            + "/"
+            + os.getenv("PROCESSOR")
+        )
+        onnx_filepath = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_PATH")
+            + "/"
+            + os.getenv("ONNX_MODEL")
+        )
+
+        try:
             self.processor = Wav2Vec2Processor.from_pretrained(proc_filepath)
         except Exception as e:
-            print(f"Failed to wav2vec processor: {proc_filepath}\n{e}")     
-            
-        try: 
+            print(f"Failed to wav2vec processor: {proc_filepath}\n{e}")
+
+        try:
             self.ort_session = ort.InferenceSession(onnx_filepath)
         except Exception as e:
-            print(f"Failed to wav2vec onnx file: {onnx_filepath}\n{e}")     
+            print(f"Failed to wav2vec onnx file: {onnx_filepath}\n{e}")
 
-    def process_audio(self, audio_data: np.ndarray) -> str:
+    def transcribe(self, audio_data: np.ndarray) -> str:
         """
         Process raw audio data using the ONNX model.
-
-        :param np.ndarray audio_data: The raw audio data to process.
-        :return str: The transcribed text from the audio data.
         """
         # Normalize the audio data (Is this necessary?)
         audio_data = (audio_data - audio_data.mean()) / audio_data.std()

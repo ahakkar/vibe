@@ -1,7 +1,9 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
 
-class TextToSpeech(ABC):
+
+class TextToSpeechInterface(ABC):
     @abstractmethod
     def synthesize(self, text: str) -> None:
         """
@@ -13,37 +15,49 @@ class TextToSpeech(ABC):
         pass
 
 
-class SpeechToText(ABC):
+class SpeechToTextInterface(ABC):
     @abstractmethod
-    def transcribe(self, audio_file: str) -> str:
+    def transcribe(self, audio_data: np.ndarray) -> str:
         """
         Convert speech from an audio file to text.
 
-        Parameters:
-        audio_file (str): The path to the audio file to be transcribed.
-
-        Returns:
-        str: The transcribed text.
+        :param np.ndarray audio_data: The raw audio data to process.
+        :return str: The transcribed text from the audio data.
         """
         pass
 
 
-class TextGeneration(ABC):
+class TextGenerationInterface(ABC):
     @abstractmethod
-    def generate(self, prompt: str) -> str:
+    def generate(self, user_input: str, system_prompt="") -> str:
         """
-        Generate text based on the given prompt.
+        Generates a response in a chat-like format, ensuring correct system message handling.
 
-        Parameters:
-        prompt (str): The input text prompt for the language model.
-
-        Returns:
-        str: The generated text output.
+        :param str user_input: The input text from the user.
+        :param str system_prompt: The system prompt to guide the model's responses, defaults to "".
+        :return generator: A generator that yields the model's response in a streaming fashion.
         """
         pass
 
 
-class Translator(ABC):
+class IntentRecognitionInterface(ABC):
+    @abstractmethod
+    def recognize_intent(self, text: str, lang: str) -> dict:
+        """
+        Parse natural language text into structured intent data.
+
+        Parameters:
+        text (str): Input text from the user.
+        lang (str): Input text language.
+
+        Returns:
+        dict: Structured intent.
+        """
+        pass
+
+
+# not used atm
+class TranslatorInterface(ABC):
     @abstractmethod
     def translate(self, text: str, source_language: str, target_language: str) -> str:
         """
@@ -56,21 +70,5 @@ class Translator(ABC):
 
         Returns:
         str: The translated text.
-        """
-        pass
-
-
-class IntentRecognition(ABC):
-    @abstractmethod
-    def recognize_intent(self, text: str, lang: str) -> dict:
-        """
-        Parse natural language text into structured intent data.
-
-        Parameters:
-        text (str): Input text from the user.
-        lang (str): Input text language.
-
-        Returns:
-        dict: Structured intent.
         """
         pass

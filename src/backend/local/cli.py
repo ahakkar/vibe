@@ -1,24 +1,26 @@
 import os
-import sys
 import time
 import signal
 from dotenv import set_key
 import pyfiglet
+from app import AppManager
 from local.audio import AudioService
 import local.constants
 from blessed import Terminal
+
 
 class CommandLineService:
     """
     Service for handling command-line interactions and application flow.
     """
 
-    def __init__(self, audio: AudioService):
+    def __init__(self, app: AppManager):
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
         """
         self.term = Terminal()
-        self.audio = audio
+        self.app = app
+        self.audio = app.get_service("audio")
         signal.signal(signal.SIGINT, self._signal_handler)
 
     def _signal_handler(self, signal, frame):
@@ -28,8 +30,10 @@ class CommandLineService:
         :param int signal: The signal number.
         :param frame: The current stack frame.
         """
-        self.exit()
-        sys.exit(0)
+        self.app.exit()
+
+    def print_message(self, msg, color):
+        print(self.term.center(msg))
 
     def display_neon_title(self):
         """
@@ -55,21 +59,6 @@ class CommandLineService:
                 color_index += 1
                 time.sleep(0.1)
 
-    def _print_title(self, title_chars, colors, color_index):
-        """
-        Print the neon title with flickering colors
-        """
-        print(self.term.clear)
-        print(self.term.move_y(self.term.height // 3))
-        for line in title_chars:
-            styled_line = "".join(
-                colors[color_index % len(colors)](char) if char.strip() else char
-                for char in line
-            )
-            print(self.term.center(styled_line))
-        print(self.term.move_y(self.term.height - 3))
-        print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
-
     def display_settings_menu(self, ENV_PATH):
         """
         Display the settings menu for the user to choose input and output devices
@@ -92,60 +81,6 @@ class CommandLineService:
             )
         )
         time.sleep(1)
-
-    def _select_device(self, device_type):
-        """
-        Select the device name for input or output devices
-
-        :param device_type: str, The device type (input or output)
-        :return: str, The selected device name
-        """
-        devices = self.audio.query_devices()
-        
-        print(
-            self.term.center(
-                self.term.bold(f"Available {device_type.capitalize()} Devices:")
-            )
-        )
-        # Print the available input/output devices
-        for i, device in enumerate(devices):
-            if (device_type == "input" and device["max_input_channels"] > 0) or (
-                device_type == "output" and device["max_output_channels"] > 0
-            ):
-                print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
-        print()
-
-        while True:
-            index = input(
-                self.term.center(
-                    self.term.bold_yellow(
-                        f"Select {device_type.capitalize()} Device Index: "
-                    )
-                )
-            ).strip()
-            if index.isdigit() and int(index) in range(len(devices)):
-                selected_device = devices[int(index)]
-                # Check that the selected device of appropriate type
-                if (
-                    device_type == "input" and selected_device["max_input_channels"] > 0
-                ) or (
-                    device_type == "output"
-                    and selected_device["max_output_channels"] > 0
-                ):
-                    return selected_device["name"]
-                else:
-                    print(
-                        self.term.bold_red(
-                            f"Selected device is not a valid {device_type} device."
-                        )
-                    )
-            else:
-                print(
-                    self.term.bold_red(
-                        "Invalid input. Please enter a valid device index."
-                    )
-                )
-        
 
     def display_services(self):
         """
@@ -174,9 +109,8 @@ class CommandLineService:
             ).strip()
 
             if command_input == "exit":
-                print(self.term.center(self.term.bold_red("Exiting the program.")))
-                break
-            if command_input == "1":
+                self.app.exit()
+            elif command_input == "1":
                 self.run_all_services()
             elif command_input == "2":
                 self.run_speech_to_text_service()
@@ -201,7 +135,7 @@ class CommandLineService:
             while True:
                 key = self.term.inkey(timeout=1)
                 if key.name == "KEY_ESCAPE":
-                    self.exit()
+                    self.app.exit()
                     return
                 elif key.name == "KEY_F12":
                     self._flush_input_buffer()
@@ -221,36 +155,6 @@ class CommandLineService:
         Run all services: Speech to text, Language model, Text to speech
         """
         self.run_keyboard_command(all_services=True)
-
-    def _toggle_recording(self, all_services):
-        """
-        Toggle recording state and process audio if recording is stopped.
-
-        :param all_services: bool, If True, the program will run all services
-        """
-        if self.audio_service.recording:
-            self._stop_and_process_recording(all_services)
-        else:
-            self.audio_service.start_recording()
-
-    def _stop_and_process_recording(self, all_services):
-        """
-        Stop recording and process the recorded audio.
-
-        :param all_services: bool, If True, the program will run all services
-        """
-        audio_data = self.audio_service.stop_recording()
-        if audio_data is not None:
-            recorded_text = self.stt_service.process_audio(audio_data)
-            print(
-                self.term.center(
-                    self.term.bold_green(f"Recorded Text: {recorded_text}")
-                )
-            )
-            if all_services:
-                self._process_all_services(recorded_text)
-        else:
-            print(self.term.center(self.term.bold_red("No audio data recorded.")))
 
     def _process_all_services(self, recorded_text):
         """
@@ -335,10 +239,70 @@ class CommandLineService:
         print()
         print(self.term.center("-" * self.term.width))
 
-    def exit(self):
+    def _print_title(self, title_chars, colors, color_index):
         """
-        Exit the program
+        Print the neon title with flickering colors
         """
-        print(self.term.center(self.term.bold_red("Exiting the program.")))
-        self.audio_service.terminate_audio()
-        self.textToSpeech.stop()
+        print(self.term.clear)
+        print(self.term.move_y(self.term.height // 3))
+        for line in title_chars:
+            styled_line = "".join(
+                colors[color_index % len(colors)](char) if char.strip() else char
+                for char in line
+            )
+            print(self.term.center(styled_line))
+        print(self.term.move_y(self.term.height - 3))
+        print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
+
+    def _select_device(self, device_type):
+        """
+        Select the device name for input or output devices
+
+        :param device_type: str, The device type (input or output)
+        :return: str, The selected device name
+        """
+        devices = self.audio.query_devices()
+
+        print(
+            self.term.center(
+                self.term.bold(f"Available {device_type.capitalize()} Devices:")
+            )
+        )
+        # Print the available input/output devices
+        for i, device in enumerate(devices):
+            if (device_type == "input" and device["max_input_channels"] > 0) or (
+                device_type == "output" and device["max_output_channels"] > 0
+            ):
+                print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
+        print()
+
+        while True:
+            index = input(
+                self.term.center(
+                    self.term.bold_yellow(
+                        f"Select {device_type.capitalize()} Device Index: "
+                    )
+                )
+            ).strip()
+            if index.isdigit() and int(index) in range(len(devices)):
+                selected_device = devices[int(index)]
+                # Check that the selected device of appropriate type
+                if (
+                    device_type == "input" and selected_device["max_input_channels"] > 0
+                ) or (
+                    device_type == "output"
+                    and selected_device["max_output_channels"] > 0
+                ):
+                    return selected_device["name"]
+                else:
+                    print(
+                        self.term.bold_red(
+                            f"Selected device is not a valid {device_type} device."
+                        )
+                    )
+            else:
+                print(
+                    self.term.bold_red(
+                        "Invalid input. Please enter a valid device index."
+                    )
+                )

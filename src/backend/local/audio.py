@@ -6,19 +6,24 @@ import os
 import wave
 import sounddevice as sd
 
+from app import AppManager
+
+
 class AudioService:
     """
     Service for recording audio using the PyAudio library.
     """
 
-    def __init__(self):
+    def __init__(self, app: AppManager):
         """
         Initialize the audio recording service.
         """
-        
+
+        self.app = app
+
         input_device_name = os.getenv("INPUT_DEVICE_NAME")
-        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")        
-        
+        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")
+
         self.sample_rate = 16_000
         self.channels = 1
         self.CHUNK = 1024
@@ -29,6 +34,19 @@ class AudioService:
         self.input_device_index = self._get_device_index(input_device_name, "input")
         self.output_device_index = self._get_device_index(output_device_name, "output")
         self.recording_thread = None
+
+        self.recording = False
+
+    def toggle_recording(self, all_services):
+        """
+        Toggle recording state and process audio if recording is stopped.
+
+        :param all_services: bool, If True, the program will run all services
+        """
+        if self.recording:
+            self._stop_and_process_recording(all_services)
+        else:
+            self.start_recording()
 
     def start_recording(self):
         """
@@ -110,6 +128,20 @@ class AudioService:
 
         return audio_data
 
+    def _stop_and_process_recording(self):
+        """
+        Stop recording and process the recorded audio.
+
+        :param all_services: bool, If True, the program will run all services
+        """
+        audio_data = self.stop_recording()
+        if audio_data is not None:
+            stt = self.app.get_service("stt")
+            return stt.process_audio(audio_data)
+
+        else:
+            return "No audio data recorded."
+
     def save_audio_to_file(self):
         """
         Save the recorded audio to a file.
@@ -144,12 +176,10 @@ class AudioService:
             self.recording_thread.join()
 
         self.audio.terminate()
-        
-        
+
     def query_devices():
         return sd.query_devices()
-        
-        
+
     def _get_device_index(self, device_name, device_type):
         """
         Get the device index for a given device name

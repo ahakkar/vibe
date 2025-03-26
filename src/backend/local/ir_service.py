@@ -1,10 +1,11 @@
-from abstract_classes import IntentRecognition
+from abstract_classes import IntentRecognitionInterface
 from pathlib import Path
 from hassil import recognize
 from hassil import Intents
 import os.path
 
-class IrService(IntentRecognition):
+
+class IrService(IntentRecognitionInterface):
     def __init__(self):
         """
         Load supported intents. hassil has multiple different options, ie. from_files, from_yaml, from_dict. from_yaml is used for simplicity for starter. In that case all intents are defined in the same YAML file.
@@ -21,8 +22,6 @@ class IrService(IntentRecognition):
         Uses recognize() to return first match. recognize() has a bunch of optional params which could be used to fine tune the process.
 
         Discards most contents of a RecognizeResult and returns only the essential information.
-
-        text: Text to recognize.
         """
 
         result = recognize(text, self.intents)

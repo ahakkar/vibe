@@ -5,10 +5,12 @@ import threading
 import queue
 from piper.voice import PiperVoice
 
+from abstract_classes import TextToSpeechInterface
+
 MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
 
 
-class TextToSpeech:
+class TextToSpeech(TextToSpeechInterface):
     """
     A Text-to-Speech (TTS) service that converts text to speech using the PiperVoice model.
     This class handles audio output through a specified device and manages audio streams
