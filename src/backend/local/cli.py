@@ -3,8 +3,6 @@ import time
 import signal
 from dotenv import set_key
 import pyfiglet
-from app import AppManager
-from local.audio import AudioService
 import local.constants
 from blessed import Terminal
 
@@ -14,13 +12,12 @@ class CommandLineService:
     Service for handling command-line interactions and application flow.
     """
 
-    def __init__(self, app: AppManager):
+    def __init__(self, app):
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
         """
         self.term = Terminal()
         self.app = app
-        self.audio = app.get_service("audio")
         signal.signal(signal.SIGINT, self._signal_handler)
 
     def _signal_handler(self, signal, frame):
@@ -32,7 +29,7 @@ class CommandLineService:
         """
         self.app.exit()
 
-    def print_message(self, msg, color):
+    def print_text(self, msg, color):
         print(self.term.center(msg))
 
     def display_neon_title(self):
@@ -111,15 +108,17 @@ class CommandLineService:
             if command_input == "exit":
                 self.app.exit()
             elif command_input == "1":
-                self.run_all_services()
+                self._toggle_recording(True)
             elif command_input == "2":
-                self.run_speech_to_text_service()
+                self._toggle_recording()
             elif command_input == "3":
-                self.run_text_gen_service()
+                inp = self._input_text("text generation")
+                self.app.text_gen(inp)
             elif command_input == "4":
-                self.run_text_to_speech_service()
+                inp = self._input_text("text to speech")
+                self.app.text_to_speech()
 
-    def run_keyboard_command(self, all_services=False):
+    def _toggle_recording(self, all=False):
         """
         This function will run the keyboard command to start and stop recording or exit the program.
 
@@ -139,9 +138,26 @@ class CommandLineService:
                     return
                 elif key.name == "KEY_F12":
                     self._flush_input_buffer()
-                    self._toggle_recording(all_services)
+                    self.app.toggle_recording(all)
 
                 time.sleep(0.5)
+
+    def _input_text(self, service_name: str) -> str:
+        """
+        Query text input from user
+        """
+        input_text = ""
+
+        while True:
+            input_text = input(
+                self.term.center(
+                    f"Write something for {service_name} service or 'back': "
+                )
+            ).strip()
+            if input_text.lower() == "back":
+                break
+
+        return input_text
 
     def _flush_input_buffer(self):
         """
@@ -150,89 +166,7 @@ class CommandLineService:
         while self.term.inkey(timeout=0.1):
             pass
 
-    def run_all_services(self):
-        """
-        Run all services: Speech to text, Language model, Text to speech
-        """
-        self.run_keyboard_command(all_services=True)
-
-    def _process_all_services(self, recorded_text):
-        """
-        Process all services with the recorded text.
-
-        :param recorded_text: str, The text obtained from the recorded audio
-        """
-        self.llm_text_generate(recorded_text, synthesize=True)
-
-    def run_speech_to_text_service(self):
-        """
-        Run the speech to text service
-        """
-        self.run_keyboard_command()
-
-    def run_text_gen_service(self):
-        """
-        Run the language model service
-        """
-        while True:
-            input_text = input(
-                self.term.center(
-                    "Write something for text generation service or 'back': "
-                )
-            ).strip()
-            if input_text.lower() == "back":
-                break
-            self.llm_text_generate(input_text)
-
-    def run_text_to_speech_service(self):
-        """
-        Run the text to speech service
-        """
-        while True:
-            input_text = input(
-                self.term.center(
-                    "Write something for text to speech service or 'back': "
-                )
-            ).strip()
-            if input_text.lower() == "back":
-                break
-            self.textToSpeech.synthesize(input_text)
-
-    def llm_text_generate(self, input_text, synthesize=False):
-        """
-        The language model generates text based on user's input text
-        Print the language model's generated text
-
-        :param input_text: str, The user's input text
-        :param synthesize: bool, If True, synthesize the generated text
-        """
-        llm_output = self.text_gen_service.chat_generate(input_text)
-        sentence = ""
-        with self.term.cbreak():
-            for token in llm_output:
-                # Check for key press to stop generation
-                if self.term.inkey(timeout=0.1):
-                    self.textToSpeech.stop()
-                    self.print_separator()
-                    return
-
-                text = token["choices"][0]["delta"].get("content", "")
-                sentence += text
-
-                # Check if the sentence is complete
-                if synthesize and (
-                    any(punc in sentence for punc in local.constants.PUNCTATIONS)
-                ):
-                    self.textToSpeech.synthesize(sentence)
-                    sentence = ""
-
-                # Print the generated text token by token
-                print(self.term.bold_green(text), end="", flush=True)
-
-        self.print_separator()
-        return
-
-    def print_separator(self):
+    def _print_separator(self):
         """
         Print a terminal width separator line
         """
@@ -261,7 +195,7 @@ class CommandLineService:
         :param device_type: str, The device type (input or output)
         :return: str, The selected device name
         """
-        devices = self.audio.query_devices()
+        devices = self.get_service("audio").query_devices()
 
         print(
             self.term.center(

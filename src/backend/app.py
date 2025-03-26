@@ -1,6 +1,8 @@
 import argparse
 import os
 import sys
+import abstract_classes
+import local.constants
 from pathlib import Path
 from local.cli import CommandLineService
 from local.ir_service import IrService
@@ -53,7 +55,7 @@ class AppManager:
         Exit the program
         """
         if self.services["cli"]:
-            self.services["cli"].print_message("Exiting the program.")
+            self.services["cli"].print_text("Exiting the program.")
         self.services["audio"].terminate_audio()
         self.services["tts"].stop()
         sys.exit(0)
@@ -74,6 +76,68 @@ class AppManager:
         # Could run as a background if we had voice activation detection
 
         # Could perhaps run the web server here too
+
+    def toggle_recording(self, all):
+        """
+        Toggle recording state and process audio if recording is stopped.
+
+        :param all_services: bool, If True, the program will run all services
+        """
+        if not self.services["audio"].recording:
+            result = self.services["audio"].stop_and_process_recording()
+            if result:
+                if all:
+                    audio_text = self.services("stt").transcribe(result)
+                    # TODO call IR here first
+
+                    # Then process it and pass to LLM
+                    llm_text = self.services["llm"].generate(audio_text)
+                    pass
+            else:
+                self.services["cli"].print_text("No audio recorded.")
+
+        else:
+            self.services["audio"].start_recording()
+
+    def speech_to_text(self, audio) -> str:
+        """
+        Run the speech to text service
+        """
+
+        return self.services["stt"].transcribe(audio)
+
+    def text_to_speech(self, text):
+        """
+        Run the text to speech service
+        """
+
+        self.services["tts"].synthesize(text)
+
+    def text_gen(self, input_text, synthesize=False):
+        """
+        The language model generates text based on user's input text
+        Print the language model's generated text
+
+        :param input_text: str, The user's input text
+        :param synthesize: bool, If True, synthesize the generated text
+        """
+        llm_output = self.services["llm"].generate(input_text)
+        sentence = ""
+
+        for token in llm_output:
+            text = token["choices"][0]["delta"].get("content", "")
+            sentence += text
+
+            # Check if the sentence is complete
+            if synthesize and (
+                any(punc in sentence for punc in local.constants.PUNCTATIONS)
+            ):
+                self.services["tts"].synthesize(sentence)
+                sentence = ""
+
+            self.services["cli"].print_text(text)
+
+        return
 
     def _load_services(self):
         """

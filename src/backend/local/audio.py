@@ -37,17 +37,6 @@ class AudioService:
 
         self.recording = False
 
-    def toggle_recording(self, all_services):
-        """
-        Toggle recording state and process audio if recording is stopped.
-
-        :param all_services: bool, If True, the program will run all services
-        """
-        if self.recording:
-            self._stop_and_process_recording(all_services)
-        else:
-            self.start_recording()
-
     def start_recording(self):
         """
         Start recording audio from the specified input device.
@@ -136,11 +125,10 @@ class AudioService:
         """
         audio_data = self.stop_recording()
         if audio_data is not None:
-            stt = self.app.get_service("stt")
-            return stt.process_audio(audio_data)
+            return audio_data
 
         else:
-            return "No audio data recorded."
+            return None
 
     def save_audio_to_file(self):
         """
