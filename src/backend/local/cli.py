@@ -3,6 +3,7 @@ import sys
 import time
 import signal
 import pyfiglet
+import constants
 import sounddevice as sd
 from blessed import Terminal
 from dotenv import load_dotenv, set_key
@@ -10,24 +11,7 @@ from text_gen import TextGenService
 from tts import TextToSpeech
 from stt import AudioRecordingService, SpeechToTextService
 
-APP_TITLE = "SLT-VIBE"
 
-THEME = {
-    "title": "bold underline",
-    "menu": "bold",
-    "option": "bold cyan",
-    "input": "bold yellow",
-    "error": "bold red",
-    "success": "bold green",
-}
-
-PUNCTATIONS = ["...", ".", "!", "?", ":", ";"]
-
-# Determine the correct .env path based if running in Docker
-if os.getenv("RUNNING_IN_DOCKER"):
-    ENV_PATH = os.path.join("/usr/src/app", ".env")
-else:
-    ENV_PATH = os.path.join(os.path.dirname(__file__), ".env")
 
 
 class CommandLineService:
@@ -52,19 +36,13 @@ class CommandLineService:
         self.exit()
         sys.exit(0)
 
-    def create_env_file(self):
-        """
-        Create env file by setting default input and output device names
-        """
-        with open(ENV_PATH, "w") as f:
-            f.write("INPUT_DEVICE_NAME=None\n")
-            f.write("OUTPUT_DEVICE_NAME=None\n")
+
 
     def display_neon_title(self):
         """
         Display the neon title for the application
         """
-        app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
+        app_ascii_title = pyfiglet.figlet_format(constants.APP_TITLE)
         title_flicker_colors = [
             self.term.red,
             self.term.magenta,
@@ -99,7 +77,7 @@ class CommandLineService:
         print(self.term.move_y(self.term.height - 3))
         print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
 
-    def display_settings_menu(self):
+    def display_settings_menu(self, ENV_PATH):
         """
         Display the settings menu for the user to choose input and output devices
         """
@@ -174,55 +152,7 @@ class CommandLineService:
                     )
                 )
 
-    def setup_env(self):
-        """
-        Set up env file if it doesn't exist, the user can choose input and output devices.
-        """
-        if not os.path.exists(ENV_PATH):
-            print(
-                self.term.center(
-                    self.term.bold_red("No .env file found. Opening settings menu...")
-                )
-            )
-            time.sleep(1)
-            self.create_env_file()
-            self.display_settings_menu()
-
-    def load_services(self):
-        """
-        This function loads all the services based on the chosen input and output devices
-        """
-        print(self.term.clear)
-        print(self.term.move_y(self.term.height // 2))
-        print(self.term.center(self.term.bold("Loading application...")))
-
-        # Load environment variables after potentially creating .env
-        load_dotenv(ENV_PATH)
-
-        input_device_name = os.getenv("INPUT_DEVICE_NAME")
-        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")
-
-        self.input_device_index = self._get_device_index(input_device_name, "input")
-        self.output_device_index = self._get_device_index(output_device_name, "output")
-
-        # Check that saved device names are still valid
-        if self.input_device_index is None or self.output_device_index is None:
-            print(
-                self.term.center(
-                    self.term.bold_red(
-                        "Invalid device name found. Opening settings menu..."
-                    )
-                )
-            )
-            time.sleep(1)
-            self.display_settings_menu()
-            self.load_services()  # Reload services after updating settings
-            return
-
-        self.text_gen_service = TextGenService()
-        self.audio_service = AudioRecordingService(device_index=self.input_device_index)
-        self.stt_service = SpeechToTextService()
-        self.textToSpeech = TextToSpeech(device_index=self.output_device_index)
+       
 
     def _get_device_index(self, device_name, device_type):
         """
@@ -419,7 +349,7 @@ class CommandLineService:
                 sentence += text
 
                 # Check if the sentence is complete
-                if synthesize and (any(punc in sentence for punc in PUNCTATIONS)):
+                if synthesize and (any(punc in sentence for punc in constants.PUNCTATIONS)):
                     self.textToSpeech.synthesize(sentence)
                     sentence = ""
 
