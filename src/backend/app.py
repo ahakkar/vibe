@@ -253,8 +253,6 @@ class AppManager:
         
         try:
             shutil.copy2(source_path, self.ENV_PATH)
-            print("Default .env file copied successfully.")
-            print("Default .env file copied successfully.")
 
         except IOError as e:
             print(f"Error writing to .env file ({self.ENV_PATH}): {e}")
