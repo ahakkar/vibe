@@ -132,9 +132,9 @@ class CommandLineService:
             elif command_input == "0":
                 self.display_settings_menu()
             elif command_input == "1":
-                 self._toggle_recording(True)
+                self._toggle_recording(True)
             elif command_input == "2":
-                 self._toggle_recording()
+                self._toggle_recording()
             elif command_input == "3":
                 self._input_text_gen()
             elif command_input == "4":

@@ -58,7 +58,7 @@ class AppManager:
     def toggle_recording(self, all):
         """
         Toggle recording state and process audio if recording is stopped.
-        
+
         This function looks to be a bit to complex and could be refactored/
         broken down to smaller functions.
 
@@ -68,21 +68,21 @@ class AppManager:
             result = self.services[Srv.AUDIO].stop_and_process_recording()
             if result and all:
                 self._process_recording(result)
-            elif self.args.cli:                
+            elif self.args.cli:
                 self.services[Srv.CLI].print_text("No audio recorded.")
 
         else:
             self.services[Srv.AUDIO].start_recording()
-            
+
     def _process_recording(self, recording):
         """
         Transcribe audio with STT, detect intent, provide response based on
         intent or if no intent was detected, provide an answer with text gen.
-        
+
         :param recording - NDArray[floating[Any]]
         """
-         
-        audio_text = self.services[Srv.STT].transcribe(recording)            
+
+        audio_text = self.services[Srv.STT].transcribe(recording)
         intent = self.services[Srv.IR].recognize_intent(audio_text)
 
         # Intent is recognized, handle it
@@ -100,7 +100,7 @@ class AppManager:
         """
         Get an already initialized service with enum so other sections of app
         can utilize the service.
-        
+
         :param service_name Srv enum from constants.py
         """
         return self.services.get(service_name)
@@ -161,10 +161,11 @@ class AppManager:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
             intent_response = self.services[Srv.IR].process_intent(intent)
-            self.services[Srv.CLI].print_text(f"Intent: {intent.intent.name}, response:\n{intent_response}")          
-   
+            self.services[Srv.CLI].print_text(
+                f"Intent: {intent.intent.name}, response:\n{intent_response}"
+            )
 
-    def text_gen(self, input_text: str, synthesize:bool = False):
+    def text_gen(self, input_text: str, synthesize: bool = False):
         """
         The language model generates text based on user's input text
         Print the language model's generated text
@@ -213,7 +214,7 @@ class AppManager:
             )
         except Exception as e:
             print(f"Failed to load tts service: {e}")
-    
+
         try:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
@@ -228,12 +229,12 @@ class AppManager:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
             print(f"Failed to load weather service: {e}")
-    
+
         try:
             self.services[Srv.NEWS] = YleNewsApi()
         except Exception as e:
             print(f"Failed to load yle news service: {e}")
- 
+
     def _setup_env(self):
         """
         Set up env file if it doesn't exist, the user can choose input and output devices.
@@ -250,7 +251,7 @@ class AppManager:
         Create an .env file based on .env.default
         """
         source_path = os.path.join(self.root, ".env.default")
-        
+
         try:
             shutil.copy2(source_path, self.ENV_PATH)
 

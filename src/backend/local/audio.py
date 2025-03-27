@@ -30,7 +30,7 @@ class AudioService:
         self.frames = []
         self.input_device_index = self._get_device_index(input_device_name, "input")
         self.output_device_index = self._get_device_index(output_device_name, "output")
-        
+
         self.is_recording = False
         self.recording_thread = None
 
