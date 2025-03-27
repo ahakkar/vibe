@@ -131,9 +131,9 @@ class AppManager:
 
         self.services["tts"].synthesize(input_text)
         
-    def text_to_speech(self, input_text):
+    def intent_recognition(self, input_text):
         """
-        Run the text to speech service
+        Run the intent recognition service
         """
 
         intent = self.services["ir"].recognize_intent(input_text)

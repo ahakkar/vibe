@@ -141,7 +141,7 @@ class CommandLineService:
                 self.app.synthesize = True
                 self._input_tts()
             elif command_input == "5":  
-                self._input_tts()
+                self._input_ir()
                 
 
     def _toggle_recording(self, all=False):
@@ -200,7 +200,7 @@ class CommandLineService:
             self.app.text_to_speech
         )    
         
-    def _input_ic(self):
+    def _input_ir(self):
         """
         Query text input from user for intent recognition service.
         """
