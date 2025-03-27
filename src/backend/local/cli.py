@@ -1,11 +1,13 @@
 import os
 import time
 import signal
-from typing import Optional
-from dotenv import set_key
 import pyfiglet
 import local.constants
+
+from typing import Optional
+from dotenv import set_key
 from blessed import Terminal
+from local.constants import Srv
 
 
 class CommandLineService:
@@ -244,7 +246,7 @@ class CommandLineService:
         :param device_type: str, The device type (input or output)
         :return: str, The selected device name
         """
-        devices = self.app.get_service("audio").query_devices()
+        devices = self.app.get_service(Srv.AUDIO).query_devices()
 
         if len(devices) == 0:
             return None

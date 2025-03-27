@@ -5,7 +5,7 @@ import abstract_classes
 import local.constants
 import traceback
 
-
+from local.constants import Srv
 from dotenv import load_dotenv
 from local.cli import CommandLineService
 from local.ir_service import IrService
@@ -41,12 +41,14 @@ class AppManager:
             self.ENV_PATH = self.root / ".env"
 
         self.services = {
-            "stt": None,
-            "tts": None,
-            "text_gen": None,
-            "ir": None,
-            "audio": None,
-            "cli": None,
+            Srv.STT: None,
+            Srv.TTS: None,
+            Srv.TEXT_GEN: None,
+            Srv.IR: None,
+            Srv.AUDIO: None,
+            Srv.CLI: None,
+            Srv.WEATHER: None,
+            Srv.NEWS: None,
         }
 
         self._setup_env()
@@ -57,31 +59,36 @@ class AppManager:
     def toggle_recording(self, all):
         """
         Toggle recording state and process audio if recording is stopped.
+        
+        This function looks to be a bit to complex and could be refactored/
+        broken down to smaller functions.
 
         :param all_services: bool, If True, the program will run all services
         """
-        if not self.services["audio"].recording:
-            result = self.services["audio"].stop_and_process_recording()
+        if not self.services[Srv.AUDIO].recording:
+            result = self.services[Srv.AUDIO].stop_and_process_recording()
             if result:
                 if all:
-                    audio_text = self.services("stt").transcribe(result)
+                    audio_text = self.services[Srv.STT].transcribe(result)
                     # TODO call IR here first
-                    intent = self.services("ir").recognize_intent(audio_text)
+                    intent = self.services[Srv.IR].recognize_intent(audio_text)
 
                     # Intent is recognized, handle it
                     if intent != None:
-                        intent_response = self.services("ir").process_intent(intent)
-                        self.services["tts"].synthesize(intent_response)
+                        intent_response = self.services[Srv.IR].process_intent(intent)
+                        if self.args.cli:
+                            self.services[Srv.CLI].print_text(intent_response)
+                        self.services[Srv.TTS].synthesize(intent_response)
                     # If no intent is recognized, pass user prompt to LLM
                     else:
-                        llm_text = self.services["llm"].generate(audio_text)
-                        self.services["tts"].synthesize(llm_text)
+                        llm_text = self.services[Srv.TEXT_GEN].generate(audio_text)
+                        self.services[Srv.TTS].synthesize(llm_text)
 
-            else:
-                self.services["cli"].print_text("No audio recorded.")
+            elif self.args.cli:                
+                self.services[Srv.CLI].print_text("No audio recorded.")
 
         else:
-            self.services["audio"].start_recording()
+            self.services[Srv.AUDIO].start_recording()
 
     def get_service(self, service_name: str):
         return self.services.get(service_name)
@@ -90,10 +97,10 @@ class AppManager:
         """
         Exit the program
         """
-        if self.services["cli"]:
-            self.services["cli"].print_text("Exiting the program.")
-        self.services["audio"].terminate_audio()
-        self.services["tts"].stop()
+        if self.services[Srv.CLI]:
+            self.services[Srv.CLI].print_text("Exiting the program.")
+        self.services[Srv.AUDIO].terminate_audio()
+        self.services[Srv.TTS].stop()
         sys.exit(0)
 
     def _run(self):
@@ -103,9 +110,9 @@ class AppManager:
 
         if self.args.cli:
             try:
-                self.services["cli"] = CommandLineService(self)
-                # self.services["cli"].display_neon_title()
-                self.services["cli"].display_cli()
+                self.services[Srv.CLI] = CommandLineService(self)
+                # self.services[Srv.CLI].display_neon_title()
+                self.services[Srv.CLI].display_cli()
                 self.exit()
             except Exception as e:
                 print(f"Error while running CLI service: {e}")
@@ -121,25 +128,27 @@ class AppManager:
         Run the speech to text service
         """
 
-        return self.services["stt"].transcribe(audio)
+        return self.services[Srv.STT].transcribe(audio)
 
     def text_to_speech(self, input_text):
         """
         Run the text to speech service
         """
 
-        self.services["tts"].synthesize(input_text)
+        self.services[Srv.TTS].synthesize(input_text)
 
     def intent_recognition(self, input_text):
         """
         Run the intent recognition service
         """
 
-        intent = self.services["ir"].recognize_intent(input_text)
+        intent = self.services[Srv.IR].recognize_intent(input_text)
         if intent == None:
-            self.services["cli"].print_text("Intenttiä ei havaittu\n", None, False)
+            self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
-            self.services["cli"].print_text(f"{intent.intent.name}\n", None, False)
+            intent_response = self.services[Srv.IR].process_intent(intent)
+            self.services[Srv.CLI].print_text(f"Intent: {intent.intent.name}, response:\n{intent_response}")          
+   
 
     def text_gen(self, input_text):
         """
@@ -149,7 +158,7 @@ class AppManager:
         :param input_text: str, The user's input text
         :param synthesize: bool, If True, synthesize the generated text
         """
-        llm_output = self.services["text_gen"].generate(input_text)
+        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
         sentence = "LLM: "
 
         for token in llm_output:
@@ -160,12 +169,12 @@ class AppManager:
             if self.synthesize and (
                 any(punc in sentence for punc in local.constants.PUNCTATIONS)
             ):
-                self.services["tts"].synthesize(sentence)
+                self.services[Srv.TTS].synthesize(sentence)
                 sentence = ""
 
-            self.services["cli"].print_text(text, None, False)
+            self.services[Srv.CLI].print_text(text, None, False)
 
-        self.services["cli"].print_separator()
+        self.services[Srv.CLI].print_separator()
 
         return
 
@@ -175,45 +184,45 @@ class AppManager:
         """
 
         try:
-            self.services["audio"] = AudioService(self)
+            self.services[Srv.AUDIO] = AudioService(self)
         except Exception as e:
             print(f"Failed to load audio service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["stt"] = SpeechToTextService(self.root)
+            self.services[Srv.STT] = SpeechToTextService(self.root)
         except Exception as e:
             print(f"Failed to load stt service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["tts"] = TextToSpeech(
-                self, device_index=self.services["audio"].output_device_index
+            self.services[Srv.TTS] = TextToSpeech(
+                self, device_index=self.services[Srv.AUDIO].output_device_index
             )
         except Exception as e:
             print(f"Failed to load tts service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["text_gen"] = TextGenService(self.root)
+            self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
             print(f"Failed to text gen service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["ir"] = IrService(self)
+            self.services[Srv.IR] = IrService(self)
         except Exception as e:
             print(f"Failed to load ir service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["weather"] = Weather()
+            self.services[Srv.WEATHER] = Weather()
         except Exception as e:
             print(f"Failed to load weather service: {e}")
             traceback.print_exc()
 
         try:
-            self.services["news"] = YleNewsApi()
+            self.services[Srv.NEWS] = YleNewsApi()
         except Exception as e:
             print(f"Failed to load yle news service: {e}")
             traceback.print_exc()
