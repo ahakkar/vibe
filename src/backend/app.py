@@ -220,10 +220,6 @@ class AppManager:
             print(f"Failed to load yle news service: {e}")
             traceback.print_exc()
 
-    def get_env(self, key):
-        """Retrieve an environment variable by its key."""
-        return self.env_vars.get(key)
-
     def _setup_env(self):
         """
         Set up env file if it doesn't exist, the user can choose input and output devices.
@@ -234,7 +230,6 @@ class AppManager:
 
         print(f"env path: {self.ENV_PATH}")
         print(f"loading env, result: {load_dotenv(self.ENV_PATH)}")
-        self.env_vars = dict(os.environ)
 
     def _create_env_file(self):
         """

@@ -28,9 +28,9 @@ class TextToSpeech(TextToSpeechInterface):
         model_path = (
             str(app.root)
             + "/"
-            + app.get_env("MODEL_FOLDER")
+            + os.getenv("MODEL_FOLDER")
             + "/"
-            + app.get_env("TTS_MODEL")
+            + os.getenv("TTS_MODEL")
         )
 
         self.voice = PiperVoice.load(model_path)
