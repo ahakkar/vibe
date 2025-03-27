@@ -132,15 +132,12 @@ class CommandLineService:
             elif command_input == "0":
                 self.display_settings_menu()
             elif command_input == "1":
-                self.app.synthesize = True
-                self._toggle_recording(True)
+                 self._toggle_recording(True)
             elif command_input == "2":
-                self.app.synthesize = False
-                self._toggle_recording()
+                 self._toggle_recording()
             elif command_input == "3":
                 self._input_text_gen()
             elif command_input == "4":
-                self.app.synthesize = True
                 self._input_tts()
             elif command_input == "5":
                 self._input_ir()
@@ -169,7 +166,7 @@ class CommandLineService:
 
                 time.sleep(0.5)
 
-    def _input_from_user(self, prompt, service_method):
+    def _input_from_user(self, prompt: str, service_method):
         """
         Query text input from user for a specific service.
 

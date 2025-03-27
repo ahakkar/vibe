@@ -28,18 +28,17 @@ class AudioService:
         self.audio = pyaudio.PyAudio()
         self.stream = None
         self.frames = []
-        self.recording = False
         self.input_device_index = self._get_device_index(input_device_name, "input")
         self.output_device_index = self._get_device_index(output_device_name, "output")
+        
+        self.is_recording = False
         self.recording_thread = None
-
-        self.recording = False
 
     def start_recording(self):
         """
         Start recording audio from the specified input device.
         """
-        if self.recording:
+        if self.is_recording:
             print("Already recording audio.")
             return
 
@@ -58,7 +57,7 @@ class AudioService:
             print("Please check the audio device index.")
             return
 
-        self.recording = True
+        self.is_recording = True
 
         # Start a new thread for recording
         self.recording_thread = threading.Thread(target=self._record_audio)
@@ -69,7 +68,7 @@ class AudioService:
         Record audio data in a separate thread.
         """
         try:
-            while self.recording:
+            while self.is_recording:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 self.frames.append(data)
         except IOError as e:
@@ -86,11 +85,11 @@ class AudioService:
         :param bool save_audio: Whether to save the recorded audio to a file, defaults to False.
         :return np.ndarray: The recorded audio data as a NumPy array.
         """
-        if not self.recording:
+        if not self.is_recording:
             print("Not recording.")
             return
 
-        self.recording = False
+        self.is_recording = False
         if self.recording_thread:
             self.recording_thread.join()  # Wait for the thread to finish
         time.sleep(0.1)
@@ -155,7 +154,7 @@ class AudioService:
         """
         Terminate the PyAudio instance and ensure the recording thread is properly terminated.
         """
-        if self.recording:
+        if self.is_recording:
             self.stop_recording()
 
         if self.recording_thread and self.recording_thread.is_alive():
