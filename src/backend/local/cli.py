@@ -65,35 +65,35 @@ class CommandLineService:
         """
         Display the settings menu for the user to choose input and output devices
         """
-        
+
         input_device_name = self._select_device("input")
         output_device_name = self._select_device("output")
-        
+
         if input_device_name == None or output_device_name == None:
-            print(self.term.ljust(self.term.bold(f"No audio devices detected.")))   
-            time.sleep(2.0)       
+            print(self.term.ljust(self.term.bold(f"No audio devices detected.")))
+            time.sleep(2.0)
             return
-        
+
         print(self.term.clear)
         print(self.term.move_y(self.term.height // 2 - 5))
         print(self.term.center(self.term.bold_underline("Settings Menu")))
-        print(self.term.move_down(2))        
+        print(self.term.move_down(2))
 
         try:
             set_key(self.app.root, "INPUT_DEVICE_NAME", input_device_name)
             set_key(self.app.root, "OUTPUT_DEVICE_NAME", output_device_name)
-            # os.chmod(self.app.root, 0o644)       
+            # os.chmod(self.app.root, 0o644)
 
             print(
                 self.term.center(
                     self.term.bold_green("Settings successfully saved to .env file!")
                 )
             )
-        
+
         except Exception as e:
             print(f"Failed to write to .env at: {self.app.root}/.env")
             print(f"While updating env in settings menu. Error: {e}")
-        
+
         time.sleep(1)
 
     def display_cli(self):
@@ -107,7 +107,7 @@ class CommandLineService:
         """
 
         while True:
-            #print(self.term.clear)
+            # print(self.term.clear)
             print(self.term.move_down(2))
             print(self.term.ljust("Available services:\n"))
             print(
@@ -136,13 +136,12 @@ class CommandLineService:
                 self.app.synthesize = False
                 self._toggle_recording()
             elif command_input == "3":
-                self._input_text_gen()                             
+                self._input_text_gen()
             elif command_input == "4":
                 self.app.synthesize = True
                 self._input_tts()
-            elif command_input == "5":  
+            elif command_input == "5":
                 self._input_ir()
-                
 
     def _toggle_recording(self, all=False):
         """
@@ -171,7 +170,7 @@ class CommandLineService:
     def _input_from_user(self, prompt, service_method):
         """
         Query text input from user for a specific service.
-        
+
         :param prompt: The prompt to display to the user.
         :param service_method: The method of self to call with the user's input.
         """
@@ -188,7 +187,7 @@ class CommandLineService:
         """
         self._input_from_user(
             f"Write something for text generation service or '(b)ack': ",
-            self.app.text_gen
+            self.app.text_gen,
         )
 
     def _input_tts(self):
@@ -197,17 +196,17 @@ class CommandLineService:
         """
         self._input_from_user(
             f"Write something for text to speech service or '(b)ack': ",
-            self.app.text_to_speech
-        )    
-        
+            self.app.text_to_speech,
+        )
+
     def _input_ir(self):
         """
         Query text input from user for intent recognition service.
         """
         self._input_from_user(
             f"Write something for intent recognition service or '(b)ack': ",
-            self.app.intent_recognition
-        )      
+            self.app.intent_recognition,
+        )
 
     def _flush_input_buffer(self):
         """
@@ -246,8 +245,8 @@ class CommandLineService:
         :return: str, The selected device name
         """
         devices = self.app.get_service("audio").query_devices()
-        
-        if len(devices) == 0:            
+
+        if len(devices) == 0:
             return None
 
         print(

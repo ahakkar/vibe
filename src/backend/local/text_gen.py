@@ -58,7 +58,7 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-    def generate(self, user_input, system_prompt=""):     
+    def generate(self, user_input, system_prompt=""):
         if not system_prompt:
             system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 

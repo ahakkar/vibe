@@ -18,7 +18,6 @@ from local.yle import YleNewsApi
 from pathlib import Path
 
 
-
 class AppManager:
     def __init__(self):
         desc = [
@@ -68,16 +67,16 @@ class AppManager:
                     audio_text = self.services("stt").transcribe(result)
                     # TODO call IR here first
                     intent = self.services("ir").recognize_intent(audio_text)
-                    
+
                     # Intent is recognized, handle it
                     if intent != None:
                         intent_response = self.services("ir").process_intent(intent)
                         self.services["tts"].synthesize(intent_response)
                     # If no intent is recognized, pass user prompt to LLM
-                    else:   
+                    else:
                         llm_text = self.services["llm"].generate(audio_text)
                         self.services["tts"].synthesize(llm_text)
-                    
+
             else:
                 self.services["cli"].print_text("No audio recorded.")
 
@@ -105,7 +104,7 @@ class AppManager:
         if self.args.cli:
             try:
                 self.services["cli"] = CommandLineService(self)
-                #self.services["cli"].display_neon_title()
+                # self.services["cli"].display_neon_title()
                 self.services["cli"].display_cli()
                 self.exit()
             except Exception as e:
@@ -130,7 +129,7 @@ class AppManager:
         """
 
         self.services["tts"].synthesize(input_text)
-        
+
     def intent_recognition(self, input_text):
         """
         Run the intent recognition service
@@ -141,7 +140,6 @@ class AppManager:
             self.services["cli"].print_text("Intenttiä ei havaittu\n", None, False)
         else:
             self.services["cli"].print_text(f"{intent.intent.name}\n", None, False)
-            
 
     def text_gen(self, input_text):
         """
@@ -168,7 +166,7 @@ class AppManager:
             self.services["cli"].print_text(text, None, False)
 
         self.services["cli"].print_separator()
-        
+
         return
 
     def _load_services(self):
@@ -207,13 +205,13 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load ir service: {e}")
             traceback.print_exc()
-            
+
         try:
             self.services["weather"] = Weather()
         except Exception as e:
             print(f"Failed to load weather service: {e}")
             traceback.print_exc()
-            
+
         try:
             self.services["news"] = YleNewsApi()
         except Exception as e:

@@ -27,21 +27,21 @@ class IrService(IntentRecognitionInterface):
         """
 
         return recognize(text, self.intents)
-    
+
     def process_intent(self, result: RecognizeResult) -> str:
         """
         Matches the intents with fi.yaml by string and calls the related
         class methods to provide response for each intent.
-        
+
         :param result: Whole recognized intent result from hassil library
         """
         if result.intent.name == "GetNews":
             self.app.get_service["news"].get_page_data()
             # TODO news return json which is not ideal for TTS
-            return "Uutisten toteutus on vielä kesken."            
+            return "Uutisten toteutus on vielä kesken."
         elif result.intent.name == "GetCurrentWeather":
             return self.app.get_service["weather"].get_current_weather()
         elif result.intent.name == "GetTime":
             return "Ajan hakemista ei ole vielä toteutettu."
-            
+
         return f"Tuntematon intent havaittu: {result.intent.name}"
