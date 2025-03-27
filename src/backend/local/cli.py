@@ -118,6 +118,7 @@ class CommandLineService:
             print(self.term.ljust("2: Only speech to text service"))
             print(self.term.ljust("3: Only language model service"))
             print(self.term.ljust("4: Only text to speech service"))
+            print(self.term.ljust("5: Only intent recognition service"))
             print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
@@ -138,6 +139,8 @@ class CommandLineService:
                 self._input_text_gen()                             
             elif command_input == "4":
                 self.app.synthesize = True
+                self._input_tts()
+            elif command_input == "5":  
                 self._input_tts()
                 
 
@@ -174,7 +177,7 @@ class CommandLineService:
         """
         while True:
             input_text = input(self.term.ljust(prompt)).strip()
-            if input_text.lower() == "back":
+            if input_text.lower() == "b" or input_text.lower() == "back":
                 break
             else:
                 service_method(input_text)
@@ -184,7 +187,7 @@ class CommandLineService:
         Query text input from user for text generation service.
         """
         self._input_from_user(
-            f"Write something for text generation service or 'back': ",
+            f"Write something for text generation service or '(b)ack': ",
             self.app.text_gen
         )
 
@@ -193,9 +196,18 @@ class CommandLineService:
         Query text input from user for text generation service.
         """
         self._input_from_user(
-            f"Write something for text to speech service or 'back': ",
+            f"Write something for text to speech service or '(b)ack': ",
             self.app.text_to_speech
-        )        
+        )    
+        
+    def _input_ic(self):
+        """
+        Query text input from user for intent recognition service.
+        """
+        self._input_from_user(
+            f"Write something for intent recognition service or '(b)ack': ",
+            self.app.intent_recognition
+        )      
 
     def _flush_input_buffer(self):
         """

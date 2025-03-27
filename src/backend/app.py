@@ -5,17 +5,18 @@ import abstract_classes
 import local.constants
 import traceback
 
-try:
-    from dotenv import load_dotenv
-    from local.cli import CommandLineService
-    from local.ir_service import IrService
-    from local.text_gen import TextGenService
-    from local.tts import TextToSpeech
-    from local.audio import AudioService
-    from local.stt import SpeechToTextService
-    from pathlib import Path
-except Exception as e:
-    print(f"Failed to import: {e}")
+
+from dotenv import load_dotenv
+from local.cli import CommandLineService
+from local.ir_service import IrService
+from local.text_gen import TextGenService
+from local.tts import TextToSpeech
+from local.audio import AudioService
+from local.stt import SpeechToTextService
+from local.weather import Weather
+from local.yle import YleNewsApi
+from pathlib import Path
+
 
 
 class AppManager:
@@ -66,11 +67,17 @@ class AppManager:
                 if all:
                     audio_text = self.services("stt").transcribe(result)
                     # TODO call IR here first
-
-                    # Then process it and pass to LLM
-                    llm_text = self.services["llm"].generate(audio_text)
-                    self.services["tts"].synthesize(llm_text)
-                    pass
+                    intent = self.services("ir").recognize_intent(audio_text)
+                    
+                    # Intent is recognized, handle it
+                    if intent != None:
+                        intent_response = self.services("ir").process_intent(intent)
+                        self.services["tts"].synthesize(intent_response)
+                    # If no intent is recognized, pass user prompt to LLM
+                    else:   
+                        llm_text = self.services["llm"].generate(audio_text)
+                        self.services["tts"].synthesize(llm_text)
+                    
             else:
                 self.services["cli"].print_text("No audio recorded.")
 
@@ -123,6 +130,18 @@ class AppManager:
         """
 
         self.services["tts"].synthesize(input_text)
+        
+    def text_to_speech(self, input_text):
+        """
+        Run the text to speech service
+        """
+
+        intent = self.services["ir"].recognize_intent(input_text)
+        if intent == None:
+            self.services["cli"].print_text("Intenttiä ei havaittu\n", None, False)
+        else:
+            self.services["cli"].print_text(f"{intent.intent.name}\n", None, False)
+            
 
     def text_gen(self, input_text):
         """
@@ -184,9 +203,21 @@ class AppManager:
             traceback.print_exc()
 
         try:
-            self.services["ir"] = IrService()
+            self.services["ir"] = IrService(self)
         except Exception as e:
             print(f"Failed to load ir service: {e}")
+            traceback.print_exc()
+            
+        try:
+            self.services["weather"] = Weather()
+        except Exception as e:
+            print(f"Failed to load weather service: {e}")
+            traceback.print_exc()
+            
+        try:
+            self.services["news"] = YleNewsApi()
+        except Exception as e:
+            print(f"Failed to load yle news service: {e}")
             traceback.print_exc()
 
     def get_env(self, key):
