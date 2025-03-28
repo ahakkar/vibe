@@ -78,7 +78,7 @@ class CommandLineService:
 
         print(self.term.clear)
         print(self.term.move_y(self.term.height // 2 - 5))
-        print(self.term.center(self.term.bold_underline("Settings Menu")))
+        print(self.term.ljust(self.term.bold_underline("Settings Menu")))
         print(self.term.move_down(2))
 
         try:
@@ -244,6 +244,8 @@ class CommandLineService:
         :return: str, The selected device name
         """
         devices = self.app.get_service(Srv.AUDIO).query_devices()
+
+        print(f"found devices: {devices}")
 
         if len(devices) == 0:
             return None
