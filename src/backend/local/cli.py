@@ -82,8 +82,8 @@ class CommandLineService:
         print(self.term.move_down(2))
 
         try:
-            set_key(self.app.root, "INPUT_DEVICE_NAME", input_device_name)
-            set_key(self.app.root, "OUTPUT_DEVICE_NAME", output_device_name)
+            set_key(self.app.root / ".env", "INPUT_DEVICE_NAME", input_device_name)
+            set_key(self.app.root / ".env", "OUTPUT_DEVICE_NAME", output_device_name)
             # os.chmod(self.app.root, 0o644)
 
             print(
