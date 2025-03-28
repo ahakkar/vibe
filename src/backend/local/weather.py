@@ -146,7 +146,7 @@ class Weather:
         latitude, longitude = self._get_coordinates(location=location)
 
         if latitude is None or longitude is None:
-            return f"Sijaintia {location} ei löytynyt."
+            return [f"Sijaintia {location} ei löytynyt."]
 
         forecast = self._get_forecast_from_coords(latitude, longitude, days)
 
