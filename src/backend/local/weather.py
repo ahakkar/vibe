@@ -64,7 +64,7 @@ class Forecast:
     list: list of parsed forecast strings
 
     """
-    def parse_forecast(self, freq, latitude, longitude):
+    def _parse_forecast(self, freq, latitude, longitude):
 
         return_list = []
 
