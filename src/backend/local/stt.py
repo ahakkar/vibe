@@ -4,7 +4,7 @@ import numpy as np
 import onnxruntime as ort
 
 from transformers import Wav2Vec2Processor
-from abstract_classes import SpeechToTextInterface
+from src.backend.abstract_classes import SpeechToTextInterface
 from pathlib import Path
 
 
