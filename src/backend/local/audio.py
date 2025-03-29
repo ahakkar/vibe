@@ -83,7 +83,7 @@ class AudioService:
         Stop recording audio and optionally save the recorded audio to a file.
 
         :param bool save_audio: Whether to save the recorded audio to a file, defaults to False.
-        :return np.ndarray: The recorded audio data as a NumPy array.
+        :return np.ndarray audio_data: The recorded audio data as a NumPy array.
         """
         if not self.is_recording:
             print("Not recording.")
@@ -117,8 +117,6 @@ class AudioService:
     def stop_and_process_recording(self):
         """
         Stop recording and process the recorded audio.
-
-        :param all_services: bool, If True, the program will run all services
         """
         audio_data = self.stop_recording()
         if audio_data is not None:
@@ -169,9 +167,10 @@ class AudioService:
         """
         Get the device index for a given device name
 
-        :param device_name: str, The device name to look up
-        :param device_type: str, The device type (input or output)
-        :return: int, The device index, or None if not found
+        :param str device_name: The device name to look up
+        :param str device_type: The device type (input or output)
+
+        :return Optional[int]: int, The device index, or None if not found
         """
         devices = sd.query_devices()
         for i, device in enumerate(devices):

@@ -9,8 +9,7 @@ class TextToSpeechInterface(ABC):
         """
         Convert text to speech and play it.
 
-        Parameters:
-        text (str): The input text to be converted to speech.
+        :param str text: The input text to be converted to speech.
         """
         pass
 
@@ -46,12 +45,10 @@ class IntentRecognitionInterface(ABC):
         """
         Parse natural language text into structured intent data.
 
-        Parameters:
-        text (str): Input text from the user.
-        lang (str): Input text language.
+        :param str text: Input text from the user.
+        :param str lang: Input text language.
 
-        Returns:
-        dict: Structured intent.
+        :return dict: Structured intent.
         """
         pass
 
@@ -63,12 +60,10 @@ class TranslatorInterface(ABC):
         """
         Translate text from the source language to the target language.
 
-        Parameters:
-        text (str): The input text to be translated.
-        source_language (str): The language of the input text.
-        target_language (str): The language of the output text.
+        :param str text: The input text to be translated.
+        :param str source_language: The language of the input text.
+        :param str target_language: The language of the output text.
 
-        Returns:
-        str: The translated text.
+        :return str: The translated text.
         """
         pass

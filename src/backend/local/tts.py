@@ -19,14 +19,15 @@ class TextToSpeech(TextToSpeechInterface):
     from a queue, allowing for asynchronous operation and smooth audio playback.
     """
 
-    def __init__(self, app, device_index=1):
+    def __init__(self, project_root, device_index=1):
         """
         Initialize the TextToSpeech service.
 
+        :param Path project_root: The path of the project root
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
         model_path = (
-            str(app.root)
+            str(project_root.root)
             + "/"
             + os.getenv("MODEL_FOLDER")
             + "/"
@@ -67,7 +68,7 @@ class TextToSpeech(TextToSpeechInterface):
         :param np.ndarray audio_data: The original audio data
         :param int orig_sample_rate: The original sample rate of the audio data
         :param int target_sample_rate: The target sample rate for the audio data
-        :return np.ndarray: The resampled audio data
+        :return np.ndarray resampled_audio: The resampled audio data
         """
         # Use SoX to resample the audio data in memory
         tfm = sox.Transformer()

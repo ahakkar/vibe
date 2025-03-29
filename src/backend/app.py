@@ -62,7 +62,7 @@ class AppManager:
         This function looks to be a bit to complex and could be refactored/
         broken down to smaller functions.
 
-        :param all_services: bool, If True, the program will run all services
+        :param bool all_services: If True, the program will run all services
         """
         if not self.services[Srv.AUDIO].is_recording:
             result = self.services[Srv.AUDIO].stop_and_process_recording()
@@ -79,7 +79,7 @@ class AppManager:
         Transcribe audio with STT, detect intent, provide response based on
         intent or if no intent was detected, provide an answer with text gen.
 
-        :param recording - NDArray[floating[Any]]
+        :param NDArray[floating[Any]] recording:
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
@@ -101,7 +101,7 @@ class AppManager:
         Get an already initialized service with enum so other sections of app
         can utilize the service.
 
-        :param service_name Srv enum from constants.py
+        :param Srv service_name: enum from constants.py
         """
         return self.services.get(service_name)
 
@@ -138,6 +138,10 @@ class AppManager:
     def speech_to_text(self, audio) -> str:
         """
         Run the speech to text service
+
+        :param audio:
+
+        :return str
         """
 
         return self.services[Srv.STT].transcribe(audio)
@@ -145,7 +149,7 @@ class AppManager:
     def text_to_speech(self, input_text: str):
         """
         Run the text to speech service
-        :param input_text result from llm, intents etc.
+        :param str input_text: result from llm, intents etc.
         """
 
         self.services[Srv.TTS].synthesize(input_text)
@@ -153,7 +157,7 @@ class AppManager:
     def intent_recognition(self, input_text: str):
         """
         Run the intent recognition service
-        :param input_text user input, either STT'd text or plain text
+        :param str input_text: user input, either STT'd text or plain text
         """
 
         intent = self.services[Srv.IR].recognize_intent(input_text)
@@ -170,8 +174,8 @@ class AppManager:
         The language model generates text based on user's input text
         Print the language model's generated text
 
-        :param input_text: str, The user's input text
-        :param synthesize: bool, If True, synthesize the generated text
+        :param str input_text: The user's input text
+        :param bool synthesize: If True, synthesize the generated text
         """
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
         sentence = "LLM: "

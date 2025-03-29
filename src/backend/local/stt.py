@@ -13,9 +13,11 @@ class SpeechToTextService(SpeechToTextInterface):
     Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
     """
 
-    def __init__(self, project_root: Path):
+    def __init__(self, project_root):
         """
         Initialize the speech-to-text service.
+
+        :param Path project_root: The path of the project root
         """
         proc_filepath = (
             str(project_root)
@@ -45,8 +47,12 @@ class SpeechToTextService(SpeechToTextInterface):
     def transcribe(self, audio_data: np.ndarray) -> str:
         """
         Process raw audio data using the ONNX model.
+
+        :param np.ndarray audio_data: The audio data that will be transcribed
+
+        :return str recorded_sentence: The recorded sentence that is transcribed from audio data
         """
-        # Normalize the audio data (Is this necessary?)
+
         audio_data = (audio_data - audio_data.mean()) / audio_data.std()
 
         # Reshape to match expected input shape

@@ -146,7 +146,7 @@ class CommandLineService:
         """
         This function will run the keyboard command to start and stop recording or exit the program.
 
-        :param all: bool, If True, the program will run all services
+        :param bool all: If True, the program will run all services
         """
         print(
             self.term.center(
@@ -170,7 +170,7 @@ class CommandLineService:
         """
         Query text input from user for a specific service.
 
-        :param prompt: The prompt to display to the user.
+        :param str prompt: The prompt to display to the user.
         :param service_method: The method of self to call with the user's input.
         """
         while True:
@@ -240,8 +240,8 @@ class CommandLineService:
         """
         Select the device name for input or output devices
 
-        :param device_type: str, The device type (input or output)
-        :return: str, The selected device name
+        :param str device_type: The device type (input or output)
+        :return str : The selected device name
         """
         devices = self.app.get_service(Srv.AUDIO).query_devices()
 

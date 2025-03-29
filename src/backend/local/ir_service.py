@@ -10,6 +10,8 @@ class IrService(IntentRecognitionInterface):
     def __init__(self, app):
         """
         Load supported intents. hassil has multiple different options, ie. from_files, from_yaml, from_dict. from_yaml is used for simplicity for starter. In that case all intents are defined in the same YAML file.
+
+        :param app: app
         """
         self.app = app
 
@@ -24,6 +26,11 @@ class IrService(IntentRecognitionInterface):
         Uses recognize() to return first match. recognize() has a bunch of optional params which could be used to fine tune the process.
 
         Discards most contents of a RecognizeResult and returns only the essential information.
+
+        :param str text:
+        :param str lang:
+
+        :return
         """
 
         return recognize(text, self.intents)
@@ -33,7 +40,9 @@ class IrService(IntentRecognitionInterface):
         Matches the intents with fi.yaml by string and calls the related
         class methods to provide response for each intent.
 
-        :param result: Whole recognized intent result from hassil library
+        :param RecognizeResult result: Whole recognized intent result from hassil library
+
+        :return str: The processed intent
         """
         if result.intent.name == "GetNews":
             self.app.get_service["news"].get_page_data()
