@@ -141,7 +141,7 @@ class AppManager:
 
         :param audio:
 
-        :return str
+        :return str:
         """
 
         return self.services[Srv.STT].transcribe(audio)
@@ -149,6 +149,7 @@ class AppManager:
     def text_to_speech(self, input_text: str):
         """
         Run the text to speech service
+        
         :param str input_text: result from llm, intents etc.
         """
 
@@ -157,6 +158,7 @@ class AppManager:
     def intent_recognition(self, input_text: str):
         """
         Run the intent recognition service
+
         :param str input_text: user input, either STT'd text or plain text
         """
 
@@ -270,6 +272,8 @@ class AppManager:
         """
         Look iteratively through parent folders to find README.md
         which should be at project root.
+
+        :return Path: the current project root
         """
         current_path = Path(__file__).resolve()
 

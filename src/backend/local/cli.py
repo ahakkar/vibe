@@ -24,7 +24,7 @@ class CommandLineService:
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
 
-    def _signal_handler(self, signal, frame):
+    def _signal_handler(self):
         """
         Handle the SIGINT signal (Ctrl+C) to gracefully terminate the program.
 
@@ -33,7 +33,7 @@ class CommandLineService:
         """
         self.app.exit()
 
-    def print_text(self, msg, color=None, nl=True):
+    def print_text(self, msg, nl=True):
         if not nl:
             print(msg, end="")
         else:
@@ -84,7 +84,6 @@ class CommandLineService:
         try:
             set_key(self.app.root / ".env", "INPUT_DEVICE_NAME", input_device_name)
             set_key(self.app.root / ".env", "OUTPUT_DEVICE_NAME", output_device_name)
-            # os.chmod(self.app.root, 0o644)
 
             print(
                 self.term.center(
