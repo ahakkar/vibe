@@ -45,11 +45,12 @@ class IrService(IntentRecognitionInterface):
         :return str: The processed intent
         """
         if result.intent.name == "GetNews":
-            # self.app.get_service(Srv.NEWS).get_page_data()
+            # page_data = self.app.get_service(Srv.NEWS).get_page_data()
             # TODO news return json which is not ideal for TTS
             return "Uutisten toteutus on vielä kesken."
         elif result.intent.name == "GetCurrentWeather":
-            return self.app.get_service("weather").get_current_weather()
+            # weather_data = self.app.get_service("weather").get_current_weather()
+            return "Sään uutiset on vielä kesken"
         elif result.intent.name == "GetTime":
             return "Ajan hakemista ei ole vielä toteutettu."
 

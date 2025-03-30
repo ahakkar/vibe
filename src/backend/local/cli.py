@@ -38,7 +38,7 @@ class CommandLineService:
     def print_text(self, msg, color=None, nl=True):
         """
         :param str msg: The message that needs to be printed
-        :param blessed.color color: The color of the message 
+        :param blessed.color color: The color of the message
         :param bool nl: If true print with the terminal, else print normally
         """
         if not nl:
@@ -246,7 +246,6 @@ class CommandLineService:
         print(self.term.move_y(self.term.height - 3))
         print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
 
-    
     def _print_devices(self, devices, device_type):
         """
         Print out the available devices

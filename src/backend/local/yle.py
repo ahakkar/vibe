@@ -3,26 +3,25 @@ import json
 
 from baseform import Baseform
 
-#TODO: Move to env
+# TODO: Move to env
 APP_ID = ""
 APP_KEY = ""
 ADDRESS = "https://external.api.yle.fi/v1/teletext/pages/"
 
-#Currently very short dict of topics and corrensponding teletext pages
-#TODO: Move elsewhere
+# Currently very short dict of topics and corrensponding teletext pages
+# TODO: Move elsewhere
 PAGES = {
-    
     "pääuutinen": 100,
     "kotimaa": 102,
     "ulkomaa": 130,
     "talous": 160,
-    "urheilu": 201
-
+    "urheilu": 201,
 }
 
-#TODO: Remove page numbers from returned strings
+# TODO: Remove page numbers from returned strings
 
-#TODO: Create a way to access articles based on the page numbers
+# TODO: Create a way to access articles based on the page numbers
+
 
 class YleNewsApi:
 
@@ -36,7 +35,6 @@ class YleNewsApi:
 
         return "Mistä aiheesta haluat kuulla uutisia: pääuutiset, kotimaa, ulkomaat, talous vai urheilu?"
 
-    
     def parse_user_input(self, input):
         """
         Finds from user input what news the user wants to hear (can be multiple topics)
@@ -51,16 +49,15 @@ class YleNewsApi:
 
         words = input.split()
 
-
         return_list = []
 
         for word in words:
 
-            #Use baseform of words to deal with different user inputs
+            # Use baseform of words to deal with different user inputs
             word_baseform = b.get_baseform(word)
 
             if PAGES.get(word_baseform) is not None:
-                
+
                 tts_list = self.get_news(PAGES.get(word_baseform))
 
                 return_list.extend(tts_list)
@@ -70,23 +67,21 @@ class YleNewsApi:
             return_list.append(self.get_instruction_string())
 
         return return_list
-                
 
-    def get_news(self, page_number = 100):
+    def get_news(self, page_number=100):
         """
         Gets the teletext news from input page number as a list of strings
 
         :param int page_number: The page number to get the page data
         """
-        
+
         page_data = self._get_page_data(page_number=page_number)
 
         if page_data is None:
             return ["Uutisten hakeminen epäonnistui."]
-        
+
         else:
             return self._parse_json(page_data)
-
 
     def get_page_data(self, page_number=100):
         """
@@ -121,5 +116,5 @@ class YleNewsApi:
             for _, value in line.items():
                 if len(value) > 2:
                     return_list.append(value)
-        
+
         return return_list

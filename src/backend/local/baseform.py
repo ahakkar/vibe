@@ -1,6 +1,6 @@
 from libvoikko import Voikko
-#Voikko must be installed both through pip and distro package manager
 
+# Voikko must be installed both through pip and distro package manager
 
 
 class Baseform:

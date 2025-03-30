@@ -6,6 +6,7 @@ services:
     ports:
       - "5000:5000"
     volumes:
+      - ./src/backend:/usr/src/app
       - ./models:/models
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering

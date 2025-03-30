@@ -5,6 +5,7 @@ import shutil
 import abstract_classes
 import local.constants
 import traceback
+import time
 
 from local.constants import Srv
 from dotenv import load_dotenv
@@ -14,6 +15,7 @@ from local.text_gen import TextGenService
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
+
 # from local.weather import Weather
 # from local.yle import YleNewsApi
 from pathlib import Path
@@ -24,7 +26,7 @@ class AppManager:
         """
         Initialize app manager
         """
-
+        print("app manager")
         desc = [
             "App runs by default on background. Enable web server with --web",
             "And command line interface with --cli argument",
@@ -32,17 +34,26 @@ class AppManager:
 
         # https://docs.python.org/3/library/argparse.html
         parser = argparse.ArgumentParser(prog="SLT-VIBE", usage="\n".join(desc))
+        print("parser 1")
         parser.add_argument("--cli", action="store_true", help="Enable CLI")
+        print("parser 2")
         parser.add_argument("--web", action="store_true", help="Enable Web server")
+        print("parser 3")
         self.args = parser.parse_args()
 
+        print("root")
+
         self.root = self._find_project_root()
+
+        print("env")
 
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
             self.ENV_PATH = os.path.join("/usr/src/app", ".env")
         else:
             self.ENV_PATH = self.root / ".env"
+
+        print("services")
 
         self.services = {
             Srv.STT: None,
@@ -55,8 +66,8 @@ class AppManager:
             Srv.NEWS: None,
         }
 
-        self._setup_env()
-        self._load_services()
+        # self._setup_env()
+        # self._load_services()
 
     def toggle_recording(self, all):
         """
@@ -154,7 +165,7 @@ class AppManager:
     def text_to_speech(self, input_text: str):
         """
         Run the text to speech service
-        
+
         :param str input_text: result from llm, intents etc.
         """
 
@@ -198,7 +209,7 @@ class AppManager:
                 self.services[Srv.TTS].synthesize(sentence)
                 sentence = ""
 
-            self.services[Srv.CLI].print_text(text, None,False)
+            self.services[Srv.CLI].print_text(text, None, False)
 
         self.services[Srv.CLI].print_separator()
 
@@ -219,11 +230,9 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load stt service: {e}")
 
-        #device_index=self.services[Srv.AUDIO].output_device_index
+        # device_index=self.services[Srv.AUDIO].output_device_index
         try:
-            self.services[Srv.TTS] = TextToSpeech(
-                self.root, 1
-            )
+            self.services[Srv.TTS] = TextToSpeech(self.root, 1)
         except Exception as e:
             print(f"Failed to load tts service: {e}")
 
@@ -295,4 +304,4 @@ class AppManager:
 if __name__ == "__main__":
     print("Hello world")
     app = AppManager()
-    app.run()
+    # app.run()
