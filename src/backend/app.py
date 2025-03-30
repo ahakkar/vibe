@@ -5,7 +5,6 @@ import shutil
 import abstract_classes
 import local.constants
 import traceback
-import time
 
 from local.constants import Srv
 from dotenv import load_dotenv
@@ -26,7 +25,6 @@ class AppManager:
         """
         Initialize app manager
         """
-        print("app manager")
         desc = [
             "App runs by default on background. Enable web server with --web",
             "And command line interface with --cli argument",
@@ -34,26 +32,17 @@ class AppManager:
 
         # https://docs.python.org/3/library/argparse.html
         parser = argparse.ArgumentParser(prog="SLT-VIBE", usage="\n".join(desc))
-        print("parser 1")
         parser.add_argument("--cli", action="store_true", help="Enable CLI")
-        print("parser 2")
         parser.add_argument("--web", action="store_true", help="Enable Web server")
-        print("parser 3")
         self.args = parser.parse_args()
 
-        print("root")
-
         self.root = self._find_project_root()
-
-        print("env")
 
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
             self.ENV_PATH = os.path.join("/usr/src/app", ".env")
         else:
             self.ENV_PATH = self.root / ".env"
-
-        print("services")
 
         self.services = {
             Srv.STT: None,
@@ -66,8 +55,8 @@ class AppManager:
             Srv.NEWS: None,
         }
 
-        # self._setup_env()
-        # self._load_services()
+        self._setup_env()
+        self._load_services()
 
     def toggle_recording(self, all):
         """
@@ -302,6 +291,5 @@ class AppManager:
 
 
 if __name__ == "__main__":
-    print("Hello world")
     app = AppManager()
-    # app.run()
+    app.run()
