@@ -18,22 +18,29 @@ class CommandLineService:
     def __init__(self, app):
         """
         Initialize the command-line service and set up the signal handler for SIGINT.
+
+        :param AppManager app: The app manager
         """
 
         self.term = Terminal()
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
 
-    def _signal_handler(self):
+    def _signal_handler(self, signal, frame):
         """
         Handle the SIGINT signal (Ctrl+C) to gracefully terminate the program.
 
         :param int signal: The signal number.
-        :param frame: The current stack frame.
+        :param int frame: The current stack frame.
         """
         self.app.exit()
 
-    def print_text(self, msg, nl=True):
+    def print_text(self, msg, color=None, nl=True):
+        """
+        :param str msg: The message that needs to be printed
+        :param blessed.color color: The color of the message 
+        :param bool nl: If true print with the terminal, else print normally
+        """
         if not nl:
             print(msg, end="")
         else:
@@ -123,7 +130,7 @@ class CommandLineService:
             print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
-                self.term.ljust("Choose service (from 0 to 4) or (q)uit:")
+                self.term.ljust("Choose service (from 0 to 5) or (q)uit:")
             ).strip()
 
             if command_input == "q" or command_input == "quit":
@@ -223,6 +230,10 @@ class CommandLineService:
     def _print_title(self, title_chars, colors, color_index):
         """
         Print the neon title with flickering colors
+
+        :param [str] title_chars: Every characters in the title
+        :param [blessed.color] colors: All the colors to be flickered
+        :param int color_index: The color index will loop through every color
         """
         print(self.term.clear)
         print(self.term.move_y(self.term.height // 3))
@@ -235,14 +246,14 @@ class CommandLineService:
         print(self.term.move_y(self.term.height - 3))
         print(self.term.center(self.term.bold_yellow("Press any key to continue...")))
 
-    def _select_device(self, device_type) -> Optional[str]:
+    
+    def _print_devices(self, devices, device_type):
         """
-        Select the device name for input or output devices
+        Print out the available devices
 
+        :param (DeviceList | dict[str, Any]) devices: Information about query devices
         :param str device_type: The device type (input or output)
-        :return str : The selected device name
         """
-        devices = self.app.get_service(Srv.AUDIO).query_devices()
 
         print(f"found devices: {devices}")
 
@@ -261,6 +272,18 @@ class CommandLineService:
             ):
                 print(self.term.center(self.term.cyan(f"{i}: {device['name']}")))
         print()
+
+    def _select_device(self, device_type) -> Optional[str]:
+        """
+        Select the device name for input or output devices
+
+        :param str device_type: The device type (input or output)
+
+        :return str : The selected device name
+        """
+        devices = self.app.get_service(Srv.AUDIO).get_query_devices()
+
+        self._print_devices(devices, device_type)
 
         while True:
             index = input(

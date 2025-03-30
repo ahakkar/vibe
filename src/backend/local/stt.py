@@ -5,7 +5,6 @@ import onnxruntime as ort
 
 from transformers import Wav2Vec2Processor
 from abstract_classes import SpeechToTextInterface
-from pathlib import Path
 
 
 class SpeechToTextService(SpeechToTextInterface):

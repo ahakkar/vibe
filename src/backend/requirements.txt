@@ -38,3 +38,4 @@ mypy==1.14.1
 pylint==3.2.7
 pytest==8.3.5
 tox==4.24.2
+hassil==3.0.0

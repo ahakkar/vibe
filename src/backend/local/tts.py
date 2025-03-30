@@ -27,7 +27,7 @@ class TextToSpeech(TextToSpeechInterface):
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
         model_path = (
-            str(project_root.root)
+            str(project_root)
             + "/"
             + os.getenv("MODEL_FOLDER")
             + "/"

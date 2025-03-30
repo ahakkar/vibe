@@ -160,7 +160,12 @@ class AudioService:
 
         self.audio.terminate()
 
-    def query_devices(self):
+    def get_query_devices(self):
+        """
+        Get the available query devices
+
+        :return (DeviceList | dict[str, Any]): Information about query devices
+        """
         return sd.query_devices()
 
     def _get_device_index(self, device_name, device_type):

@@ -8,8 +8,13 @@ class Baseform:
         self.v = Voikko("fi")
 
     def get_baseform(self, word):
-    #Returns the input word in baseform (fi = perusmuoto) if found
-    #Otherwise returns the word itself
+        """
+        Get the baseform of the given word
+
+        :param str word: The given word
+
+        :return str: The input word in baseform (fi = perusmuoto) if found, otherwise returns the word itself
+        """
 
         analyses = self.v.analyze(word)
 

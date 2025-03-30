@@ -14,13 +14,17 @@ from local.text_gen import TextGenService
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
-from local.weather import Weather
-from local.yle import YleNewsApi
+# from local.weather import Weather
+# from local.yle import YleNewsApi
 from pathlib import Path
 
 
 class AppManager:
     def __init__(self):
+        """
+        Initialize app manager
+        """
+
         desc = [
             "App runs by default on background. Enable web server with --web",
             "And command line interface with --cli argument",
@@ -53,7 +57,6 @@ class AppManager:
 
         self._setup_env()
         self._load_services()
-        self._run()
 
     def toggle_recording(self, all):
         """
@@ -115,21 +118,23 @@ class AppManager:
         self.services[Srv.TTS].stop()
         sys.exit(0)
 
-    def _run(self):
+    def run(self):
         """
         Starts the app
         """
 
-        if self.args.cli:
-            try:
-                self.services[Srv.CLI] = CommandLineService(self)
-                # self.services[Srv.CLI].display_neon_title()
-                self.services[Srv.CLI].display_cli()
-                self.exit()
-            except Exception as e:
-                print(f"Error while running CLI service: {e}")
-                traceback.print_exc()
-                self.exit()
+        # if self.args.cli:
+        try:
+            print("enter service")
+            self.services[Srv.CLI] = CommandLineService(self)
+            # self.services[Srv.CLI].display_neon_title()
+            print("display cli")
+            self.services[Srv.CLI].display_cli()
+            self.exit()
+        except Exception as e:
+            print(f"Error while running CLI service: {e}")
+            traceback.print_exc()
+            self.exit()
 
         # Could run as a background if we had voice activation detection
 
@@ -139,9 +144,9 @@ class AppManager:
         """
         Run the speech to text service
 
-        :param audio:
+        :param np.ndarray audio: The audio data that will be transcribed
 
-        :return str:
+        :return str: The recorded sentence that is transcribed from audio data
         """
 
         return self.services[Srv.STT].transcribe(audio)
@@ -193,7 +198,7 @@ class AppManager:
                 self.services[Srv.TTS].synthesize(sentence)
                 sentence = ""
 
-            self.services[Srv.CLI].print_text(text, None, False)
+            self.services[Srv.CLI].print_text(text, None,False)
 
         self.services[Srv.CLI].print_separator()
 
@@ -214,9 +219,10 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load stt service: {e}")
 
+        #device_index=self.services[Srv.AUDIO].output_device_index
         try:
             self.services[Srv.TTS] = TextToSpeech(
-                self, device_index=self.services[Srv.AUDIO].output_device_index
+                self.root, 1
             )
         except Exception as e:
             print(f"Failed to load tts service: {e}")
@@ -231,15 +237,15 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load ir service: {e}")
 
-        try:
-            self.services[Srv.WEATHER] = Weather()
-        except Exception as e:
-            print(f"Failed to load weather service: {e}")
+        # try:
+        #     self.services[Srv.WEATHER] = Weather()
+        # except Exception as e:
+        #     print(f"Failed to load weather service: {e}")
 
-        try:
-            self.services[Srv.NEWS] = YleNewsApi()
-        except Exception as e:
-            print(f"Failed to load yle news service: {e}")
+        # try:
+        #     self.services[Srv.NEWS] = YleNewsApi()
+        # except Exception as e:
+        #     print(f"Failed to load yle news service: {e}")
 
     def _setup_env(self):
         """
@@ -287,5 +293,6 @@ class AppManager:
 
 
 if __name__ == "__main__":
+    print("Hello world")
     app = AppManager()
     app.run()
