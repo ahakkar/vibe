@@ -64,10 +64,12 @@ class TestSTTService:
         """
         with patch.object(
             Wav2Vec2Processor, "from_pretrained", side_effect=Exception("Error")
+        ), patch.object(
+            ort, "InferenceSession", return_value=MagicMock()
         ), patch("builtins.print") as mock_print:
 
             self.stt_service = SpeechToTextService(self.project_root)
-            mock_print.assert_any_call(
+            mock_print.assert_called_with(
                 "Failed to wav2vec processor: root/path/models/test_processor\nError")
             
     @pytest.mark.unit()
@@ -75,14 +77,16 @@ class TestSTTService:
         """
         Test the onnx except block of initialization of the STT class
         """
-        with patch.object(ort, "InferenceSession", side_effect=Exception("Error")
+        with patch.object(
+            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
+        ), patch.object(ort, "InferenceSession", side_effect=Exception("Error")
         ), patch("builtins.print") as mock_print:
             
             self.stt_service = SpeechToTextService(self.project_root)
-            mock_print.assert_any_call(
+            mock_print.assert_called_with(
                 "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError")
             
-    @pytest.mark.skip()
+    @pytest.mark.unit()
     def test_transcribe(self):
         """
         Test the process_audio method of the SpeechToTextService class
@@ -90,6 +94,13 @@ class TestSTTService:
         Mock batch_decode (transcription return value)
         Assert process_audio return value is the mocked transcription
         """
+        with patch.object(
+            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
+        ), patch.object(
+            ort, "InferenceSession", return_value=MagicMock()
+        ):
+            self.stt_service = SpeechToTextService(self.project_root)
+
         audio_data = np.random.randn(16000).astype(np.float32)
 
         with patch.object(
@@ -97,7 +108,7 @@ class TestSTTService:
         ) as mock_run, patch.object(
             self.stt_service.processor, "batch_decode", return_value=["test transcription"]
         ) as mock_decode:
-            result = self.stt_service.process_audio(audio_data)
+            result = self.stt_service.transcribe(audio_data)
             mock_run.assert_called_once()
             mock_decode.assert_called_once()
             assert result == "test transcription"
