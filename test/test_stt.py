@@ -2,6 +2,7 @@ import pytest
 import os
 import numpy as np
 import onnxruntime as ort
+
 from pathlib import Path  
 from unittest.mock import patch, MagicMock
 from transformers import Wav2Vec2Processor
@@ -17,18 +18,21 @@ with patch.dict(
 ):
     from src.backend.local.stt import SpeechToTextService
 
+@patch.dict(
+        os.environ,
+        {
+            "MODEL_FOLDER": "models",
+            "PROCESSOR": "test_processor",
+            "ONNX_MODEL": "test_onnx_model",
+        })
+
 class TestSTTService:
 
     def setup_method(self):
         """
         Setup method to run before each test
         """
-        self.project_root = Path(__file__).resolve()
-        print(self.project_root)
-        print(os.getenv("MODEL_FOLDER"))
-        print(os.getenv("PROCESSOR"))
-        print(os.getenv("ONNX_MODEL"))
-        self.stt_service = SpeechToTextService(self.project_root)
+        self.project_root = "root/path"
 
     def teardown_method(self):
         """
@@ -42,28 +46,42 @@ class TestSTTService:
         """
         Test the try block of initialization of the STT class
         Assert that the processor and ort_session are not None
-        """      
+        """
+        with patch.object(
+            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
+        ), patch.object(
+            ort, "InferenceSession", return_value=MagicMock()
+        ):
+            self.stt_service = SpeechToTextService(self.project_root)
+
         assert self.stt_service.processor is not None
         assert self.stt_service.ort_session is not None
-        print(self.stt_service.processor.config.name_or_path)
-        print(self.stt_service.ort_session.get_model_path())
 
     @pytest.mark.unit()
-    def test_speech_to_text_service_init_except(self):
+    def test_speech_to_text_service_init_except_processor(self):
         """
-        Test the except block of initialization of the STT class
-        Assert that the processor and ort_session are not None
+        Test the processor except block of initialization of the STT class
         """
         with patch.object(
             Wav2Vec2Processor, "from_pretrained", side_effect=Exception("Error")
-            ), patch.object(ort, "InferenceSession", side_effect=Exception("Error")
-            ), patch("builtins.print") as mock_print:
-            mock_print.assert_any_call(
-                "Failed to wav2vec processor: test_model_folder/test_processor\nError")
-            mock_print.assert_any_call(
-                "Failed to wav2vec onnx file: test_model_folder/test_onnx_model\nError")
+        ), patch("builtins.print") as mock_print:
 
-
+            self.stt_service = SpeechToTextService(self.project_root)
+            mock_print.assert_any_call(
+                "Failed to wav2vec processor: root/path/models/test_processor\nError")
+            
+    @pytest.mark.unit()
+    def test_speech_to_text_service_init_except_onnx(self):
+        """
+        Test the onnx except block of initialization of the STT class
+        """
+        with patch.object(ort, "InferenceSession", side_effect=Exception("Error")
+        ), patch("builtins.print") as mock_print:
+            
+            self.stt_service = SpeechToTextService(self.project_root)
+            mock_print.assert_any_call(
+                "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError")
+            
     @pytest.mark.skip()
     def test_transcribe(self):
         """
