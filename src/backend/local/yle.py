@@ -26,19 +26,26 @@ PAGES = {
 
 class YleNewsApi:
 
-
-    """
-    Example string that can be read for the user when asking for news,
-    so that the user knows (current) options in PAGES dict
-    """
     def get_instruction_string(self):
+        """
+        Example string that can be read for the user when asking for news,
+        so that the user knows (current) options in PAGES dict
+
+        return str: Instruction to fetch the news
+        """
+
         return "Mistä aiheesta haluat kuulla uutisia: pääuutiset, kotimaa, ulkomaat, talous vai urheilu?"
 
-    """
-    Finds from user input what news the user wants to hear (can be multiple topics)
-    Returns the teletext page(s) as a list of strings
-    """
+    
     def parse_user_input(self, input):
+        """
+        Finds from user input what news the user wants to hear (can be multiple topics)
+        Returns the teletext page(s) as a list of strings
+
+        :param input: User input what news the user wants to hear
+
+        :return [str]: The teletext page(s)
+        """
 
         b = Baseform()
 
@@ -65,10 +72,12 @@ class YleNewsApi:
         return return_list
                 
 
-    """
-    Gets the teletext news from input page number as a list of strings
-    """
     def get_news(self, page_number = 100):
+        """
+        Gets the teletext news from input page number as a list of strings
+
+        :param int page_number: The page number to get the page data
+        """
         
         page_data = self._get_page_data(page_number=page_number)
 
@@ -79,9 +88,6 @@ class YleNewsApi:
             return self._parse_json(page_data)
 
 
-        
-
-    def _get_page_data(self, page_number=100):
     def get_page_data(self, page_number=100):
         """
         Get the page data from given page number
@@ -99,7 +105,7 @@ class YleNewsApi:
             print(f"Error fetching Yle data: {e}")
             return None
 
-    def parse_json(self, json_data):
+    def _parse_json(self, json_data):
         """
         Print the json data
 
