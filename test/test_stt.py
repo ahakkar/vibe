@@ -26,6 +26,7 @@ with patch.dict(
             "ONNX_MODEL": "test_onnx_model",
         })
 
+
 class TestSTTService:
 
     def setup_method(self):
@@ -33,7 +34,7 @@ class TestSTTService:
         Setup method to run before each test
         """
         self.project_root = "root/path"
-
+        
     def teardown_method(self):
         """
         Teardown method to run after each test
@@ -94,11 +95,15 @@ class TestSTTService:
         Mock batch_decode (transcription return value)
         Assert process_audio return value is the mocked transcription
         """
-        with patch.object(
-            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
-        ), patch.object(
-            ort, "InferenceSession", return_value=MagicMock()
-        ):
+        self.project_root = Path(__file__).parent.parent
+        with patch.dict(
+            os.environ,
+            {
+                "MODEL_FOLDER": "models",
+                "PROCESSOR": "wav2vec2_processor",
+                "ONNX_MODEL": "wav2vec2_model.onnx",
+            }):
+            
             self.stt_service = SpeechToTextService(self.project_root)
 
         audio_data = np.random.randn(16000).astype(np.float32)

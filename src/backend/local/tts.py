@@ -6,7 +6,7 @@ import threading
 import queue
 from piper.voice import PiperVoice
 
-from abstract_classes import TextToSpeechInterface
+from src.backend.abstract_classes import TextToSpeechInterface
 
 
 class TextToSpeech(TextToSpeechInterface):
