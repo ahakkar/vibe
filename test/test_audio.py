@@ -15,7 +15,7 @@ with patch.dict(
         "sounddevice": MagicMock(),
     },
 ): 
-    from src.backend.local.audio import AudioService
+    from audio import AudioService
 
 
 class TestAudioService:

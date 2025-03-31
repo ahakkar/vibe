@@ -5,8 +5,12 @@ import os
 
 # This will add the backend folder to the sys.path for pytest to recognize the modules
 sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend"))
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/backend"))
 )
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../src/backend/local"))
+)
+
 
 
 def pytest_configure(config):

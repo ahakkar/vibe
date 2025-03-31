@@ -7,7 +7,7 @@ import local.constants
 from typing import Optional
 from dotenv import set_key
 from blessed import Terminal
-from local.constants import Srv
+from constants import Srv
 
 
 class CommandLineService:
