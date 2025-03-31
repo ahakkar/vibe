@@ -158,7 +158,7 @@ class Weather:
 
         forecast = self._get_forecast_from_coords(latitude, longitude, days)
 
-        forecast_data = forecast.parse_forecast(
+        forecast_data = forecast._parse_forecast(
             freq=frequency, latitude=latitude, longitude=longitude
         )
 
