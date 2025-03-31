@@ -84,7 +84,7 @@ class YleNewsApi:
         else:
             return self._parse_json(page_data)
 
-    def get_page_data(self, page_number=100):
+    def _get_page_data(self, page_number=100):
         """
         Get the page data from given page number
 

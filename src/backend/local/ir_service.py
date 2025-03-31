@@ -47,15 +47,10 @@ class IrService(IntentRecognitionInterface):
         :return str: The processed intent
         """
         if result.intent.name == "GetNews":
-            # instruction = self.app.get_service(Srv.NEWS).get_instruction_string()
-            # return instruction
-            # teletext_pages = self.app.get_service(Srv.NEWS).parse_user_input("pääuutinen")
-            # print(teletext_pages)
-
-            page_data = self.app.get_service(Srv.NEWS).get_page_data()
-            print(page_data)
-
-            return "Uutiset"
+            page_data = self.app.get_service(Srv.NEWS).get_news(100)
+            page_data = [ data.strip() for data in page_data]
+            page_data_str = "".join(page_data)
+            return page_data_str
         elif result.intent.name == "GetCurrentWeather":
             weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
             return weather_data
