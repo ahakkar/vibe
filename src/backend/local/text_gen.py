@@ -1,22 +1,21 @@
 import sys
 import os
 from llama_cpp import Llama
+from abstract_classes import TextGenerationInterface
 
 # Suppress llama.cpp warnings from console output
 # e.g. llama_new_context_with_model: n_ctx_per_seq (2048) < n_ctx_train (8192) -- the full capacity of the model will not be utilized
 sys.stderr = open(os.devnull, "w")
 
-MODEL_NAME = "google_gemma-3-1b-it-Q4_0"  # Replace with your actual GGUF model filename
-LLM_MODEL_PATH = f"/models/{MODEL_NAME}.gguf"
 
-
-class TextGenService:
+class TextGenService(TextGenerationInterface):
     """
-    Text generation service for a fine-tuned Gemma 2:2B GGUF model.
+    Text generation service for a fine-tuned Gemma 3:1B GGUF model.
     """
 
     def __init__(
         self,
+        project_root,
         max_new_tokens=100,
         temperature=0.6,
         top_p=0.95,
@@ -27,6 +26,7 @@ class TextGenService:
         """
         Initializes the text generation service with the specified parameters.
 
+        :param Path project_root: The path of the project root
         :param int max_new_tokens: The maximum number of new tokens to generate, defaults to 100
         :param float temperature: The sampling temperature, higher values mean more random completions, defaults to 0.6
         :param float top_p: The cumulative probability for nucleus sampling, defaults to 0.95
@@ -42,23 +42,31 @@ class TextGenService:
         self.do_sample = do_sample
 
         # Load GGUF model using llama.cpp
+        text_generation_path = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("LLM_MODEL")
+        )
+
         self.llm_model = Llama(
-            model_path=LLM_MODEL_PATH,
+            model_path=text_generation_path,
             chat_format="gemma",
             verbose=True,
             n_ctx=2048,
             n_threads=6,
         )
 
-    def chat_generate(self, user_input, system_prompt=""):
+    def generate(self, user_input, system_prompt=""):
         """
-        Generates a response in a chat-like format, ensuring correct system message handling.
+        The text generation service will generate responses based on user input
 
-        :param str user_input: The input text from the user.
-        :param str system_prompt: The system prompt to guide the model's responses, defaults to "".
-        :return generator: A generator that yields the model's response in a streaming fashion.
+        :param str user_input: The given user input
+        :param str system_prompt: The system prompt that change change how the text generation will respond, defaults to empty string
+
+        :return generator generator: The service generated output
         """
-
         if not system_prompt:
             system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 

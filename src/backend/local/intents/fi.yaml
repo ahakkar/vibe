@@ -1,0 +1,17 @@
+# https://developers.home-assistant.io/docs/voice/intent-recognition/template-sentence-syntax
+language: "fi"
+intents:
+  GetNews:
+    data:
+      - sentences:
+          - "kerro [tämän] päivän uutiset"
+  GetCurrentWeather:
+    data:
+      - sentences:
+          - "mikä sää on tänään"
+  GetTime:
+    data:
+      - sentences:
+          - "(kuinka paljon | paljonko | mitä) kello on"
+skip_words:
+  - "kiitos"

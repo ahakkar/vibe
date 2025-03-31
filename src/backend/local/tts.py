@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import sounddevice as sd
 import sox
@@ -5,10 +6,10 @@ import threading
 import queue
 from piper.voice import PiperVoice
 
-MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
+from abstract_classes import TextToSpeechInterface
 
 
-class TextToSpeech:
+class TextToSpeech(TextToSpeechInterface):
     """
     A Text-to-Speech (TTS) service that converts text to speech using the PiperVoice model.
     This class handles audio output through a specified device and manages audio streams
@@ -18,14 +19,22 @@ class TextToSpeech:
     from a queue, allowing for asynchronous operation and smooth audio playback.
     """
 
-    def __init__(self, device_index=1):
+    def __init__(self, project_root, device_index=1):
         """
         Initialize the TextToSpeech service.
 
+        :param Path project_root: The path of the project root
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
-        self.model_path = MODEL_PATH
-        self.voice = PiperVoice.load(self.model_path)
+        model_path = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("TTS_MODEL")
+        )
+
+        self.voice = PiperVoice.load(model_path)
         self.device_index = device_index
         self.stream = None
         self.piper_sample_rate = self.voice.config.sample_rate
@@ -59,7 +68,7 @@ class TextToSpeech:
         :param np.ndarray audio_data: The original audio data
         :param int orig_sample_rate: The original sample rate of the audio data
         :param int target_sample_rate: The target sample rate for the audio data
-        :return np.ndarray: The resampled audio data
+        :return np.ndarray resampled_audio: The resampled audio data
         """
         # Use SoX to resample the audio data in memory
         tfm = sox.Transformer()

@@ -1,12 +1,11 @@
 services:
   app:
-    build: ./backend/service1/src
+    build: ./src/backend
     image: vibe-app-image:latest # Specify the custom image name and tag
-    container_name: my_python_app
+    container_name: vibe-app-container
     ports:
       - "5000:5000"
     volumes:
-      - ./backend:/usr/src/app
       - ./models:/models
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering
