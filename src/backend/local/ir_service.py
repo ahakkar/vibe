@@ -48,7 +48,7 @@ class IrService(IntentRecognitionInterface):
         """
         if result.intent.name == "GetNews":
             page_data = self.app.get_service(Srv.NEWS).get_news(100)
-            page_data = [ data.strip() for data in page_data]
+            page_data = [data.strip() for data in page_data]
             page_data_str = "".join(page_data)
             return page_data_str
         elif result.intent.name == "GetCurrentWeather":
