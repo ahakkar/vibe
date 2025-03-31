@@ -36,13 +36,13 @@ class AppManager:
         parser.add_argument("--web", action="store_true", help="Enable Web server")
         self.args = parser.parse_args()
 
-        self.root = self._find_project_root()
-
         # Determine the correct .env path based if running in Docker
         if os.getenv("RUNNING_IN_DOCKER"):
-            self.ENV_PATH = os.path.join("/usr/src/app", ".env")
+            self.ENV_PATH = os.path.join("/usr/src")
+            self.root = "/"
         else:
             self.ENV_PATH = self.root / ".env"
+            self.root = self._find_project_root()
 
         self.services = {
             Srv.STT: None,
@@ -123,22 +123,31 @@ class AppManager:
         Starts the app
         """
 
-        # if self.args.cli:
+        if self.args.cli:
+            self._run_cli()
+
+        # Could run as a background if we had voice activation detection
+
+        # Could perhaps run the web server here too
+
+    def run_in_docker(self):
+        """
+        Start the app in docker
+        """
+        self._run_cli()
+
+    def _run_cli(self):
+        """
+        Run the Command Line Service
+        """
         try:
-            print("enter service")
             self.services[Srv.CLI] = CommandLineService(self)
-            # self.services[Srv.CLI].display_neon_title()
-            print("display cli")
             self.services[Srv.CLI].display_cli()
             self.exit()
         except Exception as e:
             print(f"Error while running CLI service: {e}")
             traceback.print_exc()
             self.exit()
-
-        # Could run as a background if we had voice activation detection
-
-        # Could perhaps run the web server here too
 
     def speech_to_text(self, audio) -> str:
         """
@@ -219,9 +228,10 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load stt service: {e}")
 
-        # device_index=self.services[Srv.AUDIO].output_device_index
         try:
-            self.services[Srv.TTS] = TextToSpeech(self.root, 1)
+            self.services[Srv.TTS] = TextToSpeech(
+                self.root, device_index=self.services[Srv.AUDIO].output_device_index
+            )
         except Exception as e:
             print(f"Failed to load tts service: {e}")
 
@@ -260,7 +270,7 @@ class AppManager:
         """
         Create an .env file based on .env.default
         """
-        source_path = os.path.join(self.root, ".env.default")
+        source_path = os.path.join(self.ENV_PATH, ".env.default")
 
         try:
             shutil.copy2(source_path, self.ENV_PATH)
@@ -291,5 +301,10 @@ class AppManager:
 
 
 if __name__ == "__main__":
+    print("hello")
     app = AppManager()
+
+    # if os.getenv("RUNNING_IN_DOCKER"):
+    #     app.run_in_docker()
+    # else:
     app.run()
