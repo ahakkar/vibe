@@ -3,7 +3,7 @@ import os
 import numpy as np
 import onnxruntime as ort
 
-from pathlib import Path  
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 from transformers import Wav2Vec2Processor
 
@@ -18,15 +18,15 @@ with patch.dict(
 ):
     from stt import SpeechToTextService
 
+
 @patch.dict(
-        os.environ,
-        {
-            "MODEL_FOLDER": "models",
-            "PROCESSOR": "test_processor",
-            "ONNX_MODEL": "test_onnx_model",
-        })
-
-
+    os.environ,
+    {
+        "MODEL_FOLDER": "models",
+        "PROCESSOR": "test_processor",
+        "ONNX_MODEL": "test_onnx_model",
+    },
+)
 class TestSTTService:
 
     def setup_method(self):
@@ -34,7 +34,7 @@ class TestSTTService:
         Setup method to run before each test
         """
         self.project_root = "root/path"
-        
+
     def teardown_method(self):
         """
         Teardown method to run after each test
@@ -50,9 +50,7 @@ class TestSTTService:
         """
         with patch.object(
             Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
-        ), patch.object(
-            ort, "InferenceSession", return_value=MagicMock()
-        ):
+        ), patch.object(ort, "InferenceSession", return_value=MagicMock()):
             self.stt_service = SpeechToTextService(self.project_root)
 
         assert self.stt_service.processor is not None
@@ -65,14 +63,15 @@ class TestSTTService:
         """
         with patch.object(
             Wav2Vec2Processor, "from_pretrained", side_effect=Exception("Error")
-        ), patch.object(
-            ort, "InferenceSession", return_value=MagicMock()
-        ), patch("builtins.print") as mock_print:
+        ), patch.object(ort, "InferenceSession", return_value=MagicMock()), patch(
+            "builtins.print"
+        ) as mock_print:
 
             self.stt_service = SpeechToTextService(self.project_root)
             mock_print.assert_called_with(
-                "Failed to wav2vec processor: root/path/models/test_processor\nError")
-            
+                "Failed to wav2vec processor: root/path/models/test_processor\nError"
+            )
+
     @pytest.mark.unit()
     def test_speech_to_text_service_init_except_onnx(self):
         """
@@ -80,13 +79,15 @@ class TestSTTService:
         """
         with patch.object(
             Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
-        ), patch.object(ort, "InferenceSession", side_effect=Exception("Error")
-        ), patch("builtins.print") as mock_print:
-            
+        ), patch.object(ort, "InferenceSession", side_effect=Exception("Error")), patch(
+            "builtins.print"
+        ) as mock_print:
+
             self.stt_service = SpeechToTextService(self.project_root)
             mock_print.assert_called_with(
-                "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError")
-            
+                "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError"
+            )
+
     @pytest.mark.skip()
     def test_transcribe(self):
         """
@@ -102,16 +103,21 @@ class TestSTTService:
                 "MODEL_FOLDER": "models",
                 "PROCESSOR": "wav2vec2_processor",
                 "ONNX_MODEL": "wav2vec2_model.onnx",
-            }):
-            
+            },
+        ):
+
             self.stt_service = SpeechToTextService(self.project_root)
 
         audio_data = np.random.randn(16000).astype(np.float32)
 
         with patch.object(
-            self.stt_service.ort_session, "run", return_value=[np.random.randn(1, 100, 32)]
+            self.stt_service.ort_session,
+            "run",
+            return_value=[np.random.randn(1, 100, 32)],
         ) as mock_run, patch.object(
-            self.stt_service.processor, "batch_decode", return_value=["test transcription"]
+            self.stt_service.processor,
+            "batch_decode",
+            return_value=["test transcription"],
         ) as mock_decode:
             result = self.stt_service.transcribe(audio_data)
             mock_run.assert_called_once()

@@ -42,7 +42,6 @@ class TestCommandLineService:
         """
         assert self.cli_instance is not None
 
-
     @pytest.mark.skip()
     def test_play_audio_success(self):
         """
@@ -51,7 +50,6 @@ class TestCommandLineService:
         with patch.object(sd, "play") as mock_play:
             self.cli_instance.play_audio(b"\x00\x01\x02\x03", samplerate=44100)
             mock_play.assert_called_once_with(b"\x00\x01\x02\x03", samplerate=44100)
-
 
     @pytest.mark.skip()
     def test_play_audio_failure(self):
@@ -68,7 +66,9 @@ class TestCommandLineService:
         """
         Test the run_all_services method to ensure it calls run_keyboard_command with all_services=True.
         """
-        with patch.object(self.cli_instance, "run_keyboard_command") as mock_run_keyboard_command:
+        with patch.object(
+            self.cli_instance, "run_keyboard_command"
+        ) as mock_run_keyboard_command:
             self.cli_instance.run_all_services()
             mock_run_keyboard_command.assert_called_once_with(all_services=True)
 
@@ -82,10 +82,16 @@ class TestCommandLineService:
         mock_llm_output = [{"choices": [{"delta": {"content": "Hello, world!"}}]}]
 
         with patch.object(
-            self.cli_instance.text_gen_service, "chat_generate", return_value=mock_llm_output
+            self.cli_instance.text_gen_service,
+            "chat_generate",
+            return_value=mock_llm_output,
         ):
-            with patch.object(self.cli_instance.textToSpeech, "synthesize") as mock_synthesize:
-                with patch.object(self.cli_instance.term, "inkey", side_effect=[None] * 10):
+            with patch.object(
+                self.cli_instance.textToSpeech, "synthesize"
+            ) as mock_synthesize:
+                with patch.object(
+                    self.cli_instance.term, "inkey", side_effect=[None] * 10
+                ):
                     self.cli_instance.llm_text_generate(input_text, synthesize=True)
                     mock_synthesize.assert_called_with("Hello, world!")
 
@@ -109,7 +115,9 @@ class TestCommandLineService:
 
         with patch.object(
             self.cli_instance.term, "inkey", side_effect=[mock_f12, mock_esc]
-        ), patch.object(self.cli_instance, "_flush_input_buffer") as mock_flush, patch.object(
+        ), patch.object(
+            self.cli_instance, "_flush_input_buffer"
+        ) as mock_flush, patch.object(
             self.cli_instance, "_toggle_recording"
         ) as mock_toggle, patch.object(
             self.cli_instance, "exit"

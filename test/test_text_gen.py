@@ -11,7 +11,7 @@ with patch.dict(
     {
         "llama_cpp": MagicMock(),
     },
-): 
+):
     from text_gen import TextGenService
 
 
@@ -56,7 +56,9 @@ class TestTextGenService:
         """
         Test the chat_generate method of the TextGenService class.
         """
-        with patch.object(self.text_gen_service.llm_model, "__call__", return_value=MagicMock()):
+        with patch.object(
+            self.text_gen_service.llm_model, "__call__", return_value=MagicMock()
+        ):
             result = self.text_gen_service.generate(
                 "Hello"
             )  # This is a placeholder, the actual input can be decided later
@@ -85,5 +87,7 @@ class TestTextGenService:
         ):
             start_time = time.time()
             text_gen_service.chat_generate(question)
-            first_token_time = time.time() # Need to fix to record actually the first token
+            first_token_time = (
+                time.time()
+            )  # Need to fix to record actually the first token
             assert (first_token_time - start_time) < 5

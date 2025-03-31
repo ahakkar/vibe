@@ -15,8 +15,7 @@ class TestIrService:
             self.ir_service = IrService(self.app)
 
     def teardown_method(self):
-        """
-        """
+        """ """
         pass
 
     @pytest.mark.unit

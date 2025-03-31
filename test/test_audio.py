@@ -14,7 +14,7 @@ with patch.dict(
         "time": MagicMock(),
         "sounddevice": MagicMock(),
     },
-): 
+):
     from audio import AudioService
 
 
@@ -34,7 +34,7 @@ class TestAudioService:
         Teardown method to run after each test
         """
         self.audio_service.terminate_audio()
-    
+
     @pytest.mark.unit()
     def test_audio_service_init(self):
         """
@@ -49,7 +49,7 @@ class TestAudioService:
         assert self.audio_service.frames == []
         assert self.audio_service.input_device_index == 7
         assert self.audio_service.output_device_index == 8
-        
+
         assert self.audio_service.is_recording is False
         assert self.audio_service.recording_thread is None
 
@@ -116,7 +116,9 @@ class TestAudioService:
         mock_audio_stream = MagicMock()
         mock_audio_stream.read.return_value = b"\x00\x01"
 
-        with patch.object(self.audio_service.audio, "open", return_value=mock_audio_stream):
+        with patch.object(
+            self.audio_service.audio, "open", return_value=mock_audio_stream
+        ):
             self.audio_service.start_recording()
             data = self.audio_service.stop_recording()
             assert self.audio_service.is_recording is False
@@ -147,7 +149,6 @@ class TestAudioService:
 
         mock_print.assert_called_once_with(f"Audio saved to {save_path}")
 
-
     @pytest.mark.unit()
     def test_save_audio_exeption(self, tmpdir):
         """
@@ -164,13 +165,12 @@ class TestAudioService:
         self.audio_service.frames = mock_frames
 
         with patch("os.path.join", return_value=save_path), patch(
-            "wave.open", side_effect=Exception("Test exception")), patch(
-                "builtins.print") as mock_print:
+            "wave.open", side_effect=Exception("Test exception")
+        ), patch("builtins.print") as mock_print:
             self.audio_service.save_audio_to_file()
 
         mock_print.assert_called_with(f"Failed to save audio file: Test exception")
         assert not os.path.exists(save_path)
-
 
     @pytest.mark.unit()
     def test_terminate_audio(self):
@@ -196,7 +196,6 @@ class TestAudioService:
             mock_stop_recording.assert_called_once()
             mock_recording_thread.join.assert_called_once()
             mock_audio.terminate.assert_called_once()
-
 
     @pytest.mark.unit()
     def test_terminate_audio_not_recording(self):

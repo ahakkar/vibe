@@ -18,6 +18,7 @@ with patch.dict(
 ):
     from tts import TextToSpeech
 
+
 class TestTextToSpeech:
 
     def setup_method(self):
@@ -27,11 +28,13 @@ class TestTextToSpeech:
         self.app = MagicMock()
         self.app.root = Path(__file__).parent.parent
 
-        with patch.dict(os.environ,
-        {
-        "MODEL_FOLDER": "models",
-        "TTS_MODEL": "fi_FI-harri-medium.onnx",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "MODEL_FOLDER": "models",
+                "TTS_MODEL": "fi_FI-harri-medium.onnx",
+            },
+        ):
             self.tts = TextToSpeech(self.app, device_index=1)
 
     def teardown_method(self):
@@ -81,8 +84,9 @@ class TestTextToSpeech:
         """
         Test the initialize_stream method when an unexpected exception is raised.
         """
-        with patch.object(sd, "OutputStream", side_effect=Exception("Unexpected Error")), \
-                pytest.raises(Exception, match="Unexpected Error") as exc_info:
+        with patch.object(
+            sd, "OutputStream", side_effect=Exception("Unexpected Error")
+        ), pytest.raises(Exception, match="Unexpected Error") as exc_info:
             self.tts.initialize_stream()
 
         assert str(exc_info.value) == "Unexpected Error"
@@ -130,8 +134,9 @@ class TestTextToSpeech:
         """
         self.tts.stream = None
         test_text = "Moi, minä olen Harri, miten menee?"
-        with patch.object(self.tts.initialize_stream) as mock_initialize_stream, \
-             patch("builtins.print") as mock_print:
+        with patch.object(self.tts.initialize_stream) as mock_initialize_stream, patch(
+            "builtins.print"
+        ) as mock_print:
             self.tts._synthesize_text(test_text)
             mock_print.assert_called_once_with("Audio stream is not available.")
 
@@ -143,8 +148,11 @@ class TestTextToSpeech:
         test_text = "Moi, minä olen Harri, miten menee?"
         self.tts.sentence_queue.put(test_text)
 
-        with patch.object(self.tts, "_synthesize_text") as mock_synthesize_text, \
-             patch.object(self.tts._stop_event, "is_set", side_effect=[False, True]):
+        with patch.object(
+            self.tts, "_synthesize_text"
+        ) as mock_synthesize_text, patch.object(
+            self.tts._stop_event, "is_set", side_effect=[False, True]
+        ):
             self.tts._process_queue()
             mock_synthesize_text.assert_called_once_with(test_text)
 
@@ -153,9 +161,13 @@ class TestTextToSpeech:
         """
         Test the _process_queue method of the TextToSpeech service when the queue is empty
         """
-        with patch.object(self.tts, "_synthesize_text") as mock_synthesize_text, \
-             patch.object(self.tts.sentence_queue, "get", side_effect=queue.Empty), \
-             patch.object(self.tts._stop_event, "is_set", side_effect=[False, True]):
+        with patch.object(
+            self.tts, "_synthesize_text"
+        ) as mock_synthesize_text, patch.object(
+            self.tts.sentence_queue, "get", side_effect=queue.Empty
+        ), patch.object(
+            self.tts._stop_event, "is_set", side_effect=[False, True]
+        ):
             self.tts._process_queue()
 
             mock_synthesize_text.assert_not_called()
@@ -166,14 +178,16 @@ class TestTextToSpeech:
         Test the stop method to ensure it cleans up resources properly.
         """
         # Error: AttributeError: 'collections.deque' object attribute 'clear' is read-only
-        with patch.object(self.tts._thread, "join") as mock_join, \
-                patch.object(self.tts._stop_event, "clear") as mock_clear, \
-                patch.object(self.tts.sentence_queue.queue, "clear") as mock_queue_clear, \
-                patch.object(self.tts.stream, "abort", create=True) as mock_abort:
+        with patch.object(self.tts._thread, "join") as mock_join, patch.object(
+            self.tts._stop_event, "clear"
+        ) as mock_clear, patch.object(
+            self.tts.sentence_queue.queue, "clear"
+        ) as mock_queue_clear, patch.object(
+            self.tts.stream, "abort", create=True
+        ) as mock_abort:
             self.tts.stop()
 
-            mock_queue_clear.assert_called_once()  
+            mock_queue_clear.assert_called_once()
             mock_abort.assert_called_once()
             mock_join.assert_called_once()
             mock_clear.assert_called_once()
-
