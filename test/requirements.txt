@@ -3,3 +3,4 @@ numpy==2.0.0
 sounddevice==0.5.1
 onnxruntime==1.19.2
 hassil==3.0.0
+transformers==4.48.3
