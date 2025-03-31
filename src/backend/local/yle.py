@@ -1,11 +1,12 @@
 import requests
 import json
+import os
 
-from baseform import Baseform
+from local.baseform import Baseform
 
 # TODO: Move to env
-APP_ID = ""
-APP_KEY = ""
+APP_ID = os.getenv("APP_ID")
+APP_KEY = os.getenv("APP_KEY")
 ADDRESS = "https://external.api.yle.fi/v1/teletext/pages/"
 
 # Currently very short dict of topics and corrensponding teletext pages

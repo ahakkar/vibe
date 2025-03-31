@@ -7,6 +7,7 @@ import os.path
 
 from local.constants import Srv
 
+
 class IrService(IntentRecognitionInterface):
     def __init__(self, app):
         """
@@ -46,13 +47,18 @@ class IrService(IntentRecognitionInterface):
         :return str: The processed intent
         """
         if result.intent.name == "GetNews":
-            # page_data = self.app.get_service(Srv.NEWS).get_page_data()
-            # TODO news return json which is not ideal for TTS
-            return "Uutisten toteutus on vielä kesken."
+            # instruction = self.app.get_service(Srv.NEWS).get_instruction_string()
+            # return instruction
+            # teletext_pages = self.app.get_service(Srv.NEWS).parse_user_input("pääuutinen")
+            # print(teletext_pages)
+
+            page_data = self.app.get_service(Srv.NEWS).get_page_data()
+            print(page_data)
+
+            return "Uutiset"
         elif result.intent.name == "GetCurrentWeather":
             weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
             return weather_data
-            # return "Sään uutiset on vielä kesken"
         elif result.intent.name == "GetTime":
             return "Ajan hakemista ei ole vielä toteutettu."
 

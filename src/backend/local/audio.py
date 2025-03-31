@@ -115,18 +115,6 @@ class AudioService:
 
         return audio_data
 
-    # def stop_and_process_recording(self):
-    #     """
-    #     Stop recording and process the recorded audio.
-    #     """
-    #     audio_data = self.stop_recording()
-
-    #     print(audio_data)
-    #     if audio_data:
-    #         return audio_data
-    #     else:
-    #         return None
-
     def save_audio_to_file(self):
         """
         Save the recorded audio to a file.

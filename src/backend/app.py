@@ -80,7 +80,7 @@ class AppManager:
         Transcribe audio with STT, detect intent, provide response based on
         intent or if no intent was detected, provide an answer with text gen.
 
-        :param NDArray[floating[Any]] recording: The recorded audio data 
+        :param NDArray[floating[Any]] recording: The recorded audio data
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
@@ -246,10 +246,10 @@ class AppManager:
         except Exception as e:
             print(f"Failed to load weather service: {e}")
 
-        # try:
-        #     self.services[Srv.NEWS] = YleNewsApi()
-        # except Exception as e:
-        #     print(f"Failed to load yle news service: {e}")
+        try:
+            self.services[Srv.NEWS] = YleNewsApi()
+        except Exception as e:
+            print(f"Failed to load yle news service: {e}")
 
     def _setup_env(self):
         """
