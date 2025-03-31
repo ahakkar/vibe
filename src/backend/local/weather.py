@@ -57,7 +57,7 @@ class Forecast:
         self.code_list = code_list
         self.rain_probability_list = rain_list
 
-    def parse_forecast(self, freq, latitude, longitude):
+    def _parse_forecast(self, freq, latitude, longitude):
         """
         Parses forecast information into a list of strings for TTS to read
 
