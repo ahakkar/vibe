@@ -42,6 +42,7 @@ class AudioService:
             print("Already recording audio.")
             return
 
+        print("Start recording.")
         self.frames = []
         try:
             self.stream = self.audio.open(
@@ -114,16 +115,17 @@ class AudioService:
 
         return audio_data
 
-    def stop_and_process_recording(self):
-        """
-        Stop recording and process the recorded audio.
-        """
-        audio_data = self.stop_recording()
-        if audio_data is not None:
-            return audio_data
+    # def stop_and_process_recording(self):
+    #     """
+    #     Stop recording and process the recorded audio.
+    #     """
+    #     audio_data = self.stop_recording()
 
-        else:
-            return None
+    #     print(audio_data)
+    #     if audio_data:
+    #         return audio_data
+    #     else:
+    #         return None
 
     def save_audio_to_file(self):
         """
@@ -132,7 +134,7 @@ class AudioService:
         # Determine the correct .env path based if running in Docker
 
         if os.getenv("RUNNING_IN_DOCKER"):
-            save_path = os.path.join("/usr/src/app", os.getenv("OUTPUT_FILENAME"))
+            save_path = os.path.join("/usr/src", os.getenv("OUTPUT_FILENAME"))
         else:
             save_path = os.path.join(
                 os.path.dirname(__file__), os.getenv("OUTPUT_FILENAME")

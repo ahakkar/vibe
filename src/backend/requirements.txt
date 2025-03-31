@@ -1,6 +1,5 @@
 PyAudio==0.2.14
 packaging==24.2
-pip==25.0
 setuptools==58.1.0
 torch==2.6.0
 filelock==3.17.0

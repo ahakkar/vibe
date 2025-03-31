@@ -5,6 +5,7 @@ from hassil import RecognizeResult, recognize
 from hassil import Intents
 import os.path
 
+from local.constants import Srv
 
 class IrService(IntentRecognitionInterface):
     def __init__(self, app):
@@ -49,8 +50,9 @@ class IrService(IntentRecognitionInterface):
             # TODO news return json which is not ideal for TTS
             return "Uutisten toteutus on vielä kesken."
         elif result.intent.name == "GetCurrentWeather":
-            # weather_data = self.app.get_service("weather").get_current_weather()
-            return "Sään uutiset on vielä kesken"
+            weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
+            return weather_data
+            # return "Sään uutiset on vielä kesken"
         elif result.intent.name == "GetTime":
             return "Ajan hakemista ei ole vielä toteutettu."
 

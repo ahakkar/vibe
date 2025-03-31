@@ -88,9 +88,11 @@ class CommandLineService:
         print(self.term.ljust(self.term.bold_underline("Settings Menu")))
         print(self.term.move_down(2))
 
+        env_file_path = os.path.join(self.app.ENV_PATH, ".env")
+
         try:
-            set_key(self.app.root / ".env", "INPUT_DEVICE_NAME", input_device_name)
-            set_key(self.app.root / ".env", "OUTPUT_DEVICE_NAME", output_device_name)
+            set_key(env_file_path, "INPUT_DEVICE_NAME", input_device_name)
+            set_key(env_file_path, "OUTPUT_DEVICE_NAME", output_device_name)
 
             print(
                 self.term.center(
@@ -99,7 +101,7 @@ class CommandLineService:
             )
 
         except Exception as e:
-            print(f"Failed to write to .env at: {self.app.root}/.env")
+            print(f"Failed to write to .env at: {self.app.ENV_PATH}/.env")
             print(f"While updating env in settings menu. Error: {e}")
 
         time.sleep(1)
