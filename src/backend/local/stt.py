@@ -1,3 +1,4 @@
+import logging
 import os
 import torch
 import numpy as np
@@ -18,6 +19,8 @@ class SpeechToTextService(SpeechToTextInterface):
 
         :param Path project_root: The path of the project root
         """
+        self.logger = logging.getLogger(__name__)
+
         proc_filepath = (
             str(project_root)
             + "/"
@@ -36,12 +39,12 @@ class SpeechToTextService(SpeechToTextInterface):
         try:
             self.processor = Wav2Vec2Processor.from_pretrained(proc_filepath)
         except Exception as e:
-            print(f"Failed to wav2vec processor: {proc_filepath}\n{e}")
+            self.logger.error(f"[stt.py:__init__] Failed to open wav2vec processor: {proc_filepath}\n{e}")
 
         try:
             self.ort_session = ort.InferenceSession(onnx_filepath)
         except Exception as e:
-            print(f"Failed to wav2vec onnx file: {onnx_filepath}\n{e}")
+            self.logger.error(f"[stt.py:__init__] Failed to open wav2vec onnx file: {onnx_filepath}\n{e}")
 
     def transcribe(self, audio_data: np.ndarray) -> str:
         """

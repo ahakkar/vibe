@@ -1,9 +1,11 @@
+import logging
 import os
 import pytz
 import requests
+
 from datetime import datetime, timedelta
 from timezonefinder import TimezoneFinder
-from typing import Tuple
+from typing import Optional, Tuple
 from local.constants import WEATHER_CODES
 
 
@@ -17,6 +19,8 @@ class Forecast:
         :param code_list: The list of code
         :param rain_list: The list of rain's probability
         """
+        self.logger = logging.getLogger(__name__)
+
         self.time_list = time_list
         self.temperature_list = temperature_list
         self.code_list = code_list
@@ -28,9 +32,9 @@ class Forecast:
             if self._coords_url == None or self._weather_url == None:
                 raise Exception
         except Exception as e:
-            print("Missing .env COORDS_URL or WEATHER_URL from .env")
+            self.logger.error("[weather.py:__init__] Missing .env COORDS_URL or WEATHER_URL from .env")
 
-    def _parse_forecast(self, freq, latitude, longitude):
+    def _parse_forecast(self, freq:int, latitude:float, longitude:float) -> list[str]:
         """
         Parses forecast information into a list of strings for TTS to read
 
@@ -79,11 +83,14 @@ class Forecast:
 
 
 class Weather:
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
     """
     Returns a string ready for TTS to read current weather data
     """
 
-    def get_current_weather(self, location="Tampere") -> str:
+    def get_current_weather(self, location:str="Tampere") -> str:
         """
         Get the current weather in given location
 
@@ -112,7 +119,7 @@ class Weather:
         else:
             return f"Paikassa {location} on {WEATHER_CODES[weather_code]}, {temperature} astetta celsiusta."
 
-    def get_forecast(self, location="Tampere", days=1, frequency=3):
+    def get_forecast(self, location:str="Tampere", days:int=1, frequency:int=3) -> Optional[list[str]]:
         """
         Returns a list of weather forecast strings ready for TTS to read
         Does not return already happened forecasts (except less than 1 hour old)
@@ -131,13 +138,16 @@ class Weather:
 
         forecast = self._get_forecast_from_coords(latitude, longitude, days)
 
+        if not forecast:
+            return None
+
         forecast_data = forecast._parse_forecast(
             freq=frequency, latitude=latitude, longitude=longitude
         )
 
         return forecast_data
 
-    def _get_coordinates(self, location="Tampere"):
+    def _get_coordinates(self, location="Tampere") -> Optional[tuple[float, float]]:
         """
         Uses nominatim API to get coordinates for searched location
 
@@ -147,7 +157,6 @@ class Weather:
         """
 
         headers = {"User-Agent": "SLT Vibe"}
-        print(self._coords_url)
 
         response = requests.get(
             f"{self._coords_url}{location}&format=json", headers=headers
@@ -163,14 +172,14 @@ class Weather:
             else:
 
                 # Location not found
-                return None, None
+                return None
         else:
-            print(f"Error: Unable to fetch data (Status Code: {response.status_code})")
-            return None, None
+            self.logger.error(f"[weather.py:_get_coordinates] Unable to fetch data (Status Code: {response.status_code})")
+            return None
 
     def _get_current_weather_from_coords(
-        self, latitude=61.4980214, longitude=23.7603118
-    ):
+        self, latitude:float=61.4980214, longitude:float=23.7603118
+    ) -> Optional[Tuple[str, str, str]]:
         """
         Uses open meteo API to get temperature, rain amount and weather code for input coords
 
@@ -195,12 +204,12 @@ class Weather:
             return temperature, precipitation, weather_code
 
         else:
-            print(f"Vallitsevan sään hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}\n")
-            return None, None, None
+            self.logger.error(f"[weather.py:_get_current_weather_from_coords] Vallitsevan sään hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}")
+            return None
 
     def _get_forecast_from_coords(
-        self, latitude=61.4980214, longitude=23.7603118, days=1
-    ) -> Forecast:
+        self, latitude:float=61.4980214, longitude:float=23.7603118, days:int=1
+    ) -> Optional[Forecast]:
         """
         Uses open meteo API to create a Forecast object for location in coords and duration of input days
 
@@ -224,4 +233,5 @@ class Weather:
 
             return Forecast(time, temperature, code, rain)
         else:
-            return print(f"Säätietojen hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}\n")
+            self.logger.error(f"Säätietojen hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}\n")
+            return None

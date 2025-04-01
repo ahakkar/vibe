@@ -58,13 +58,13 @@ class TestAudioService:
         """
         Test the start_recording method of the AudioService class
         when already recording
-        Assert that the method prints "Already recording audio."
+        Assert that the method returns true
         """
         self.audio_service.is_recording = True
 
-        with patch("builtins.print") as mock_print:
-            self.audio_service.start_recording()
-            mock_print.assert_called_once_with("Already recording audio.")
+        
+        result = self.audio_service.start_recording()
+        assert result is True
 
     @pytest.mark.unit()
     def test_start_recording(self):
@@ -91,18 +91,16 @@ class TestAudioService:
         """
         Test the start_recording method of the AudioService class
         when the service has device error
-        Assert that the term will called once with Please check the audio device index
-        Assert that the term will called with Failed to open audio stream: Device Error
+        Assert that the exception handling returns None on failure.
         """
         with patch.object(
             self.audio_service.audio, "open", side_effect=Exception("Device Error")
-        ) as mock_open, patch("builtins.print") as mock_print:
-            self.audio_service.start_recording()
+        ) as mock_open:
+            result = self.audio_service.start_recording()
             mock_open.assert_called_once()
             assert self.audio_service.is_recording is False
 
-            mock_print.assert_any_call("Failed to open audio stream: Device Error")
-            mock_print.assert_any_call("Please check the audio device index.")
+            assert result is None
 
     @pytest.mark.unit()
     def test_stop_recording(self):
@@ -132,7 +130,7 @@ class TestAudioService:
         Mock the wave.open to return MagicMock object
         Mock wave_file attributes
         Assert wave_open is called with the save_path in write mode
-        Assert that save message is printed to terminal
+        Assert that True was returned
         """
         save_path = os.path.join(tmpdir, "audio.wav")
         mock_wave_file = MagicMock()
@@ -143,11 +141,10 @@ class TestAudioService:
 
         with patch("os.path.join", return_value=save_path), patch(
             "wave.open", return_value=mock_wave_file
-        ) as mock_wave_open, patch("builtins.print") as mock_print:
-            self.audio_service.save_audio_to_file()
+        ) as mock_wave_open:
+            result = self.audio_service.save_audio_to_file()
             mock_wave_open.assert_called_once_with(save_path, "wb")
-
-        mock_print.assert_called_once_with(f"Audio saved to {save_path}")
+            assert result is True
 
     @pytest.mark.unit()
     def test_save_audio_exeption(self, tmpdir):
@@ -166,10 +163,10 @@ class TestAudioService:
 
         with patch("os.path.join", return_value=save_path), patch(
             "wave.open", side_effect=Exception("Test exception")
-        ), patch("builtins.print") as mock_print:
-            self.audio_service.save_audio_to_file()
+        ):
+            result = self.audio_service.save_audio_to_file()
+            assert result is False
 
-        mock_print.assert_called_with(f"Failed to save audio file: Test exception")
         assert not os.path.exists(save_path)
 
     @pytest.mark.unit()

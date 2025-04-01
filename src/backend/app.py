@@ -21,13 +21,14 @@ try:
 except Exception as e:
     print(f"Failed to import: {e}")
 
+
 class AppManager:
     def __init__(self):
         """
         Initialize app manager
         """
-        self.logger = logging.getLogger(__name__)        
-        logging.basicConfig(filename='vibe.log', level=logging.INFO)
+        self.logger = logging.getLogger(__name__)
+        logging.basicConfig(filename="vibe.log", level=logging.INFO)
         self.logger.info(f"APP start at {time.asctime()}")
 
         desc = [
@@ -101,7 +102,9 @@ class AppManager:
                 intent_response = self.services[Srv.IR].process_intent(intent)
                 if self.args.cli:
                     self.services[Srv.CLI].print_text(intent_response)
-                self.logger.info("f[_process_recording] Intent response: {intent_response}")
+                self.logger.info(
+                    "f[_process_recording] Intent response: {intent_response}"
+                )
                 self.services[Srv.TTS].synthesize(intent_response)
             # If no intent is recognized, pass user prompt to LLM
             else:
@@ -148,7 +151,9 @@ class AppManager:
             self.services[Srv.CLI].display_cli()
             self.exit()
         except Exception as e:
-            self.logger.error(f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}")
+            self.logger.error(
+                f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}"
+            )
             self.exit()
 
     def speech_to_text(self, audio) -> str:
@@ -272,9 +277,10 @@ class AppManager:
         env_file_path = os.path.join(self.ENV_PATH, ".env")
 
         if not os.path.exists(env_file_path):
-            self.logger.info(f".env not found, creating one based on .env.example to {env_file_path}")
+            self.logger.info(
+                f".env not found, creating one based on .env.example to {env_file_path}"
+            )
             self._create_env_file()
-
 
         self.logger.info(f"env path: {self.ENV_PATH}")
         self.logger.info(f"loading env, result: {load_dotenv(env_file_path)}")
@@ -294,7 +300,9 @@ class AppManager:
         except OSError as e:
             self.logger.error(f"OS Error writing to .env file ({self.ENV_PATH}): {e}")
         except Exception as e:
-            self.logger.error(f"An unexpected error occurred while writing to .env: {e}")
+            self.logger.error(
+                f"An unexpected error occurred while writing to .env: {e}"
+            )
 
     def _find_project_root(self) -> Path:
         """
