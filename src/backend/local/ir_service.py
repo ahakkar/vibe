@@ -55,30 +55,22 @@ class IrService(IntentRecognitionInterface):
                 page_data_str = "".join(page_data)
                 return page_data_str
             except Exception as e:
-                self.logger.error(
-                    f"[ir_service:process_intent] Uutisten hakeminen epäonnistui: {e}"
-                )
+                self.logger.error(f"Uutisten hakeminen epäonnistui: {e}")
                 return "Uutisten hakeminen epäonnistui."
         elif result.intent.name == "GetCurrentWeather":
             try:
                 weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
                 return weather_data
             except Exception as e:
-                self.logger.error(
-                    f"[ir_service:process_intent] Sään hakeminen epäonnistui: {e}"
-                )
+                self.logger.error(f"Sään hakeminen epäonnistui: {e}")
 
                 return "Sään hakeminen epäonnistui."
         elif result.intent.name == "GetTime":
             try:
                 return "Ajan hakemista ei ole vielä toteutettu."
             except Exception as e:
-                self.logger.error(
-                    f"[ir_service:process_intent] Ajan hakeminen epäonnistui: {e}"
-                )
+                self.logger.error(f"Ajan hakeminen epäonnistui: {e}")
                 return "Ajan hakeminen epäonnistui."
 
-        self.logger.info(
-            f"[ir_service:process_intent] Tuntematon intent havaittu: {result.intent.name}"
-        )
+        self.logger.info(f"Tuntematon intent havaittu: {result.intent.name}")
         return f"Tuntematon intent havaittu: {result.intent.name}"

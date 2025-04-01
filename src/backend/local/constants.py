@@ -1,6 +1,7 @@
 from enum import Enum
 
 APP_TITLE = "SLT-VIBE"
+APP_LOG_FILE = "vibe.log"
 
 
 class Srv(Enum):
@@ -12,6 +13,16 @@ class Srv(Enum):
     CLI = "Command Line Interface"
     WEATHER = "Open weather API"
     NEWS = "Yle Teksti-TV API"
+
+
+# Currently very short dict of topics and corrensponding teletext pages
+TTV_PAGES = {
+    "pääuutinen": 100,
+    "kotimaa": 102,
+    "ulkomaa": 130,
+    "talous": 160,
+    "urheilu": 201,
+}
 
 
 THEME = {

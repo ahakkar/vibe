@@ -65,9 +65,7 @@ class TestAudioService:
 
         result = self.audio_service.start_recording()
         assert result is True
-        mock_logger.assert_called_with(
-            "[audio.py:start_recording] Already recording audio."
-        )
+        mock_logger.assert_called_with("Already recording audio.")
 
     @pytest.mark.unit()
     def test_start_recording(self):
@@ -106,7 +104,7 @@ class TestAudioService:
 
             assert result is None
             mock_logger.assert_called_with(
-                "[audio.py:start_recording] Failed to open audio stream: Device Error\nPlease check the audio device index."
+                "Failed to open audio stream: Device Error\nPlease check the audio device index."
             )
 
     @pytest.mark.unit()
@@ -154,9 +152,7 @@ class TestAudioService:
             result = self.audio_service.save_audio_to_file()
             mock_wave_open.assert_called_once_with(save_path, "wb")
             assert result is True
-            mock_logger.assert_called_with(
-                f"[audio.py:save_audio_to_file] Audio saved to {save_path}"
-            )
+            mock_logger.assert_called_with(f"Audio saved to {save_path}")
 
     @pytest.mark.unit()
     @patch("logging.Logger.error")
@@ -180,9 +176,7 @@ class TestAudioService:
         ):
             result = self.audio_service.save_audio_to_file()
             assert result is False
-            mock_logger.assert_called_with(
-                f"[audio.py:save_audio_to_file] Failed to save audio file: Test exception"
-            )
+            mock_logger.assert_called_with(f"Failed to save audio file: Test exception")
 
         assert not os.path.exists(save_path)
 

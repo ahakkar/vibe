@@ -44,7 +44,7 @@ class AudioService:
         :return was it recording or not already?
         """
         if self.is_recording:
-            self.logger.info(f"[audio.py:start_recording] Already recording audio.")
+            self.logger.info(f"Already recording audio.")
             return True
 
         self.frames = []
@@ -60,13 +60,13 @@ class AudioService:
         except Exception as e:
             self.is_recording = False
             self.logger.error(
-                f"[audio.py:start_recording] Failed to open audio stream: {e}\nPlease check the audio device index."
+                f"Failed to open audio stream: {e}\nPlease check the audio device index."
             )
             return None
 
         # Start a new thread for recording
         self.recording_thread = threading.Thread(target=self._record_audio)
-        self.logger.info(f"[audio.py:start_recording] Start recording.")
+        self.logger.info(f"Start recording.")
         self.is_recording = True
         self.recording_thread.start()
 
@@ -81,7 +81,7 @@ class AudioService:
                 data = self.stream.read(self.CHUNK, exception_on_overflow=False)
                 self.frames.append(data)
         except IOError as e:
-            self.logger.error(f"[audio.py:_record_audio] Error while recording: {e}")
+            self.logger.error(f"Error while recording: {e}")
         finally:
             if self.stream:
                 self.stream.stop_stream()
@@ -95,7 +95,7 @@ class AudioService:
         :return np.ndarray audio_data: The recorded audio data as a NumPy array.
         """
         if not self.is_recording:
-            self.logger.info(f"[audio.py:stop_recording] Not recording.")
+            self.logger.info(f"Not recording.")
             return None
 
         self.is_recording = False
@@ -103,14 +103,14 @@ class AudioService:
             self.recording_thread.join()  # Wait for the thread to finish
         time.sleep(0.1)
 
-        self.logger.info(f"[audio.py:stop_recording] Finished recording.")
+        self.logger.info(f"Finished recording.")
 
         if self.stream:
             self.stream.stop_stream()
             self.stream.close()
 
         if not self.frames:
-            self.logger.info(f"[audio.py:stop_recording] No audio frames recorded.")
+            self.logger.info(f"No audio frames recorded.")
             return None
 
         # Convert frames to NumPy array for direct processing
@@ -146,14 +146,10 @@ class AudioService:
                 wave_file.setframerate(self.sample_rate)
                 wave_file.writeframes(b"".join(self.frames))
 
-            self.logger.info(
-                f"[audio.py:save_audio_to_file] Audio saved to {save_path}"
-            )
+            self.logger.info(f"Audio saved to {save_path}")
             return True
         except Exception as e:
-            self.logger.error(
-                f"[audio.py:save_audio_to_file] Failed to save audio file: {e}"
-            )
+            self.logger.error(f"Failed to save audio file: {e}")
             return False
 
     def terminate_audio(self):

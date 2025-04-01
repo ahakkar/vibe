@@ -39,16 +39,12 @@ class SpeechToTextService(SpeechToTextInterface):
         try:
             self.processor = Wav2Vec2Processor.from_pretrained(proc_filepath)
         except Exception as e:
-            self.logger.error(
-                f"[stt.py:__init__] Failed to open wav2vec processor: {proc_filepath}\n{e}"
-            )
+            self.logger.error(f"Failed to open wav2vec processor: {proc_filepath}\n{e}")
 
         try:
             self.ort_session = ort.InferenceSession(onnx_filepath)
         except Exception as e:
-            self.logger.error(
-                f"[stt.py:__init__] Failed to open wav2vec onnx file: {onnx_filepath}\n{e}"
-            )
+            self.logger.error(f"Failed to open wav2vec onnx file: {onnx_filepath}\n{e}")
 
     def transcribe(self, audio_data: np.ndarray) -> str:
         """

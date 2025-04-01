@@ -30,9 +30,7 @@ class Forecast:
             if self._coords_url == None or self._weather_url == None:
                 raise Exception
         except Exception as e:
-            self.logger.error(
-                "[weather.py:__init__] Missing .env COORDS_URL or WEATHER_URL from .env"
-            )
+            self.logger.error("Missing .env COORDS_URL or WEATHER_URL from .env")
 
     def _parse_forecast(
         self, freq: int, latitude: float, longitude: float
@@ -181,7 +179,7 @@ class Weather:
                 return None
         else:
             self.logger.error(
-                f"[weather.py:_get_coordinates] Unable to fetch data (Status Code: {response.status_code})"
+                f"Unable to fetch data (Status Code: {response.status_code})"
             )
             return None
 
@@ -213,7 +211,7 @@ class Weather:
 
         else:
             self.logger.error(
-                f"[weather.py:_get_current_weather_from_coords] Vallitsevan sään hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}"
+                f"Vallitsevan sään hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}"
             )
             return None
 

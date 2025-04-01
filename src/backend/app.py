@@ -7,6 +7,7 @@ import time
 import local.constants
 
 from local.constants import Srv
+from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
 from local.cli import CommandLineService
 from local.ir_service import IrService
@@ -25,7 +26,9 @@ class AppManager:
         Initialize app manager
         """
         self.logger = logging.getLogger(__name__)
-        logging.basicConfig(filename="vibe.log", level=logging.INFO)
+        logfile_name = APP_LOG_FILE
+
+        logging.basicConfig(filename=logfile_name, level=logging.INFO)
         self.logger.info(f"APP start at {time.asctime()}")
 
         desc = [
@@ -89,7 +92,7 @@ class AppManager:
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
-        self.logger.info("[_process_recording] Text:", audio_text)
+        self.logger.info("Text:", audio_text)
 
         if all:
             intent = self.services[Srv.IR].recognize_intent(audio_text)
@@ -227,13 +230,13 @@ class AppManager:
         try:
             self.services[Srv.AUDIO] = AudioService(self)
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load audio service: {e}")
+            self.logger.error(f"Failed to load audio service: {e}")
             self.exit()
 
         try:
             self.services[Srv.STT] = SpeechToTextService(self.root)
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load stt service: {e}")
+            self.logger.error(f"Failed to load stt service: {e}")
             self.exit()
 
         try:
@@ -241,30 +244,30 @@ class AppManager:
                 self.root, device_index=self.services[Srv.AUDIO].output_device_index
             )
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load tts service: {e}")
+            self.logger.error(f"Failed to load tts service: {e}")
             self.exit()
 
         try:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load text gen service: {e}")
+            self.logger.error(f"Failed to load text gen service: {e}")
             self.exit()
 
         try:
             self.services[Srv.IR] = IrService(self)
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load ir service: {e}")
+            self.logger.error(f"Failed to load ir service: {e}")
             self.exit()
 
         try:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load weather service: {e}")
+            self.logger.error(f"Failed to load weather service: {e}")
 
         try:
             self.services[Srv.NEWS] = YleNewsApi()
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to load yle news service: {e}")
+            self.logger.error(f"Failed to load yle news service: {e}")
             self.exit()
 
     def _setup_env(self):

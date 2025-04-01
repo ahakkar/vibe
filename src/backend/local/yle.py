@@ -1,49 +1,55 @@
+import logging
+from typing import Any, Dict, Optional
 import requests
 import json
 import os
 
+from local.constants import TTV_PAGES
 from local.baseform import Baseform
 
-# TODO: Move to env
-APP_ID = os.getenv("APP_ID")
-APP_KEY = os.getenv("APP_KEY")
-ADDRESS = "https://external.api.yle.fi/v1/teletext/pages/"
-
-# Currently very short dict of topics and corrensponding teletext pages
-# TODO: Move elsewhere
-PAGES = {
-    "pääuutinen": 100,
-    "kotimaa": 102,
-    "ulkomaa": 130,
-    "talous": 160,
-    "urheilu": 201,
-}
 
 # TODO: Remove page numbers from returned strings
-
 # TODO: Create a way to access articles based on the page numbers
 
 
 class YleNewsApi:
 
-    def get_instruction_string(self):
+    def __init__(self):
+        self.logger = logging.getLogger(__name__)
+
+        self.YLE_APP_ID = os.getenv("YLE_APP_ID")
+        self.YLE_APP_KEY = os.getenv("YLE_APP_KEY")
+        self.YLE_TTV_URL = os.getenv("YLE_TTV_URL")
+
+        if not self.YLE_APP_ID:
+            self.logger.error(f"[yle.py:__init__] Missing YLE_APP_ID from .env file")
+
+        if not self.YLE_APP_KEY:
+            self.logger.error(f"[yle.py:__init__] Missing YLE_APP_KEY from .env file")
+
+        if not self.YLE_TTV_URL:
+            self.logger.error(
+                f"[yle.py:__init__] Missing YLE_TTV_ADDRESS from .env file"
+            )
+
+    def get_instruction_string(self) -> str:
         """
         Example string that can be read for the user when asking for news,
-        so that the user knows (current) options in PAGES dict
+        so that the user knows (current) options in TTV_PAGES dict
 
         return str: Instruction to fetch the news
         """
 
         return "Mistä aiheesta haluat kuulla uutisia: pääuutiset, kotimaa, ulkomaat, talous vai urheilu?"
 
-    def parse_user_input(self, input):
+    def parse_user_input(self, input: str) -> list:
         """
         Finds from user input what news the user wants to hear (can be multiple topics)
         Returns the teletext page(s) as a list of strings
 
         :param input: User input what news the user wants to hear
 
-        :return [str]: The teletext page(s)
+        :return list: The teletext page(s)
         """
 
         b = Baseform()
@@ -53,13 +59,12 @@ class YleNewsApi:
         return_list = []
 
         for word in words:
-
             # Use baseform of words to deal with different user inputs
             word_baseform = b.get_baseform(word)
 
-            if PAGES.get(word_baseform) is not None:
+            if TTV_PAGES.get(word_baseform) is not None:
 
-                tts_list = self.get_news(PAGES.get(word_baseform))
+                tts_list = self.get_news(TTV_PAGES.get(word_baseform))
 
                 return_list.extend(tts_list)
 
@@ -69,7 +74,7 @@ class YleNewsApi:
 
         return return_list
 
-    def get_news(self, page_number=100):
+    def get_news(self, page_number: int = 100) -> str:
         """
         Gets the teletext news from input page number as a list of strings
 
@@ -84,7 +89,7 @@ class YleNewsApi:
         else:
             return self._parse_json(page_data)
 
-    def _get_page_data(self, page_number=100):
+    def _get_page_data(self, page_number: int = 100) -> Optional[Dict[str, Any]]:
         """
         Get the page data from given page number
 
@@ -92,16 +97,16 @@ class YleNewsApi:
 
         :return json: The response that get from the api
         """
-        url = f"{ADDRESS}{page_number}.json?app_id={APP_ID}&app_key={APP_KEY}"
+        url = f"{self.YLE_TTV_URL}{page_number}.json?app_id={self.YLE_APP_ID}&app_key={self.YLE_APP_KEY}"
         try:
             response = requests.get(url)
             response.raise_for_status()  # Bad responses error
             return response.json()
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching Yle data: {e}")
+            self.logger.error(f"[yle.py:_get_page_data: Error fetching Yle data: {e}")
             return None
 
-    def _parse_json(self, json_data):
+    def _parse_json(self, json_data) -> list[Any]:
         """
         Print the json data
 

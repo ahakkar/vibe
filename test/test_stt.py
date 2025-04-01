@@ -72,7 +72,7 @@ class TestSTTService:
 
         self.stt_service = SpeechToTextService(self.project_root)
         mock_logger.assert_called_with(
-            "[stt.py:__init__] Failed to open wav2vec processor: root/path/models/test_processor\nError"
+            "Failed to open wav2vec processor: root/path/models/test_processor\nError"
         )
 
     @pytest.mark.unit()
@@ -91,7 +91,7 @@ class TestSTTService:
 
         self.stt_service = SpeechToTextService(self.project_root)
         mock_logger.assert_called_with(
-            "[stt.py:__init__] Failed to open wav2vec onnx file: root/path/models/test_onnx_model\nError"
+            "Failed to open wav2vec onnx file: root/path/models/test_onnx_model\nError"
         )
 
     @pytest.mark.skip()
