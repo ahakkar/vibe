@@ -46,9 +46,9 @@ class AudioService:
         if self.is_recording:
             self.logger.info(f"[audio.py:start_recording] Already recording audio.")
             return True
-        
+
         self.frames = []
-        try:              
+        try:
             self.stream = self.audio.open(
                 format=pyaudio.paInt16,
                 channels=self.channels,
@@ -72,7 +72,6 @@ class AudioService:
 
         return False
 
-
     def _record_audio(self):
         """
         Record audio data in a separate thread.
@@ -88,7 +87,7 @@ class AudioService:
                 self.stream.stop_stream()
                 self.stream.close()
 
-    def stop_recording(self, save_audio:bool=False) -> Optional[np.ndarray]:
+    def stop_recording(self, save_audio: bool = False) -> Optional[np.ndarray]:
         """
         Stop recording audio and optionally save the recorded audio to a file.
 

@@ -59,9 +59,13 @@ class TextToSpeech(TextToSpeechInterface):
                 dtype="int16",
             )
             self.stream.start()
-            self.logger.info(f"[tts.py:initialize_stream] Audio stream initialized with sample rate: {self.output_sample_rate}")
+            self.logger.info(
+                f"[tts.py:initialize_stream] Audio stream initialized with sample rate: {self.output_sample_rate}"
+            )
         except sd.PortAudioError as e:
-            self.logger.error(f"[tts.py:initialize_stream] Error initializing audio stream: {e}")
+            self.logger.error(
+                f"[tts.py:initialize_stream] Error initializing audio stream: {e}"
+            )
             self.stream = None
 
     def resample_audio(self, audio_data, orig_sample_rate, target_sample_rate):
@@ -120,7 +124,9 @@ class TextToSpeech(TextToSpeechInterface):
                 self.stream.write(int_data)
             self.stream.stop()
         else:
-            self.logger.error("[tts.py:_synthesize_text] Audio stream is not available.")
+            self.logger.error(
+                "[tts.py:_synthesize_text] Audio stream is not available."
+            )
 
     def stop(self):
         """
