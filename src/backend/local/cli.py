@@ -1,9 +1,11 @@
+import logging
 import os
-import time
-import signal
 import pyfiglet
-import local.constants
+import signal
+import time
 
+from local.constants import Srv
+from local.constants import APP_TITLE
 from typing import Optional
 from dotenv import set_key
 from blessed import Terminal
@@ -21,6 +23,7 @@ class CommandLineService:
         :param AppManager app: The app manager
         """
 
+        self.logger = logging.getLogger(__name__)
         self.term = Terminal()
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -49,7 +52,7 @@ class CommandLineService:
         """
         Display the neon title for the application
         """
-        app_ascii_title = pyfiglet.figlet_format(local.constants.APP_TITLE)
+        app_ascii_title = pyfiglet.figlet_format(APP_TITLE)
         title_flicker_colors = [
             self.term.red,
             self.term.magenta,
@@ -78,6 +81,7 @@ class CommandLineService:
         output_device_name = self._select_device("output")
 
         if input_device_name == None or output_device_name == None:
+            self.logger.error("No audio devices detected")
             print(self.term.ljust(self.term.bold(f"No audio devices detected.")))
             time.sleep(2.0)
             return
@@ -93,15 +97,12 @@ class CommandLineService:
             set_key(env_file_path, "INPUT_DEVICE_NAME", input_device_name)
             set_key(env_file_path, "OUTPUT_DEVICE_NAME", output_device_name)
 
-            print(
-                self.term.center(
-                    self.term.bold_green("Settings successfully saved to .env file!")
-                )
-            )
+            self.logger.info("Settings successfully saved to .env file!")
 
         except Exception as e:
-            print(f"Failed to write to .env at: {self.app.ENV_PATH}/.env")
-            print(f"While updating env in settings menu. Error: {e}")
+            self.logger.error(
+                f'Failed to write to .env at: {self.app.ENV_PATH}/.env"\nwhile updating env in settings menu. Error: {e}'
+            )
 
         time.sleep(1)
 
@@ -156,7 +157,7 @@ class CommandLineService:
         :param bool all: If True, the program will run all services
         """
         print(
-            self.term.center(
+            self.term.ljust(
                 "Press F12 once to start and again to stop recording. Press 'Esc' to go back."
             )
         )
@@ -225,8 +226,7 @@ class CommandLineService:
         """
         Print a terminal width separator line
         """
-        print()
-        print(self.term.center("-" * self.term.width))
+        print(f'\n{self.term.center("-" * self.term.width)}')
 
     def _print_title(self, title_chars, colors, color_index):
         """
@@ -258,7 +258,8 @@ class CommandLineService:
         print(f"found devices: {devices}")
 
         if len(devices) == 0:
-            return None
+            self.logger.info("No audio devices to print.")
+            return
 
         print(
             self.term.center(
@@ -278,7 +279,6 @@ class CommandLineService:
         Select the device name for input or output devices
 
         :param str device_type: The device type (input or output)
-
         :return str : The selected device name
         """
         devices = self.app.get_service(Srv.AUDIO).get_query_devices()
