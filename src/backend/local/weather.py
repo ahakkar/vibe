@@ -25,8 +25,6 @@ class Forecast:
         self.temperature_list = temperature_list
         self.code_list = code_list
         self.rain_probability_list = rain_list
-        self._coords_url = os.getenv("COORDS_URL")
-        self._weather_url = os.getenv("WEATHER_URL")
 
         try:
             if self._coords_url == None or self._weather_url == None:
@@ -89,6 +87,8 @@ class Forecast:
 class Weather:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self._coords_url = os.getenv("COORDS_URL")
+        self._weather_url = os.getenv("WEATHER_URL")
 
     """
     Returns a string ready for TTS to read current weather data

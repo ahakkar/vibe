@@ -9,3 +9,32 @@ INFO:__main__:APP start at Tue Apr  1 11:09:20 2025
 INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
 INFO:__main__:loading env, result: True
 INFO:__main__:APP shutdown at Tue Apr  1 11:09:27 2025
+INFO:__main__:APP start at Tue Apr  1 13:06:14 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+ERROR:__main__:[_load_services] Failed to text gen service: Model path does not exist: /home/antti/study/tuni/proj2/models/google_gemma-3-1b-it-Q4_0.gguf
+INFO:__main__:APP shutdown at Tue Apr  1 13:06:20 2025
+INFO:__main__:APP start at Tue Apr  1 13:07:24 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+ERROR:local.ir_service:[ir_service:process_intent] Sään hakeminen epäonnistui: 'Weather' object has no attribute '_coords_url'
+INFO:__main__:APP shutdown at Tue Apr  1 13:08:33 2025
+INFO:__main__:APP start at Tue Apr  1 13:10:57 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+ERROR:local.ir_service:[ir_service:process_intent] Sään hakeminen epäonnistui: 'Weather' object has no attribute '_coords_url'
+INFO:__main__:APP shutdown at Tue Apr  1 13:11:48 2025
+INFO:__main__:APP start at Tue Apr  1 13:11:54 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:APP shutdown at Tue Apr  1 13:13:33 2025
+INFO:__main__:APP start at Tue Apr  1 13:13:37 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:[intent_recognition] Intent: GetCurrentWeather, response:
+Paikassa Tampere on selkeää, 7.9 astetta celsiusta.
+INFO:__main__:APP shutdown at Tue Apr  1 13:14:22 2025
+INFO:__main__:APP start at Tue Apr  1 13:15:05 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:APP shutdown at Tue Apr  1 13:15:13 2025

@@ -6,20 +6,17 @@ import shutil
 import time
 import local.constants
 
-try:
-    from local.constants import Srv
-    from dotenv import load_dotenv
-    from local.cli import CommandLineService
-    from local.ir_service import IrService
-    from local.text_gen import TextGenService
-    from local.tts import TextToSpeech
-    from local.audio import AudioService
-    from local.stt import SpeechToTextService
-    from local.weather import Weather
-    from local.yle import YleNewsApi
-    from pathlib import Path
-except Exception as e:
-    print(f"Failed to import: {e}")
+from local.constants import Srv
+from dotenv import load_dotenv
+from local.cli import CommandLineService
+from local.ir_service import IrService
+from local.text_gen import TextGenService
+from local.tts import TextToSpeech
+from local.audio import AudioService
+from local.stt import SpeechToTextService
+from local.weather import Weather
+from local.yle import YleNewsApi
+from pathlib import Path
 
 
 class AppManager:
@@ -188,9 +185,10 @@ class AppManager:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
             intent_response = self.services[Srv.IR].process_intent(intent)
-            self.services[Srv.CLI].print_text(
-                f"Intent: {intent.intent.name}, response:\n{intent_response}"
+            self.logger.info(
+                f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
+            self.services[Srv.CLI].print_text(intent_response)
 
     def text_gen(self, input_text: str, synthesize: bool = False):
         """
@@ -249,7 +247,7 @@ class AppManager:
         try:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
-            self.logger.error(f"[_load_services] Failed to text gen service: {e}")
+            self.logger.error(f"[_load_services] Failed to load text gen service: {e}")
             self.exit()
 
         try:

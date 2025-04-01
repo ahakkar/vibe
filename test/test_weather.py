@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from src.backend.local.weather import Forecast, Weather
 
+
 class TestWeatherService:
     def setup_method(self):
         """Setup method to run before each test."""
@@ -15,4 +16,3 @@ class TestWeatherService:
     def teardown_method(self):
         """ """
         pass
-

@@ -16,7 +16,7 @@ with patch.dict(
         "torchaudio": MagicMock(),
     },
 ):
-    from stt import SpeechToTextService
+    from src.backend.local.stt import SpeechToTextService
 
 
 @patch.dict(

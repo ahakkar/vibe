@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from src.backend.local.yle import YleNewsApi
 
+
 class TestYleNewsApi:
     def setup_method(self):
         """Setup method to run before each test."""
