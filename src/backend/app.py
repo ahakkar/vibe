@@ -1,28 +1,35 @@
 import argparse
+import logging
 import os
 import sys
 import shutil
+import time
 import local.constants
-import traceback
 
-from local.constants import Srv
-from dotenv import load_dotenv
-from local.cli import CommandLineService
-from local.ir_service import IrService
-from local.text_gen import TextGenService
-from local.tts import TextToSpeech
-from local.audio import AudioService
-from local.stt import SpeechToTextService
-from local.weather import Weather
-from local.yle import YleNewsApi
-from pathlib import Path
-
+try:
+    from local.constants import Srv
+    from dotenv import load_dotenv
+    from local.cli import CommandLineService
+    from local.ir_service import IrService
+    from local.text_gen import TextGenService
+    from local.tts import TextToSpeech
+    from local.audio import AudioService
+    from local.stt import SpeechToTextService
+    from local.weather import Weather
+    from local.yle import YleNewsApi
+    from pathlib import Path
+except Exception as e:
+    print(f"Failed to import: {e}")
 
 class AppManager:
     def __init__(self):
         """
         Initialize app manager
         """
+        self.logger = logging.getLogger(__name__)        
+        logging.basicConfig(filename='vibe.log', level=logging.INFO)
+        self.logger.info(f"APP start at {time.asctime()}")
+
         desc = [
             "App runs by default on background. Enable web server with --web",
             "And command line interface with --cli argument",
@@ -84,7 +91,7 @@ class AppManager:
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
-        print("Recorded text:", audio_text)
+        self.logger.info("[_process_recording] Text:", audio_text)
 
         if all:
             intent = self.services[Srv.IR].recognize_intent(audio_text)
@@ -94,7 +101,7 @@ class AppManager:
                 intent_response = self.services[Srv.IR].process_intent(intent)
                 if self.args.cli:
                     self.services[Srv.CLI].print_text(intent_response)
-                print(intent_response)
+                self.logger.info("f[_process_recording] Intent response: {intent_response}")
                 self.services[Srv.TTS].synthesize(intent_response)
             # If no intent is recognized, pass user prompt to LLM
             else:
@@ -117,6 +124,7 @@ class AppManager:
             self.services[Srv.CLI].print_text("Exiting the program.")
         self.services[Srv.AUDIO].terminate_audio()
         self.services[Srv.TTS].stop()
+        self.logger.info(f"APP shutdown at {time.asctime()}")
         sys.exit(0)
 
     def run(self):
@@ -140,8 +148,7 @@ class AppManager:
             self.services[Srv.CLI].display_cli()
             self.exit()
         except Exception as e:
-            print(f"Error while running CLI service: {e} at line {e.lineno}")
-            traceback.print_exc()
+            self.logger.error(f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}")
             self.exit()
 
     def speech_to_text(self, audio) -> str:
@@ -217,39 +224,45 @@ class AppManager:
         try:
             self.services[Srv.AUDIO] = AudioService(self)
         except Exception as e:
-            print(f"Failed to load audio service: {e}")
+            self.logger.error(f"[_load_services] Failed to load audio service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.STT] = SpeechToTextService(self.root)
         except Exception as e:
-            print(f"Failed to load stt service: {e}")
+            self.logger.error(f"[_load_services] Failed to load stt service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.TTS] = TextToSpeech(
                 self.root, device_index=self.services[Srv.AUDIO].output_device_index
             )
         except Exception as e:
-            print(f"Failed to load tts service: {e}")
+            self.logger.error(f"[_load_services] Failed to load tts service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
-            print(f"Failed to text gen service: {e}")
+            self.logger.error(f"[_load_services] Failed to text gen service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.IR] = IrService(self)
         except Exception as e:
-            print(f"Failed to load ir service: {e}")
+            self.logger.error(f"[_load_services] Failed to load ir service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
-            print(f"Failed to load weather service: {e}")
+            self.logger.error(f"[_load_services] Failed to load weather service: {e}")
 
         try:
             self.services[Srv.NEWS] = YleNewsApi()
         except Exception as e:
-            print(f"Failed to load yle news service: {e}")
+            self.logger.error(f"[_load_services] Failed to load yle news service: {e}")
+            self.exit()
 
     def _setup_env(self):
         """
@@ -259,10 +272,12 @@ class AppManager:
         env_file_path = os.path.join(self.ENV_PATH, ".env")
 
         if not os.path.exists(env_file_path):
+            self.logger.info(f".env not found, creating one based on .env.example to {env_file_path}")
             self._create_env_file()
 
-        print(f"env path: {self.ENV_PATH}")
-        print(f"loading env, result: {load_dotenv(env_file_path)}")
+
+        self.logger.info(f"env path: {self.ENV_PATH}")
+        self.logger.info(f"loading env, result: {load_dotenv(env_file_path)}")
 
     def _create_env_file(self):
         """
@@ -275,11 +290,11 @@ class AppManager:
             shutil.copy2(source_path, env_file_path)
 
         except IOError as e:
-            print(f"Error writing to .env file ({self.ENV_PATH}): {e}")
+            self.logger.error(f"Error writing to .env file ({self.ENV_PATH}): {e}")
         except OSError as e:
-            print(f"OS Error writing to .env file ({self.ENV_PATH}): {e}")
+            self.logger.error(f"OS Error writing to .env file ({self.ENV_PATH}): {e}")
         except Exception as e:
-            print(f"An unexpected error occurred while writing to .env: {e}")
+            self.logger.error(f"An unexpected error occurred while writing to .env: {e}")
 
     def _find_project_root(self) -> Path:
         """

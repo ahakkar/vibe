@@ -24,3 +24,32 @@ THEME = {
 }
 
 PUNCTATIONS = ["...", ".", "!", "?", ":", ";"]
+
+WEATHER_CODES = {
+    0: "selkeää",
+    1: "enimmäkseen selkeää",
+    2: "puolipilvistä",
+    3: "pilvistä",
+    45: "sumua",
+    48: "jäätävää sumua",
+    51: "heikkoa tihkusadetta",
+    53: "kohtalaista tihkusadetta",
+    55: "voimakasta tihkusadetta",
+    61: "heikkoa vesisadetta",
+    63: "kohtalaista vesisadetta",
+    65: "voimakasta vesisadetta",
+    66: "heikkoa jäätävää sadetta",
+    67: "voimakasta jäätävää sadetta",
+    71: "kevyttä lumisadetta",
+    73: "kohtalaista lumisadetta",
+    75: "voimakasta lumisadetta",
+    77: "lumijyvässadetta",
+    80: "heikkoja sadekuuroja",
+    81: "kohtalaisia sadekuuroja",
+    82: "voimakkaita sadekuuroja",
+    85: "heikkoja lumikuuroja",
+    86: "vahvoja lumikuuroja",
+    95: "ukkosta",
+    96: "ukkosta ja heikkoja raekuuroja",
+    97: "ukkosta ja vahvoja raekuuroja",
+}

@@ -1,0 +1,11 @@
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:APP start at <built-in function asctime>
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:APP shutdown at <built-in function asctime>
+
+INFO:__main__:APP start at Tue Apr  1 11:09:20 2025
+INFO:__main__:env path: /home/antti/study/tuni/proj2/src/backend
+INFO:__main__:loading env, result: True
+INFO:__main__:APP shutdown at Tue Apr  1 11:09:27 2025

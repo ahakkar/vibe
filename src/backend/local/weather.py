@@ -1,48 +1,13 @@
+import os
+import pytz
 import requests
 from datetime import datetime, timedelta
-from typing import Tuple
-
-# These required from pip to get timezone
 from timezonefinder import TimezoneFinder
-import pytz
-
-COORDS_URL = "https://nominatim.openstreetmap.org/search?city="
-WEATHER_URL = "https://api.open-meteo.com/v1/forecast?"
-
-
-# TODO: move elsewhere
-WEATHER_CODES = {
-    0: "selkeää",
-    1: "enimmäkseen selkeää",
-    2: "puolipilvistä",
-    3: "pilvistä",
-    45: "sumua",
-    48: "jäätävää sumua",
-    51: "heikkoa tihkusadetta",
-    53: "kohtalaista tihkusadetta",
-    55: "voimakasta tihkusadetta",
-    61: "heikkoa vesisadetta",
-    63: "kohtalaista vesisadetta",
-    65: "voimakasta vesisadetta",
-    66: "heikkoa jäätävää sadetta",
-    67: "voimakasta jäätävää sadetta",
-    71: "kevyttä lumisadetta",
-    73: "kohtalaista lumisadetta",
-    75: "voimakasta lumisadetta",
-    77: "lumijyvässadetta",
-    80: "heikkoja sadekuuroja",
-    81: "kohtalaisia sadekuuroja",
-    82: "voimakkaita sadekuuroja",
-    85: "heikkoja lumikuuroja",
-    86: "vahvoja lumikuuroja",
-    95: "ukkosta",
-    96: "ukkosta ja heikkoja raekuuroja",
-    97: "ukkosta ja vahvoja raekuuroja",
-}
+from typing import Tuple
+from local.constants import WEATHER_CODES
 
 
 class Forecast:
-
     def __init__(self, time_list, temperature_list, code_list, rain_list):
         """
         Initialize the Forecast service
@@ -56,6 +21,14 @@ class Forecast:
         self.temperature_list = temperature_list
         self.code_list = code_list
         self.rain_probability_list = rain_list
+        self._coords_url = os.getenv("COORDS_URL")
+        self._weather_url = os.getenv("WEATHER_URL")
+
+        try:
+            if self._coords_url == None or self._weather_url == None:
+                raise Exception
+        except Exception as e:
+            print("Missing .env COORDS_URL or WEATHER_URL from .env")
 
     def _parse_forecast(self, freq, latitude, longitude):
         """
@@ -174,8 +147,11 @@ class Weather:
         """
 
         headers = {"User-Agent": "SLT Vibe"}
+        print(self._coords_url)
 
-        response = requests.get(f"{COORDS_URL}{location}&format=json", headers=headers)
+        response = requests.get(
+            f"{self._coords_url}{location}&format=json", headers=headers
+        )
 
         if response.status_code == 200:
             data = response.json()
@@ -205,7 +181,7 @@ class Weather:
         """
 
         response = requests.get(
-            f"{WEATHER_URL}latitude={latitude}&longitude={longitude}&current=temperature_2m,precipitation,weather_code"
+            f"{self._weather_url}latitude={latitude}&longitude={longitude}&current=temperature_2m,precipitation,weather_code"
         )
 
         if response.status_code == 200:
@@ -219,6 +195,7 @@ class Weather:
             return temperature, precipitation, weather_code
 
         else:
+            print(f"Vallitsevan sään hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}\n")
             return None, None, None
 
     def _get_forecast_from_coords(
@@ -233,7 +210,7 @@ class Weather:
         :return Forecast: The class forecast
         """
         response = requests.get(
-            f"{WEATHER_URL}latitude={latitude}&longitude={longitude}&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days={days}"
+            f"{self._weather_url}latitude={latitude}&longitude={longitude}&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days={days}"
         )
 
         if response.status_code == 200:
@@ -246,3 +223,5 @@ class Weather:
             rain = hourly_weather.get("precipitation_probability")
 
             return Forecast(time, temperature, code, rain)
+        else:
+            return print(f"Säätietojen hakeminen koordinaateilla epäonnistui: {self._weather_url}\n{latitude}\n{longitude}\n")
