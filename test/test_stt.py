@@ -9,14 +9,14 @@ from transformers import Wav2Vec2Processor
 
 
 # Mock the imports of the modules that are not installed
-with patch.dict(
+""" with patch.dict(
     "sys.modules",
     {
         "torch": MagicMock(),
         "torchaudio": MagicMock(),
     },
-):
-    from stt import SpeechToTextService
+): """
+from stt import SpeechToTextService
 
 
 @patch.dict(
@@ -88,8 +88,18 @@ class TestSTTService:
                 "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError"
             )
 
-    @pytest.mark.skip()
-    def test_transcribe(self):
+
+    @pytest.mark.int()
+    @pytest.mark.parametrize(
+        "test_input, expected_output",
+[
+    (
+        np.ndarray([0.0, 0.0, 0.0, -0.00125122, -0.00076294, -0.0005188]),
+        "Moi minä olen Harri"
+    ),
+]
+    )
+    def test_tts(self, test_input, expected_output):
         """
         Test the process_audio method of the SpeechToTextService class
         Mock the run (ONNX model inference return value)
@@ -108,18 +118,9 @@ class TestSTTService:
 
             self.stt_service = SpeechToTextService(self.project_root)
 
-        audio_data = np.random.randn(16000).astype(np.float32)
+        audio_data = test_input
+        result = self.stt_service.transcribe(audio_data)
+            
+        assert result == expected_output
 
-        with patch.object(
-            self.stt_service.ort_session,
-            "run",
-            return_value=[np.random.randn(1, 100, 32)],
-        ) as mock_run, patch.object(
-            self.stt_service.processor,
-            "batch_decode",
-            return_value=["test transcription"],
-        ) as mock_decode:
-            result = self.stt_service.transcribe(audio_data)
-            mock_run.assert_called_once()
-            mock_decode.assert_called_once()
-            assert result == "test transcription"
+
