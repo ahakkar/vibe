@@ -4,3 +4,5 @@ sounddevice==0.5.1
 onnxruntime==1.19.2
 hassil==3.0.0
 transformers==4.48.3
+pytz==2025.2
+libvoikko==4.3
