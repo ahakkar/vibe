@@ -4,11 +4,13 @@ import os
 import sys
 import shutil
 import time
+import traceback
 import local.constants
 
 from local.constants import Srv
 from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
+from local.bg import BackgroundService
 from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
@@ -57,6 +59,7 @@ class AppManager:
             Srv.IR: None,
             Srv.AUDIO: None,
             Srv.CLI: None,
+            Srv.BG: None,
             Srv.WEATHER: None,
             Srv.NEWS: None,
         }
@@ -141,6 +144,7 @@ class AppManager:
         elif self.args.web:
             pass
         else:
+            print("Running APP in background mode")
             self._run_background()
 
     def _run_cli(self):
@@ -150,16 +154,17 @@ class AppManager:
         try:
             self.services[Srv.CLI] = CommandLineService(self)
             self.services[Srv.CLI].display_cli()
+            self.exit()
         except Exception as e:
-            self.logger.error(
-                f"Error while running CLI service, exiting: {e} at line {e.lineno}"
-            )
+            self.log_exception('Error while running CLI service, exiting', e) 
             self.exit()
 
     def _run_background(self):
+        self.logger.info("_run_background initiated")
         try:
             self.services[Srv.BG] = BackgroundService(self)
             self.services[Srv.BG].start()
+            self.exit()
         except Exception as e:
             self.logger.error(
                 f"Error while running Background service, exiting: {e} at line {e.lineno}"
@@ -231,6 +236,12 @@ class AppManager:
         self.services[Srv.CLI].print_separator()
 
         return
+
+    def log_exception(self, msg:str, e:Exception):
+        self.logger.error(
+            f"{msg}:\n"
+            f"{''.join(traceback.format_exception(type(e), e, e.__traceback__))}"
+        )
 
     def _load_services(self):
         """
