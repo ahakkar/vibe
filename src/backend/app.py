@@ -7,19 +7,23 @@ import time
 import traceback
 import local.constants
 
-from local.constants import Srv
-from local.constants import APP_LOG_FILE
-from dotenv import load_dotenv
-from local.bg import BackgroundService
-from local.cli import CommandLineService
-from local.ir_service import IrService
-from local.text_gen import TextGenService
-from local.tts import TextToSpeech
-from local.audio import AudioService
-from local.stt import SpeechToTextService
-from local.weather import Weather
-from local.yle import YleNewsApi
-from pathlib import Path
+try:
+    from local.constants import Srv
+    from local.constants import APP_LOG_FILE
+    from dotenv import load_dotenv
+    from local.bg import BackgroundService
+    from local.cli import CommandLineService
+    from local.ir_service import IrService
+    from local.text_gen import TextGenService
+    from local.tts import TextToSpeech
+    from local.audio import AudioService
+    from local.stt import SpeechToTextService
+    from local.weather import Weather
+    from local.yle import YleNewsApi
+    from pathlib import Path
+except Exception as e:
+    print(f"{''.join(traceback.format_exception(type(e), e, e.__traceback__))}")
+    sys.exit(1)
 
 
 class AppManager:
@@ -156,7 +160,7 @@ class AppManager:
             self.services[Srv.CLI].display_cli()
             self.exit()
         except Exception as e:
-            self.log_exception('Error while running CLI service, exiting', e) 
+            self.log_exception("Error while running CLI service, exiting", e)
             self.exit()
 
     def _run_background(self):
@@ -237,7 +241,7 @@ class AppManager:
 
         return
 
-    def log_exception(self, msg:str, e:Exception):
+    def log_exception(self, msg: str, e: Exception):
         self.logger.error(
             f"{msg}:\n"
             f"{''.join(traceback.format_exception(type(e), e, e.__traceback__))}"
