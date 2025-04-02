@@ -26,16 +26,7 @@ class CommandLineService:
         self.logger = logging.getLogger(__name__)
         self.term = Terminal()
         self.app = app
-        signal.signal(signal.SIGINT, self._signal_handler)
-
-    def _signal_handler(self, signal, frame):
-        """
-        Handle the SIGINT signal (Ctrl+C) to gracefully terminate the program.
-
-        :param int signal: The signal number.
-        :param int frame: The current stack frame.
-        """
-        self.app.exit()
+        signal.signal(signal.SIGINT, self.app.exit())
 
     def print_text(self, msg, color=None, nl=True):
         """

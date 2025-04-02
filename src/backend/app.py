@@ -137,10 +137,11 @@ class AppManager:
 
         if self.args.cli:
             self._run_cli()
-
-        # Could run as a background if we had voice activation detection
-
-        # Could perhaps run the web server here too
+        # Could run the web server here
+        elif self.args.web:
+            pass
+        else:
+            self._run_background()
 
     def _run_cli(self):
         """
@@ -149,10 +150,19 @@ class AppManager:
         try:
             self.services[Srv.CLI] = CommandLineService(self)
             self.services[Srv.CLI].display_cli()
-            self.exit()
         except Exception as e:
             self.logger.error(
-                f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}"
+                f"Error while running CLI service, exiting: {e} at line {e.lineno}"
+            )
+            self.exit()
+
+    def _run_background(self):
+        try:
+            self.services[Srv.BG] = BackgroundService(self)
+            self.services[Srv.BG].start()
+        except Exception as e:
+            self.logger.error(
+                f"Error while running Background service, exiting: {e} at line {e.lineno}"
             )
             self.exit()
 
