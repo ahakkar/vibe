@@ -28,9 +28,7 @@ class YleNewsApi:
             self.logger.error(f"[yle.py:__init__] Missing YLE_APP_KEY from .env file")
 
         if not self.YLE_TTV_URL:
-            self.logger.error(
-                f"[yle.py:__init__] Missing YLE_TTV_ADDRESS from .env file"
-            )
+            self.logger.error(f"[yle.py:__init__] Missing YLE_TTV_URL from .env file")
 
     def get_instruction_string(self) -> str:
         """
