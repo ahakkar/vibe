@@ -8,7 +8,7 @@ intents:
   GetCurrentWeather:
     data:
       - sentences:
-          - "mikä sää on tänään"
+          - "(mikä | mitä) sää on tänään"
   GetTime:
     data:
       - sentences:

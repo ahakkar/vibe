@@ -5,3 +5,4 @@ models/
 recorded_audio.wav
 .venv/
 .pytest_cache/
+*.log
