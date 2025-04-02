@@ -4,6 +4,7 @@ import signal
 import traceback
 import torch
 
+from local.audio_stream import AudioStreamService
 from local.constants import Srv
 from typing import Tuple
 from silero_vad import load_silero_vad, read_audio, get_speech_timestamps
@@ -13,11 +14,19 @@ class BackgroundService:
     def __init__(self, app):
         self._logger = logging.getLogger(__name__)
         self._app = app
-        self._model = load_silero_vad(True)
-        self._sampling_rate = 16_000
+        self._model = load_silero_vad(True)        
+        self._audioservice = AudioStreamService(self._app)
         signal.signal(signal.SIGINT, self._signal_handler)
 
-    def start(self):
+    def start(self):        
+        self._audioservice.start_listening()
+
+    def stop(self):
+        self._audioservice.stop_listening()
+
+    def _test_with_audio_file(self):
+        self._sampling_rate = 16_000
+
         try:
             self._logger.info("Processing audio file")
 
@@ -43,11 +52,6 @@ class BackgroundService:
 
         except Exception as e:
             self._app.log_exception("Error while processing audio file timestamps", e)
-            self._app.exit()
-        return
-
-    def stop(self):
-        pass
 
     def _slice_audio(self, audio: torch.Tensor, ts: dict[str, int]) -> torch.Tensor:
         """
@@ -68,4 +72,5 @@ class BackgroundService:
         :param int signal: The signal number.
         :param int frame: The current stack frame.
         """
+        self.stop()
         self._app.exit()

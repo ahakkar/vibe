@@ -38,21 +38,18 @@ class Wav2Vec2Service(SpeechToTextInterface):
             self.logger.error(f"Failed to open wav2vec processor: {model_path}\n{e}")
             self._app.exit(1)
 
-    def transcribe(self, audio_data: torch.Tensor) -> str:
+    def transcribe(self, audio_data: np.ndarray) -> str:
         """
         Transcribe raw audio data to string.
 
         Method mostly copied from https://github.com/COMP-SE-610-620/FiLos/blob/main/backend/services/speech_to_text.py
 
-        :param audio_data: Input audio as either numpy array or PyTorch tensor
+        :param audio_data: Input audio
         :return: Transcribed text
         """
         # Normalize and add batch dimension based on input type
         waveform = (audio_data - audio_data.mean()) / audio_data.std()
-        if isinstance(audio_data, torch.Tensor):
-            waveform_np = waveform.unsqueeze(0).cpu().numpy()
-        else:
-            waveform_np = np.expand_dims(waveform, axis=0)
+        waveform_np = np.expand_dims(waveform, axis=0)
 
         # Preprocess the input
         inputs = self.processor(
