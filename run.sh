@@ -7,7 +7,7 @@ YELLOW="\e[33m"
 CYAN="\e[36m"
 RESET="\e[0m"
 
-REQ_FILE_TEST="tests/requirements.txt"
+REQ_FILE_TEST="test/requirements.txt"
 MISSING_PACKAGES=()
 PACKAGE_NAME="portaudio19-dev"
 
