@@ -14,7 +14,7 @@ class Wav2Vec2Service(SpeechToTextInterface):
     Service for converting speech to text using a pre-trained Wav2Vec2 model and ONNX runtime.
     """
 
-    def __init__(self, app, model:dict):
+    def __init__(self, app):
         """
         Initialize the speech-to-text service.
 
@@ -23,14 +23,20 @@ class Wav2Vec2Service(SpeechToTextInterface):
         self.logger = logging.getLogger(__name__)
         self._app = app
 
+        model_path = (
+            str(self._app.root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("STT_DEFAULT_MODEL")
+        )
+
         try:
-            self.processor = Wav2Vec2Processor.from_pretrained(model["path"])
-            self.model = Wav2Vec2ForCTC.from_pretrained(model["path"])
+            self.processor = Wav2Vec2Processor.from_pretrained(model_path)
+            self.model = Wav2Vec2ForCTC.from_pretrained(model_path)
         except Exception as e:
-            self.logger.error(
-                f"Failed to open wav2vec processor: {model['path']}\n{e}"
-            )
-            self._app.exit(1) 
+            self.logger.error(f"Failed to open wav2vec processor: {model_path}\n{e}")
+            self._app.exit(1)
 
     def transcribe(self, audio_data: torch.Tensor) -> str:
         """
@@ -65,7 +71,7 @@ class Wav2Vec2Service(SpeechToTextInterface):
 
 
 class Wav2Vec2ONNXService(SpeechToTextInterface):
-    def __init__(self, app, model:dict):
+    def __init__(self, app):
         """
         Initialize the speech-to-text service.
 
@@ -74,16 +80,31 @@ class Wav2Vec2ONNXService(SpeechToTextInterface):
         """
         self.logger = logging.getLogger(__name__)
         self._app = app
- 
-        try:
-            self.processor = Wav2Vec2Processor.from_pretrained(model["processor_path"])
-        except Exception as e:
-            self._app.log_exception("Failed to open wav2vec processor", e)
+
+        proc_filepath = (
+            str(self._app.root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("STT_ONNX_PROCESSOR")
+        )
+        onnx_filepath = (
+            str(self._app.root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("STT_ONNX_MODEL")
+        )
 
         try:
-            self.ort_session = ort.InferenceSession(model["path"])
+            self.processor = Wav2Vec2Processor.from_pretrained(proc_filepath)
         except Exception as e:
-            self._app.log_exception("Failed to open wav2vec onnx file", e)
+            self.logger.error(f"Failed to open wav2vec processor: {proc_filepath}\n{e}")
+
+        try:
+            self.ort_session = ort.InferenceSession(onnx_filepath)
+        except Exception as e:
+            self.logger.error(f"Failed to open wav2vec onnx file: {onnx_filepath}\n{e}")
 
     def transcribe(self, audio_data: np.ndarray) -> str:
         """

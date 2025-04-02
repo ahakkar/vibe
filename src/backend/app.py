@@ -265,20 +265,7 @@ class AppManager:
             self.exit()
 
         try:
-            model_path = (
-                str(self.root)
-                + "/"
-                + os.getenv("MODEL_FOLDER")
-                + "/"
-                + os.getenv("STT_DEFAULT_MODEL")
-            ) 
-
-            model = {
-                "name": "wav2vec2-large-uralic-voxpopuli-v2-finnish",
-                "path": model_path,      
-            }
-
-            self.services[Srv.STT] = Wav2Vec2Service(self, model)
+            self.services[Srv.STT] = Wav2Vec2Service(self)
         except Exception as e:
             self.log_exception("Failed to load stt service", e)
             self.exit()
