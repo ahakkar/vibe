@@ -60,7 +60,7 @@ def main():
     """
     # Define the models to download
     models = {
-        "Gemma2:2b_unsloth.Q4_K_M.gguf": "https://huggingface.co/KalleLaht/Gemma2_2b-fine-tuned-finnish/resolve/main/Gemma2%3A2b_unsloth.Q4_K_M.gguf",
+        "google_gemma-3-1b-it-Q4_0.gguf": "https://huggingface.co/bartowski/google_gemma-3-1b-it-GGUF/resolve/main/google_gemma-3-1b-it-Q4_0.gguf",
         "fi_FI-harri-medium.onnx": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx",
         "fi_FI-harri-medium.onnx.json": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx.json",
         "wav2vec2_model.onnx": "https://huggingface.co/KalleLaht/wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX/resolve/main/wav2vec2_model.onnx",

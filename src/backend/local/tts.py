@@ -1,14 +1,16 @@
+import logging
 import numpy as np
+import os
+import queue
 import sounddevice as sd
 import sox
 import threading
-import queue
+
 from piper.voice import PiperVoice
+from abstract_classes import TextToSpeechInterface
 
-MODEL_PATH = "/models/fi_FI-harri-medium.onnx"
 
-
-class TextToSpeech:
+class TextToSpeech(TextToSpeechInterface):
     """
     A Text-to-Speech (TTS) service that converts text to speech using the PiperVoice model.
     This class handles audio output through a specified device and manages audio streams
@@ -18,14 +20,24 @@ class TextToSpeech:
     from a queue, allowing for asynchronous operation and smooth audio playback.
     """
 
-    def __init__(self, device_index=1):
+    def __init__(self, project_root, device_index=1):
         """
         Initialize the TextToSpeech service.
 
+        :param Path project_root: The path of the project root
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
-        self.model_path = MODEL_PATH
-        self.voice = PiperVoice.load(self.model_path)
+        self.logger = logging.getLogger(__name__)
+
+        model_path = (
+            str(project_root)
+            + "/"
+            + os.getenv("MODEL_FOLDER")
+            + "/"
+            + os.getenv("TTS_MODEL")
+        )
+
+        self.voice = PiperVoice.load(model_path)
         self.device_index = device_index
         self.stream = None
         self.piper_sample_rate = self.voice.config.sample_rate
@@ -47,9 +59,11 @@ class TextToSpeech:
                 dtype="int16",
             )
             self.stream.start()
-            # print(f"Audio stream initialized with sample rate: {self.output_sample_rate}")
+            self.logger.info(
+                f"Audio stream initialized with sample rate: {self.output_sample_rate}"
+            )
         except sd.PortAudioError as e:
-            print(f"Error initializing audio stream: {e}")
+            self.logger.error(f"Error initializing audio stream: {e}")
             self.stream = None
 
     def resample_audio(self, audio_data, orig_sample_rate, target_sample_rate):
@@ -59,7 +73,7 @@ class TextToSpeech:
         :param np.ndarray audio_data: The original audio data
         :param int orig_sample_rate: The original sample rate of the audio data
         :param int target_sample_rate: The target sample rate for the audio data
-        :return np.ndarray: The resampled audio data
+        :return np.ndarray resampled_audio: The resampled audio data
         """
         # Use SoX to resample the audio data in memory
         tfm = sox.Transformer()
@@ -108,7 +122,7 @@ class TextToSpeech:
                 self.stream.write(int_data)
             self.stream.stop()
         else:
-            print("Audio stream is not available.")
+            self.logger.error("Audio stream is not available.")
 
     def stop(self):
         """

@@ -1,6 +1,5 @@
 PyAudio==0.2.14
 packaging==24.2
-pip==25.0
 setuptools==58.1.0
 torch==2.6.0
 filelock==3.17.0
@@ -14,7 +13,7 @@ typing_extensions==4.12.2
 numpy==2.0.0
 torchaudio==2.6.0
 diskcache==5.6.3
-llama_cpp_python==0.3.4
+llama_cpp_python==0.3.8
 sounddevice==0.5.1
 cffi==1.17.1
 pycparser==2.22
@@ -31,3 +30,15 @@ transformers==4.48.3
 blessed==1.20.0
 pyfiglet==1.0.2
 python-dotenv==1.0.1
+build>=1,<2
+black==24.8.0
+flake8==7.1.2
+mypy==1.14.1
+pylint==3.2.7
+pytest==8.3.5
+tox==4.24.2
+hassil==3.0.0
+requests==2.32.3
+pytz==2025.2
+timezonefinder==6.5.9
+libvoikko==4.3
