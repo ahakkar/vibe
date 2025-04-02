@@ -16,7 +16,7 @@ with patch.dict(
         "torchaudio": MagicMock(),
     },
 ):
-    from stt import SpeechToTextService
+    from src.backend.local.stt import SpeechToTextService
 
 
 @patch.dict(
@@ -57,36 +57,42 @@ class TestSTTService:
         assert self.stt_service.ort_session is not None
 
     @pytest.mark.unit()
-    def test_speech_to_text_service_init_except_processor(self):
+    @patch("logging.Logger.error")
+    @patch.object(ort, "InferenceSession", side_effect=Exception("Error"))
+    @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
+    def test_speech_to_text_service_init_except_onnx(
+        self,
+        mock_from_pretrained,
+        mock_inference_session,
+        mock_logger,
+    ):
         """
         Test the processor except block of initialization of the STT class
         """
-        with patch.object(
-            Wav2Vec2Processor, "from_pretrained", side_effect=Exception("Error")
-        ), patch.object(ort, "InferenceSession", return_value=MagicMock()), patch(
-            "builtins.print"
-        ) as mock_print:
 
-            self.stt_service = SpeechToTextService(self.project_root)
-            mock_print.assert_called_with(
-                "Failed to wav2vec processor: root/path/models/test_processor\nError"
-            )
+        self.stt_service = SpeechToTextService(self.project_root)
+        mock_logger.assert_called_with(
+            "Failed to open wav2vec processor: root/path/models/test_processor\nError"
+        )
 
     @pytest.mark.unit()
-    def test_speech_to_text_service_init_except_onnx(self):
+    @patch("logging.Logger.error")
+    @patch.object(ort, "InferenceSession", side_effect=Exception("Error"))
+    @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
+    def test_speech_to_text_service_init_except_onnx(
+        self,
+        mock_from_pretrained,
+        mock_inference_session,
+        mock_logger,
+    ):
         """
         Test the onnx except block of initialization of the STT class
         """
-        with patch.object(
-            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
-        ), patch.object(ort, "InferenceSession", side_effect=Exception("Error")), patch(
-            "builtins.print"
-        ) as mock_print:
 
-            self.stt_service = SpeechToTextService(self.project_root)
-            mock_print.assert_called_with(
-                "Failed to wav2vec onnx file: root/path/models/test_onnx_model\nError"
-            )
+        self.stt_service = SpeechToTextService(self.project_root)
+        mock_logger.assert_called_with(
+            "Failed to open wav2vec onnx file: root/path/models/test_onnx_model\nError"
+        )
 
     @pytest.mark.skip()
     def test_transcribe(self):

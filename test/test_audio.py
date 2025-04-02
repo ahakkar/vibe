@@ -15,7 +15,7 @@ with patch.dict(
         "sounddevice": MagicMock(),
     },
 ):
-    from audio import AudioService
+    from src.backend.local.audio import AudioService
 
 
 class TestAudioService:
@@ -54,17 +54,18 @@ class TestAudioService:
         assert self.audio_service.recording_thread is None
 
     @pytest.mark.unit()
-    def test_start_recording_when_already_recording(self):
+    @patch("logging.Logger.info")
+    def test_start_recording_when_already_recording(self, mock_logger):
         """
         Test the start_recording method of the AudioService class
         when already recording
-        Assert that the method prints "Already recording audio."
+        Assert that the method returns true
         """
         self.audio_service.is_recording = True
 
-        with patch("builtins.print") as mock_print:
-            self.audio_service.start_recording()
-            mock_print.assert_called_once_with("Already recording audio.")
+        result = self.audio_service.start_recording()
+        assert result is True
+        mock_logger.assert_called_with("Already recording audio.")
 
     @pytest.mark.unit()
     def test_start_recording(self):
@@ -87,22 +88,24 @@ class TestAudioService:
             assert self.audio_service.recording_thread.is_alive()
 
     @pytest.mark.unit()
-    def test_start_recording_error(self):
+    @patch("logging.Logger.error")
+    def test_start_recording_error(self, mock_logger):
         """
         Test the start_recording method of the AudioService class
         when the service has device error
-        Assert that the term will called once with Please check the audio device index
-        Assert that the term will called with Failed to open audio stream: Device Error
+        Assert that the exception handling returns None on failure.
         """
         with patch.object(
             self.audio_service.audio, "open", side_effect=Exception("Device Error")
-        ) as mock_open, patch("builtins.print") as mock_print:
-            self.audio_service.start_recording()
+        ) as mock_open:
+            result = self.audio_service.start_recording()
             mock_open.assert_called_once()
             assert self.audio_service.is_recording is False
 
-            mock_print.assert_any_call("Failed to open audio stream: Device Error")
-            mock_print.assert_any_call("Please check the audio device index.")
+            assert result is None
+            mock_logger.assert_called_with(
+                "Failed to open audio stream: Device Error\nPlease check the audio device index."
+            )
 
     @pytest.mark.unit()
     def test_stop_recording(self):
@@ -125,14 +128,16 @@ class TestAudioService:
             assert self.audio_service.recording_thread.is_alive()
 
     @pytest.mark.unit()
-    def test_save_audio_try(self, tmpdir):
+    @patch("logging.Logger.info")
+    def test_save_audio_try(self, mock_logger, tmpdir):
         """
         Test that the function successfully runs through the try block.
         Mock the os.path.join function to return the save_path
         Mock the wave.open to return MagicMock object
         Mock wave_file attributes
         Assert wave_open is called with the save_path in write mode
-        Assert that save message is printed to terminal
+        Assert that True was returned
+        Assert that save message is saved to log
         """
         save_path = os.path.join(tmpdir, "audio.wav")
         mock_wave_file = MagicMock()
@@ -143,14 +148,15 @@ class TestAudioService:
 
         with patch("os.path.join", return_value=save_path), patch(
             "wave.open", return_value=mock_wave_file
-        ) as mock_wave_open, patch("builtins.print") as mock_print:
-            self.audio_service.save_audio_to_file()
+        ) as mock_wave_open:
+            result = self.audio_service.save_audio_to_file()
             mock_wave_open.assert_called_once_with(save_path, "wb")
-
-        mock_print.assert_called_once_with(f"Audio saved to {save_path}")
+            assert result is True
+            mock_logger.assert_called_with(f"Audio saved to {save_path}")
 
     @pytest.mark.unit()
-    def test_save_audio_exeption(self, tmpdir):
+    @patch("logging.Logger.error")
+    def test_save_audio_exeption(self, mock_logger, tmpdir):
         """
         Test that the function raises an exception.
         Set tmp directory
@@ -158,7 +164,8 @@ class TestAudioService:
         Mock the os.path.join function to return the save_path
         Mock the wave.open function to raise an exception
         Assert that no .wav file is saved
-        Assert that the exception is raised and message is printed
+        Assert that function returns False
+        Assert that the exception is raised and message is saved to log
         """
         save_path = os.path.join(tmpdir, "audio.wav")
         mock_frames = [b"\x00\x01", b"\x02\x03", b"\x04\x05"]
@@ -166,10 +173,11 @@ class TestAudioService:
 
         with patch("os.path.join", return_value=save_path), patch(
             "wave.open", side_effect=Exception("Test exception")
-        ), patch("builtins.print") as mock_print:
-            self.audio_service.save_audio_to_file()
+        ):
+            result = self.audio_service.save_audio_to_file()
+            assert result is False
+            mock_logger.assert_called_with(f"Failed to save audio file: Test exception")
 
-        mock_print.assert_called_with(f"Failed to save audio file: Test exception")
         assert not os.path.exists(save_path)
 
     @pytest.mark.unit()

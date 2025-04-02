@@ -1,11 +1,12 @@
-import os
+import logging
 import numpy as np
+import os
+import queue
 import sounddevice as sd
 import sox
 import threading
-import queue
-from piper.voice import PiperVoice
 
+from piper.voice import PiperVoice
 from abstract_classes import TextToSpeechInterface
 
 
@@ -26,6 +27,8 @@ class TextToSpeech(TextToSpeechInterface):
         :param Path project_root: The path of the project root
         :param int device_index: The index of the audio output device to use, defaults to 1
         """
+        self.logger = logging.getLogger(__name__)
+
         model_path = (
             str(project_root)
             + "/"
@@ -56,9 +59,11 @@ class TextToSpeech(TextToSpeechInterface):
                 dtype="int16",
             )
             self.stream.start()
-            # print(f"Audio stream initialized with sample rate: {self.output_sample_rate}")
+            self.logger.info(
+                f"Audio stream initialized with sample rate: {self.output_sample_rate}"
+            )
         except sd.PortAudioError as e:
-            print(f"Error initializing audio stream: {e}")
+            self.logger.error(f"Error initializing audio stream: {e}")
             self.stream = None
 
     def resample_audio(self, audio_data, orig_sample_rate, target_sample_rate):
@@ -117,7 +122,7 @@ class TextToSpeech(TextToSpeechInterface):
                 self.stream.write(int_data)
             self.stream.stop()
         else:
-            print("Audio stream is not available.")
+            self.logger.error("Audio stream is not available.")
 
     def stop(self):
         """

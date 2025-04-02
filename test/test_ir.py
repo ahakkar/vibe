@@ -2,7 +2,7 @@ import pytest
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
-from ir_service import IrService
+from src.backend.local.ir_service import IrService
 
 
 class TestIrService:

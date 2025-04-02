@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 from abstract_classes import IntentRecognitionInterface
 from pathlib import Path
@@ -16,6 +17,7 @@ class IrService(IntentRecognitionInterface):
         :param app: app
         """
         self.app = app
+        self.logger = logging.getLogger(__name__)
 
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         filepath = Path(project_root) / "local" / "intents" / "fi.yaml"
@@ -47,14 +49,28 @@ class IrService(IntentRecognitionInterface):
         :return str: The processed intent
         """
         if result.intent.name == "GetNews":
-            page_data = self.app.get_service(Srv.NEWS).get_news(100)
-            page_data = [data.strip() for data in page_data]
-            page_data_str = "".join(page_data)
-            return page_data_str
+            try:
+                page_data = self.app.get_service(Srv.NEWS).get_news(100)
+                page_data = [data.strip() for data in page_data]
+                page_data_str = "".join(page_data)
+                return page_data_str
+            except Exception as e:
+                self.logger.error(f"Uutisten hakeminen epäonnistui: {e}")
+                return "Uutisten hakeminen epäonnistui."
         elif result.intent.name == "GetCurrentWeather":
-            weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
-            return weather_data
-        elif result.intent.name == "GetTime":
-            return "Ajan hakemista ei ole vielä toteutettu."
+            try:
+                weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
+                return weather_data
+            except Exception as e:
+                self.logger.error(f"Sään hakeminen epäonnistui: {e}")
 
+                return "Sään hakeminen epäonnistui."
+        elif result.intent.name == "GetTime":
+            try:
+                return "Ajan hakemista ei ole vielä toteutettu."
+            except Exception as e:
+                self.logger.error(f"Ajan hakeminen epäonnistui: {e}")
+                return "Ajan hakeminen epäonnistui."
+
+        self.logger.info(f"Tuntematon intent havaittu: {result.intent.name}")
         return f"Tuntematon intent havaittu: {result.intent.name}"
