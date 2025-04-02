@@ -17,7 +17,8 @@ try:
     from local.text_gen import TextGenService
     from local.tts import TextToSpeech
     from local.audio import AudioService
-    from local.stt import SpeechToTextService
+    from local.stt import Wav2Vec2Service
+    from local.stt import Wav2Vec2ONNXService
     from local.weather import Weather
     from local.yle import YleNewsApi
     from pathlib import Path
@@ -126,16 +127,21 @@ class AppManager:
         """
         return self.services.get(service_name)
 
-    def exit(self):
+    def exit(self, value: int = 0):
         """
         Exit the program gracefully with cleanup
         """
         if self.services[Srv.CLI]:
             self.services[Srv.CLI].print_text("Exiting the program.")
-        self.services[Srv.AUDIO].terminate_audio()
-        self.services[Srv.TTS].stop()
+
+        if self.services[Srv.AUDIO]:
+            self.services[Srv.AUDIO].terminate_audio()
+
+        if self.services[Srv.TTS]:
+            self.services[Srv.TTS].stop()
+
         self.logger.info(f"APP shutdown at {time.asctime()}")
-        sys.exit(0)
+        sys.exit(value)
 
     def run(self):
         """
@@ -255,13 +261,26 @@ class AppManager:
         try:
             self.services[Srv.AUDIO] = AudioService(self)
         except Exception as e:
-            self.logger.error(f"Failed to load audio service: {e}")
+            self.log_exception("Failed to load audio service", e)
             self.exit()
 
         try:
-            self.services[Srv.STT] = SpeechToTextService(self.root)
+            model_path = (
+                str(self.root)
+                + "/"
+                + os.getenv("MODEL_FOLDER")
+                + "/"
+                + os.getenv("STT_DEFAULT_MODEL")
+            ) 
+
+            model = {
+                "name": "wav2vec2-large-uralic-voxpopuli-v2-finnish",
+                "path": model_path,      
+            }
+
+            self.services[Srv.STT] = Wav2Vec2Service(self, model)
         except Exception as e:
-            self.logger.error(f"Failed to load stt service: {e}")
+            self.log_exception("Failed to load stt service", e)
             self.exit()
 
         try:
@@ -275,24 +294,24 @@ class AppManager:
         try:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
-            self.logger.error(f"Failed to load text gen service: {e}")
+            self.log_exception(f"Failed to load text gen service", e)
             self.exit()
 
         try:
             self.services[Srv.IR] = IrService(self)
         except Exception as e:
-            self.logger.error(f"Failed to load ir service: {e}")
+            self.log_exception("Failed to load ir service", e)
             self.exit()
 
         try:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
-            self.logger.error(f"Failed to load weather service: {e}")
+            self.log_exception(f"Failed to load weather service", e)
 
         try:
             self.services[Srv.NEWS] = YleNewsApi()
         except Exception as e:
-            self.logger.error(f"Failed to load yle news service: {e}")
+            self.log_exception("Failed to load yle news service", e)
             self.exit()
 
     def _setup_env(self):

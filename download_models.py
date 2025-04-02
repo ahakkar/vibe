@@ -3,6 +3,7 @@ import requests
 import subprocess
 from shlex import split
 
+
 def download_file(url, dest_path):
     """Download a file from a URL to a destination path.
 
@@ -53,7 +54,9 @@ def download_folder(folder: dict):
         print(f"Error downloading folder {repo}:")
         print(e.stderr)
     except FileNotFoundError:
-        print("Error: huggingface-cli not found. Make sure it's installed and in your PATH.")
+        print(
+            "Error: huggingface-cli not found. Make sure it's installed and in your PATH."
+        )
 
 
 def main():
@@ -91,7 +94,6 @@ def main():
 
     for folder in folders:
         download_folder(folder)
-    
 
 
 if __name__ == "__main__":
