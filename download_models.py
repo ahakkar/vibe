@@ -1,6 +1,7 @@
 import os
 import requests
-
+import subprocess
+from shlex import split
 
 def download_file(url, dest_path):
     """Download a file from a URL to a destination path.
@@ -32,26 +33,27 @@ def download_file(url, dest_path):
     print()
 
 
-def download_folder(repo_url, folder_path, dest_path):
-    """Download an entire folder from a Hugging Face model repository.
-
-    Args:
-        repo_url String: The Hugging Face model repository base URL.
-        folder_path String: The subpath to the folder to download.
-        dest_path String: The destination path to save the folder to.
+def download_folder(folder: dict):
     """
-    api_url = f"https://huggingface.co/api/models/{repo_url}/tree/main/{folder_path}"
-    response = requests.get(api_url)
-    response.raise_for_status()
-    files = response.json()
+    Download an entire folder from a Hugging Face model repository.
+    """
+    author = folder["author"]
+    repo = folder["repo"]
+    dest_dir = folder["dest_dir"]
 
-    os.makedirs(dest_path, exist_ok=True)
+    command = f"huggingface-cli download {author}/{repo} --local-dir {dest_dir}"
 
-    for file in files:
-        if file["type"] == "file":
-            file_url = f"https://huggingface.co/{repo_url}/resolve/main/{file['path']}"
-            file_dest_path = os.path.join(dest_path, os.path.basename(file["path"]))
-            download_file(file_url, file_dest_path)
+    try:
+        print(f"Downloading folder: {author}/{repo}")
+        args = split(command)
+        result = subprocess.run(args, capture_output=True, text=True, check=True)
+        print(f"Download successful: {result.stdout}")
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error downloading folder {repo}:")
+        print(e.stderr)
+    except FileNotFoundError:
+        print("Error: huggingface-cli not found. Make sure it's installed and in your PATH.")
 
 
 def main():
@@ -63,7 +65,6 @@ def main():
         "google_gemma-3-1b-it-Q4_0.gguf": "https://huggingface.co/bartowski/google_gemma-3-1b-it-GGUF/resolve/main/google_gemma-3-1b-it-Q4_0.gguf",
         "fi_FI-harri-medium.onnx": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx",
         "fi_FI-harri-medium.onnx.json": "https://huggingface.co/spaces/vuxuanhoan/Pipertts/resolve/aa630747d90f7621cfc650eede636736ff24b91c/content/piper/src/python/fi_FI-harri-medium.onnx.json",
-        "wav2vec2_model.onnx": "https://huggingface.co/KalleLaht/wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX/resolve/main/wav2vec2_model.onnx",
     }
 
     # Create the models directory if it doesn't exist
@@ -74,11 +75,23 @@ def main():
         dest_path = os.path.join("./models", filename)
         download_file(url, dest_path)
 
-    # Download the processor folder
-    repo_url = "KalleLaht/wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX"
-    folder_path = "wav2vec2_processor"
-    dest_path = os.path.join("./models", folder_path)
-    download_folder(repo_url, folder_path, dest_path)
+    # Download huggingface folders
+    folders = [
+        {
+            "author": "KalleLaht",
+            "repo": "wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX",
+            "dest_dir": "./models/wav2vec2-large-uralic-voxpopuli-v2-finnish-ONNX",
+        },
+        {
+            "author": "Finnish-NLP",
+            "repo": "wav2vec2-large-uralic-voxpopuli-v2-finnish",
+            "dest_dir": "./models/wav2vec2-large-uralic-voxpopuli-v2-finnish",
+        },
+    ]
+
+    for folder in folders:
+        download_folder(folder)
+    
 
 
 if __name__ == "__main__":

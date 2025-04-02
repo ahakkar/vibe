@@ -43,3 +43,4 @@ pytz==2025.2
 timezonefinder==6.5.9
 libvoikko==4.3
 silero-vad=>5.1.2
+huggingface-hub=>0.30.1
