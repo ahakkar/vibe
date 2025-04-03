@@ -42,3 +42,5 @@ requests==2.32.3
 pytz==2025.2
 timezonefinder==6.5.9
 libvoikko==4.3
+chromadb==0.6.3
+sentence-transformers==4.0.1

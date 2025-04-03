@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
+from local.chroma import Chroma
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
@@ -54,6 +55,7 @@ class AppManager:
             Srv.STT: None,
             Srv.TTS: None,
             Srv.TEXT_GEN: None,
+            Srv.RAG: None,
             Srv.IR: None,
             Srv.AUDIO: None,
             Srv.CLI: None,
@@ -118,6 +120,22 @@ class AppManager:
         :param Srv service_name: enum from constants.py
         """
         return self.services.get(service_name)
+    
+    def exit_and_save(self):
+        """
+        Exit the program gracefully with cleanup
+        """
+        if self.services[Srv.CLI]:
+            self.services[Srv.CLI].print_text("Exiting the program.")
+        
+        context_from_conversation = self.services[Srv.TEXT_GEN].generate_context()
+        print("Context:" + context_from_conversation)
+        self.services[Srv.RAG].save_to_db(context_from_conversation)
+
+        self.services[Srv.AUDIO].terminate_audio()
+        self.services[Srv.TTS].stop()
+        self.logger.info(f"APP shutdown at {time.asctime()}")
+        sys.exit(0)
 
     def exit(self):
         """
@@ -201,7 +219,16 @@ class AppManager:
         :param str input_text: The user's input text
         :param bool synthesize: If True, synthesize the generated text
         """
-        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
+        context_list = self.services[Srv.RAG].retrieve_similar_entries(input_text)
+
+        print(context_list)
+
+        if context_list[0]:
+            context = context_list[0]
+        else:
+            context = ""
+
+        llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
         sentence = ""
 
         for token in llm_output:
@@ -252,6 +279,11 @@ class AppManager:
         except Exception as e:
             self.logger.error(f"Failed to load text gen service: {e}")
             self.exit()
+
+        try:
+            self.services[Srv.RAG] = Chroma()
+        except Exception as e:
+            print(f"Failed to load rag service: {e}")
 
         try:
             self.services[Srv.IR] = IrService(self)

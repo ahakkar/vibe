@@ -58,26 +58,24 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-    def generate(self, user_input, system_prompt=""):
+        self.messages = [{"role": "system", "content": "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."}]
+
+    def generate(self, user_input, context):
         """
         The text generation service will generate responses based on user input
 
         :param str user_input: The given user input
-        :param str system_prompt: The system prompt that change change how the text generation will respond, defaults to empty string
+        :param str context: text_gen gets a context from rag to help with response generation
 
         :return generator generator: The service generated output
         """
-        if not system_prompt:
-            system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
+        messages_for_model = self.messages + [{"role": "user", "content": "Vastaa käyttäjän kysymykseen käyttäen seuraavaa kontekstia:\n" + context + "\nKäyttäjän kysymys: " + user_input}]
 
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_input},
-        ]
+        self.messages.append({"role": "user", "content": user_input})
 
         try:
             generator = self.llm_model.create_chat_completion(
-                messages=messages,
+                messages=messages_for_model,
                 max_tokens=self.max_new_tokens,
                 temperature=self.temperature,
                 top_p=self.top_p,
@@ -87,5 +85,20 @@ class TextGenService(TextGenerationInterface):
             )
             return generator
 
+        except Exception as e:
+            return f"Error in chat generation: {e}"
+    
+    def generate_context(self):
+        messages_combined = " ".join([f"Käyttäjä: {convo['content']}" if convo['role'] == 'user' else f"Avustaja: {convo['content']}" for convo in self.messages])
+        prompt = "Tiivistä seuraavan keskustelun pääpiirteet kahteen lauseeseen:\n\n" + messages_combined
+        try:
+            context = self.llm_model(
+                    prompt,
+                    temperature=self.temperature,
+                    top_p=self.top_p,
+                    top_k=self.top_k,
+                    repeat_penalty=self.repeat_penalty,
+            )
+            return context["choices"][0]["text"].strip()
         except Exception as e:
             return f"Error in chat generation: {e}"
