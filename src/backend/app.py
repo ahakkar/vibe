@@ -224,7 +224,7 @@ class AppManager:
         print(context_list)
 
         if context_list[0]:
-            context = context_list[0]
+            context = context_list[0][0]
         else:
             context = ""
 

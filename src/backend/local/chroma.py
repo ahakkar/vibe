@@ -6,7 +6,7 @@ import uuid
 from abstract_classes import TextGenerationInterface
 
 EMBED_MODEL = "TurkuNLP/sbert-cased-finnish-paraphrase"
-path = "./src/backend/chroma_db"
+path = "./chroma_db"
 
 class Chroma:
     

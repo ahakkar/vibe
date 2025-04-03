@@ -4,7 +4,7 @@ WORKDIR /usr/src/
 
 COPY requirements.txt ./
 
-RUN mkdir -p src/backend/chroma_db && chmod a+rwx -R src/backend/chroma_db
+RUN mkdir -p chroma_db && chmod a+rwx -R chroma_db
 RUN apt-get update && apt-get install -y portaudio19-dev sox libsox-fmt-all
 RUN apt install -y build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm libncurses5-dev libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl-doc libportaudio2
 RUN apt-get install -y pipewire pipewire-audio-client-libraries libspa-0.2-bluetooth pipewire-pulse pipewire-alsa alsa-utils
