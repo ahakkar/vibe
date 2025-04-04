@@ -6,7 +6,8 @@ import requests
 from datetime import datetime, timedelta
 from timezonefinder import TimezoneFinder
 from typing import Optional, Tuple
-from constants import WEATHER_CODES, WEEKDAYS
+from local.constants import WEATHER_CODES, WEEKDAYS
+
 
 
 class Forecast:
