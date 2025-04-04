@@ -6,7 +6,7 @@ import requests
 from datetime import datetime, timedelta
 from timezonefinder import TimezoneFinder
 from typing import Optional, Tuple
-from local.constants import WEATHER_CODES
+from constants import WEATHER_CODES, WEEKDAYS
 
 
 class Forecast:
@@ -25,12 +25,7 @@ class Forecast:
         self.temperature_list = temperature_list
         self.code_list = code_list
         self.rain_probability_list = rain_list
-
-        try:
-            if self._coords_url == None or self._weather_url == None:
-                raise Exception
-        except Exception as e:
-            self.logger.error("Missing .env COORDS_URL or WEATHER_URL from .env")
+  
 
     def _parse_forecast(
         self, freq: int, latitude: float, longitude: float
@@ -75,9 +70,21 @@ class Forecast:
 
             rain_probability = self.rain_probability_list[i]
 
-            forecast_data.append(
-                f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
-            )
+
+            if len(self.time_list) <= 24:
+
+                forecast_data.append(
+                    f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
+                )
+
+            #If forecast for more than 1 day, add weekday for clarity
+            else:
+                
+                weekday = WEEKDAYS[hour_utc.weekday()]
+
+                forecast_data.append(
+                    f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
+                )
 
         return forecast_data
 
@@ -87,6 +94,13 @@ class Weather:
         self.logger = logging.getLogger(__name__)
         self._coords_url = os.getenv("COORDS_URL")
         self._weather_url = os.getenv("WEATHER_URL")
+
+
+        try:
+            if self._coords_url == None or self._weather_url == None:
+                raise Exception
+        except Exception as e:
+            self.logger.error("Missing .env COORDS_URL or WEATHER_URL from .env")
 
     """
     Returns a string ready for TTS to read current weather data
