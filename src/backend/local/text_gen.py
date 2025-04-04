@@ -58,7 +58,7 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-        self.messages = [{"role": "system", "content": "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."}]
+        self.messages = []
 
     def generate(self, user_input, context):
         """
@@ -69,13 +69,16 @@ class TextGenService(TextGenerationInterface):
 
         :return generator generator: The service generated output
         """
-        messages_for_model = self.messages + [{"role": "user", "content": "Vastaa käyttäjän kysymykseen käyttäen seuraavaa kontekstia:\n" + context + "\nKäyttäjän kysymys: " + user_input}]
+        system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 
-        self.messages.append({"role": "user", "content": user_input})
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": "Vastaa käyttäjän syötteeseen: " + user_input + "\nKäyttäen seuraavaa kontekstia tarpeen mukaan: " + context},
+        ]
 
         try:
             generator = self.llm_model.create_chat_completion(
-                messages=messages_for_model,
+                messages=messages,
                 max_tokens=self.max_new_tokens,
                 temperature=self.temperature,
                 top_p=self.top_p,

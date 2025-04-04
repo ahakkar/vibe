@@ -126,10 +126,9 @@ class AppManager:
         Exit the program gracefully with cleanup
         """
         if self.services[Srv.CLI]:
-            self.services[Srv.CLI].print_text("Exiting the program.")
+            self.services[Srv.CLI].print_text("Saving context and exiting the program.")
         
         context_from_conversation = self.services[Srv.TEXT_GEN].generate_context()
-        print("Context:" + context_from_conversation)
         self.services[Srv.RAG].save_to_db(context_from_conversation)
 
         self.services[Srv.AUDIO].terminate_audio()
@@ -244,6 +243,9 @@ class AppManager:
                 sentence = ""
 
             self.services[Srv.CLI].print_text(text, None, False)
+
+        self.services[Srv.TEXT_GEN].messages.append({"role": "user", "content": input_text})
+        self.services[Srv.TEXT_GEN].messages.append({"role": "assistant", "content": sentence.strip()})
 
         self.services[Srv.CLI].print_separator()
 
