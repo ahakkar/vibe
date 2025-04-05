@@ -32,12 +32,10 @@ class TestCommandLineService:
         self.cli_instance.term = MagicMock()
         self.cli_instance.term.width = 50
         
-
     def teardown_method(self):
         self.cli_instance.term = None
         self.cli_instance = None
         self.app = None
-
 
     @pytest.mark.unit()
     def test_cli_init(self):
@@ -162,7 +160,7 @@ class TestCommandLineService:
              self.cli_instance.term, "inkey", side_effect=[mock_f12, mock_esc]), \
              patch.object(self.cli_instance, "_flush_input_buffer") as mock_flush, \
              patch.object(self.app, "toggle_recording") as mock_toggle_recording, \
-             patch.object(time, "sleep") as mock_sleep, \
+             patch.object(time, "sleep"), \
              patch.object(self.app, "exit") as mock_exit, \
              patch("builtins.print"):
             self.cli_instance._toggle_recording(all_services)
