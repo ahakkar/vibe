@@ -15,6 +15,7 @@ with patch.dict(
 ):
     from src.backend.app import AppManager
 
+
 class TestAppManager:
     """
     Test class for AppManager"
@@ -24,10 +25,11 @@ class TestAppManager:
         """
         Setup method to run before each test
         """
-        with patch("argparse.ArgumentParser", return_value=MagicMock()), \
-             patch.object(AppManager, "_find_project_root", return_value="/mock/root/"), \
-             patch.object(AppManager, "_setup_env", return_value=None), \
-             patch.object(AppManager, "_load_services", return_value=None):
+        with patch("argparse.ArgumentParser", return_value=MagicMock()), patch.object(
+            AppManager, "_find_project_root", return_value="/mock/root/"
+        ), patch.object(AppManager, "_setup_env", return_value=None), patch.object(
+            AppManager, "_load_services", return_value=None
+        ):
             self.app = AppManager()
 
         self.app.services = {
@@ -69,19 +71,20 @@ class TestAppManager:
         """
         Test the start of audio recording.
         """
-        with patch.object(self.app.services[Srv.AUDIO], "is_recording"
-                 , is_recording), \
-             patch.object(self.app.services[Srv.AUDIO], "start_recording"
-                 , return_value=False), \
-             patch.object(self.app.services[Srv.AUDIO], "stop_recording"
-                 , return_value=audio_data), \
-             patch.object(self.app.args, "cli"
-                 , cli), \
-             patch.object(self.app, "_process_recording"
-                 , return_value=None), \
-             patch.object(self.app.services[Srv.CLI], "print_text", 
-                 return_value=None) as mock_print_text:
-            
+        with patch.object(
+            self.app.services[Srv.AUDIO], "is_recording", is_recording
+        ), patch.object(
+            self.app.services[Srv.AUDIO], "start_recording", return_value=False
+        ), patch.object(
+            self.app.services[Srv.AUDIO], "stop_recording", return_value=audio_data
+        ), patch.object(
+            self.app.args, "cli", cli
+        ), patch.object(
+            self.app, "_process_recording", return_value=None
+        ), patch.object(
+            self.app.services[Srv.CLI], "print_text", return_value=None
+        ) as mock_print_text:
+
             self.app.toggle_recording(False)
 
             if is_recording:
@@ -105,15 +108,19 @@ class TestAppManager:
         """
         Test the processing of audio recording.
         """
-        with patch.object(self.app.services[Srv.STT], "transcribe"
-                 , return_value="mocked_transcription"), \
-             patch.object(self.app.services[Srv.IR], "recognize_intent"
-                 , return_value=intent), \
-             patch.object(self.app.services[Srv.IR], "process_intent"
-                 , return_value="mocked_response"), \
-             patch.object(self.app.args, "cli", cli), \
-             patch.object(self.app.services[Srv.CLI], "print_text", 
-                 return_value=None) as mock_print_text:
+        with patch.object(
+            self.app.services[Srv.STT],
+            "transcribe",
+            return_value="mocked_transcription",
+        ), patch.object(
+            self.app.services[Srv.IR], "recognize_intent", return_value=intent
+        ), patch.object(
+            self.app.services[Srv.IR], "process_intent", return_value="mocked_response"
+        ), patch.object(
+            self.app.args, "cli", cli
+        ), patch.object(
+            self.app.services[Srv.CLI], "print_text", return_value=None
+        ) as mock_print_text:
 
             self.app._process_recording("mocked_recording", all)
 
@@ -128,7 +135,7 @@ class TestAppManager:
                     assert self.app.text_gen.called
             else:
                 assert not self.app.services[Srv.IR].recognize_intent.called
-        
+
     @pytest.mark.unit()
     def test_get_service(self):
         """
@@ -149,15 +156,16 @@ class TestAppManager:
         with patch.object(self.app, "_run_cli", return_value=None):
             self.app.run()
             assert self.app._run_cli.called
-    
+
     @pytest.mark.skip()
     @pytest.mark.unit()
     def test_run_cli(self):
         """
         Test the run_cli method.
         """
-        with patch.object(self.app.services[Srv.CLI], "display_cli", return_value=None), \
-             patch.object(self.app, "exit", return_value=None):
+        with patch.object(
+            self.app.services[Srv.CLI], "display_cli", return_value=None
+        ), patch.object(self.app, "exit", return_value=None):
             self.app._run_cli()
             assert self.app.services[Srv.CLI].display_cli.called
             assert self.app.exit.called
@@ -167,16 +175,23 @@ class TestAppManager:
         """
         Test the loading of services.
         """
-        with patch("local.audio.AudioService.__new__", return_value=MagicMock()) as mock_audio, \
-             patch("local.stt.SpeechToTextService.__new__", return_value=MagicMock()) as mock_stt, \
-             patch("local.tts.TextToSpeech.__new__", return_value=MagicMock()) as mock_tts, \
-             patch("local.text_gen.TextGenService.__new__", return_value=MagicMock()) as mock_text_gen, \
-             patch("local.ir_service.IrService.__new__", return_value=MagicMock()) as mock_ir, \
-             patch("local.weather.Weather.__new__", return_value=MagicMock()) as mock_weather, \
-             patch("local.yle.YleNewsApi.__new__", return_value=MagicMock()) as mock_news:
+        with patch(
+            "local.audio.AudioService.__new__", return_value=MagicMock()
+        ) as mock_audio, patch(
+            "local.stt.SpeechToTextService.__new__", return_value=MagicMock()
+        ) as mock_stt, patch(
+            "local.tts.TextToSpeech.__new__", return_value=MagicMock()
+        ) as mock_tts, patch(
+            "local.text_gen.TextGenService.__new__", return_value=MagicMock()
+        ) as mock_text_gen, patch(
+            "local.ir_service.IrService.__new__", return_value=MagicMock()
+        ) as mock_ir, patch(
+            "local.weather.Weather.__new__", return_value=MagicMock()
+        ) as mock_weather, patch(
+            "local.yle.YleNewsApi.__new__", return_value=MagicMock()
+        ) as mock_news:
             self.app._load_services()
 
-            # Assert that the services are correctly assigned
             assert self.app.services[Srv.AUDIO] == mock_audio.return_value
             assert self.app.services[Srv.STT] == mock_stt.return_value
             assert self.app.services[Srv.TTS] == mock_tts.return_value
@@ -202,20 +217,21 @@ class TestAppManager:
         """
         Test the loading of services with exceptions.
         """
-        with patch(service, side_effect=Exception), \
-             patch.object(self.app, "exit", return_value=None), \
-             patch.object(self.app.logger, "error", return_value=None):
+        with patch(service, side_effect=Exception), patch.object(
+            self.app, "exit", return_value=None
+        ), patch.object(self.app.logger, "error", return_value=None):
             self.app._load_services()
             assert self.app.logger.error.called
             assert self.app.exit.called
-    
+
     @pytest.mark.unit()
     def test_setup_env(self):
         """
         Test the setup_env method.
         """
-        with patch("os.path.exists", return_value=False), \
-             patch.object(self.app, "_create_env_file", return_value=None):
+        with patch("os.path.exists", return_value=False), patch.object(
+            self.app, "_create_env_file", return_value=None
+        ):
             self.app._setup_env()
             assert self.app._create_env_file.called
 
@@ -227,4 +243,4 @@ class TestAppManager:
         """
         with patch("pathlib.Path.exists", return_value=True):
             root = self.app._find_project_root()
-            assert root == "/mock/root"
+            assert root == "/mock/root/"

@@ -46,9 +46,10 @@ class TestSTTService:
     @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
     @patch.object(ort, "InferenceSession", return_value=MagicMock())
     def test_speech_to_text_service_init_try(
-        self, 
+        self,
         mock_from_pretrained,
-        mock_inference_session,):
+        mock_inference_session,
+    ):
         """
         Test the try block of initialization of the STT class
         Assert that the processor and ort_session are not None
@@ -95,9 +96,8 @@ class TestSTTService:
         self.stt_service = SpeechToTextService(self.project_root)
         mock_logger.assert_called_with(
             "Failed to open wav2vec onnx file: root/path/models/test_onnx_model\nError"
-            )
+        )
 
-    
     @pytest.mark.unit()
     @patch("torch.tensor", return_value=MagicMock())
     @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())

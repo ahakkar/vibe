@@ -151,7 +151,7 @@ class CommandLineService:
                 self._input_tts()
             elif command_input == "5":
                 self._input_ir()
-            
+
             if self.testing:
                 # If testing is enabled, exit after one iteration
                 break
@@ -193,7 +193,6 @@ class CommandLineService:
                 break
             else:
                 service_method(input_text)
-
                 if self.testing:
                     # If testing is enabled, exit after one iteration
                     break
