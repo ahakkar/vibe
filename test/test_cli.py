@@ -21,7 +21,7 @@ with patch.dict(
         "stt": MagicMock(),
     },
 ):
-    from cli import CommandLineService
+    from src.backend.local.cli import CommandLineService
 
 
 class TestCommandLineService:
