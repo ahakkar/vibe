@@ -223,7 +223,7 @@ class TestAppManager:
             "audio.AudioService",
             "stt.SpeechToTextService",
             "tts.TextToSpeech",
-            "text_gen.TextGenService",
+            # "text_gen.TextGenService",
             "ir_service.IrService",
             "weather.Weather",
             "yle.YleNewsApi",

@@ -102,7 +102,7 @@ class TestSTTService:
     @patch("torch.tensor", return_value=MagicMock())
     @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
     @patch.object(ort, "InferenceSession", return_value=MagicMock())
-    def test_speech_to_text_service_transcribe_mock_torch(
+    def test_speech_to_text_service_transcribe(
         self,
         mock_inference_session,
         mock_processor,

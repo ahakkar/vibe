@@ -7,7 +7,7 @@ with patch.dict(
     "sys.modules",
     {
         "blessed": MagicMock(),
-        "pyfiglet": MagicMock(),
+        # "pyfiglet": MagicMock(),
         "dotenv": MagicMock(),
         "sounddevice": MagicMock(),
         "numpy": MagicMock(),
