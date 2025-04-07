@@ -9,6 +9,7 @@ class Srv(Enum):
     TTS = "Text to Speech Service"
     TEXT_GEN = "Text Generation Service"
     RAG = "RAG context management service"
+    CONTEXT_MANAGER = "Context Management Service"
     IR = "Intent Recognition Service"
     AUDIO = "Audio Service"
     CLI = "Command Line Interface"

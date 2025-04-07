@@ -44,3 +44,5 @@ timezonefinder==6.5.9
 libvoikko==4.3
 chromadb==0.6.3
 sentence-transformers==4.0.1
+safetensors==0.5.3
+torch==2.6.0

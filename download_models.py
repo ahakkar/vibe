@@ -47,8 +47,22 @@ def download_folder(repo_url, folder_path, dest_path):
 
     os.makedirs(dest_path, exist_ok=True)
 
+    required_files = {
+        "config.json",
+        "model.safetensors",
+        "tokenizer.json",
+        "merges.txt",
+        "vocab.json",
+        "generation_config.json",
+        "generation_config_for_summarization.json",
+    } if repo_url == "facebook/bart-large-cnn" else None
+
     for file in files:
         if file["type"] == "file":
+
+            if required_files and file["path"] not in required_files:
+                continue
+
             file_url = f"https://huggingface.co/{repo_url}/resolve/main/{file['path']}"
             file_dest_path = os.path.join(dest_path, os.path.basename(file["path"]))
             download_file(file_url, file_dest_path)
@@ -80,6 +94,11 @@ def main():
     dest_path = os.path.join("./models", folder_path)
     download_folder(repo_url, folder_path, dest_path)
 
+    repo_url = "facebook/bart-large-cnn"
+    folder_path = ""  # Root directory of the model
+    dest_path = os.path.join("./models/bart-large-cnn", folder_path)
+
+    download_folder(repo_url, folder_path, dest_path)
 
 if __name__ == "__main__":
     main()

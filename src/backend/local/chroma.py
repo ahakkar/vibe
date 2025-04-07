@@ -1,9 +1,7 @@
-import os
 import chromadb
 from sentence_transformers import SentenceTransformer
 from datetime import datetime, timezone
 import uuid
-from abstract_classes import TextGenerationInterface
 
 EMBED_MODEL = "TurkuNLP/sbert-cased-finnish-paraphrase"
 path = "./chroma_db"
@@ -13,11 +11,6 @@ class Chroma:
     def __init__(self):
         # Load Finnish embedding model
         self.embedding_model = SentenceTransformer(EMBED_MODEL)
-
-        if os.access(path, os.W_OK):
-            print(f"The directory '{path}' is writable.")
-        else:
-            print(f"The directory '{path}' is NOT writable.")
 
         # Set up ChromaDB (persistent storage)
         self.chroma_client = chromadb.PersistentClient(path)
@@ -48,7 +41,7 @@ class Chroma:
             documents = [entry]
         )
 
-        print("Context saved:")
+        print("Context saved:" + entry)
         print(self.collection)
 
     def retrieve_similar_entries(self, query, n=1):

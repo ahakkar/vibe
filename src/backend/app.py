@@ -13,6 +13,7 @@ from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
 from local.chroma import Chroma
+from local.context_manager import ContextManager
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
@@ -56,6 +57,7 @@ class AppManager:
             Srv.TTS: None,
             Srv.TEXT_GEN: None,
             Srv.RAG: None,
+            Srv.CONTEXT_MANAGER: None,
             Srv.IR: None,
             Srv.AUDIO: None,
             Srv.CLI: None,
@@ -128,7 +130,7 @@ class AppManager:
         if self.services[Srv.CLI]:
             self.services[Srv.CLI].print_text("Saving context and exiting the program.")
         
-        context_from_conversation = self.services[Srv.TEXT_GEN].generate_context()
+        context_from_conversation = self.services[Srv.CONTEXT_MANAGER].summarizer()
         self.services[Srv.RAG].save_to_db(context_from_conversation)
 
         self.services[Srv.AUDIO].terminate_audio()
@@ -219,13 +221,9 @@ class AppManager:
         :param bool synthesize: If True, synthesize the generated text
         """
         context_list = self.services[Srv.RAG].retrieve_similar_entries(input_text)
+        context = context_list[0][0] if context_list[0] else ""
 
-        print(context_list)
-
-        if context_list[0]:
-            context = context_list[0][0]
-        else:
-            context = ""
+        print("Context:", context)
 
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
         sentence = ""
@@ -244,8 +242,10 @@ class AppManager:
 
             self.services[Srv.CLI].print_text(text, None, False)
 
-        self.services[Srv.TEXT_GEN].messages.append({"role": "user", "content": input_text})
-        self.services[Srv.TEXT_GEN].messages.append({"role": "assistant", "content": sentence.strip()})
+        self.services[Srv.CONTEXT_MANAGER].messages.extend([
+            {"role": "user", "content": input_text},
+            {"role": "assistant", "content": sentence.strip()}
+        ])
 
         self.services[Srv.CLI].print_separator()
 
@@ -285,7 +285,14 @@ class AppManager:
         try:
             self.services[Srv.RAG] = Chroma()
         except Exception as e:
-            print(f"Failed to load rag service: {e}")
+            self.logger.error(f"Failed to load rag service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.CONTEXT_MANAGER] = ContextManager(self.root)
+        except Exception as e:
+            self.logger.error(f"Failed to load text context management service: {e}")
+            self.exit()
 
         try:
             self.services[Srv.IR] = IrService(self)

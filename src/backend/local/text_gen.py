@@ -58,8 +58,6 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-        self.messages = []
-
     def generate(self, user_input, context):
         """
         The text generation service will generate responses based on user input
@@ -88,20 +86,5 @@ class TextGenService(TextGenerationInterface):
             )
             return generator
 
-        except Exception as e:
-            return f"Error in chat generation: {e}"
-    
-    def generate_context(self):
-        messages_combined = " ".join([f"Käyttäjä: {convo['content']}" if convo['role'] == 'user' else f"Avustaja: {convo['content']}" for convo in self.messages])
-        prompt = "Tiivistä seuraavan keskustelun pääpiirteet kahteen lauseeseen:\n\n" + messages_combined
-        try:
-            context = self.llm_model(
-                    prompt,
-                    temperature=self.temperature,
-                    top_p=self.top_p,
-                    top_k=self.top_k,
-                    repeat_penalty=self.repeat_penalty,
-            )
-            return context["choices"][0]["text"].strip()
         except Exception as e:
             return f"Error in chat generation: {e}"
