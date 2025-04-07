@@ -12,8 +12,8 @@ from transformers import Wav2Vec2Processor
 with patch.dict(
     "sys.modules",
     {
-        # "torch": MagicMock(),
-        # "torchaudio": MagicMock(),
+        "torch": MagicMock(),
+        "torchaudio": MagicMock(),
     },
 ):
     from stt import SpeechToTextService
