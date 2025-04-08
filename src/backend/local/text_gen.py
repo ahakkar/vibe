@@ -71,7 +71,13 @@ class TextGenService(TextGenerationInterface):
 
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": "Vastaa käyttäjän syötteeseen: " + user_input + "\nKäyttäen seuraavaa kontekstia tarpeen mukaan: " + context},
+            {
+                "role": "user",
+                "content": "Vastaa käyttäjän syötteeseen: "
+                + user_input
+                + "\nKäyttäen seuraavaa kontekstia tarpeen mukaan: "
+                + context,
+            },
         ]
 
         try:

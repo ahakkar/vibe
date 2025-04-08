@@ -122,14 +122,14 @@ class AppManager:
         :param Srv service_name: enum from constants.py
         """
         return self.services.get(service_name)
-    
+
     def exit_and_save(self):
         """
         Exit the program gracefully with cleanup
         """
         if self.services[Srv.CLI]:
             self.services[Srv.CLI].print_text("Saving context and exiting the program.")
-        
+
         context_from_conversation = self.services[Srv.CONTEXT_MANAGER].summarizer()
         self.services[Srv.RAG].save_to_db(context_from_conversation)
 
@@ -220,10 +220,9 @@ class AppManager:
         :param str input_text: The user's input text
         :param bool synthesize: If True, synthesize the generated text
         """
-        context_list = self.services[Srv.RAG].retrieve_similar_entries(input_text)
-        context = context_list[0][0] if context_list[0] else ""
+        context = self.services[Srv.RAG].retrieve_similar_entries(input_text)
 
-        print("Context:", context)
+        print("\nContext:", context, "\n")
 
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
         sentence = ""
@@ -232,7 +231,6 @@ class AppManager:
             text = token["choices"][0]["delta"].get("content", "")
             sentence += text
 
-            # Check if the sentence is complete
             if synthesize and (
                 any(punc in sentence for punc in local.constants.PUNCTATIONS)
             ):
@@ -242,10 +240,12 @@ class AppManager:
 
             self.services[Srv.CLI].print_text(text, None, False)
 
-        self.services[Srv.CONTEXT_MANAGER].messages.extend([
-            {"role": "user", "content": input_text},
-            {"role": "assistant", "content": sentence.strip()}
-        ])
+        self.services[Srv.CONTEXT_MANAGER].messages.extend(
+            [
+                {"role": "user", "content": input_text},
+                {"role": "assistant", "content": sentence.strip()},
+            ]
+        )
 
         self.services[Srv.CLI].print_separator()
 

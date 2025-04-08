@@ -46,3 +46,4 @@ chromadb==0.6.3
 sentence-transformers==4.0.1
 safetensors==0.5.3
 torch==2.6.0
+scikit-learn==1.6.1
