@@ -7,3 +7,7 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     return render_template('dashboard.html')
+
+@main_bp.route('/tts')
+def tts():
+    return render_template('tts.html')
