@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  input[type='text'],
+  input[type='password'] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .btn:hover {
+    background-color: #0056b3;
+  }
+  
+  .alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    list-style: none;
+    position: relative;
+    background-repeat: repeat-x;
+  }
+  
+  .alert.success {
+    background-image: linear-gradient(to bottom, #dff0d8 0, #c8e5bc 100%);
+    border-color: #b2dba1;
+    color: #3c763d;
+  }
+  
+  .alert.error {
+    background-image: linear-gradient(to bottom, #fababe 0, #ffa9a9 100%);
+    border-color: #ff3939;
+    color: #ff0000;
+  }
+  .nav a {
+    font-size: 2.1em;
+    border-radius: 12px;
+    text-decoration: none;
+    width: fit-content;
+  }
+  
+  .text-display-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .text-display-row .col-form-label {
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+  
+  .text-displays {
+    display: flex;
+  }
+  
+  .text-display {
+    background-color: #a2a2a2;
+    color: #fff;
+    padding: 5px 10px;
+    margin-right: 5px;
+    /* used in info page */
+    width: 230px;
+    /* This makes the text vertically aligned in the middle */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
