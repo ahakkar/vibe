@@ -9,7 +9,6 @@ from typing import Optional, Tuple
 from local.constants import WEATHER_CODES, WEEKDAYS
 
 
-
 class Forecast:
     def __init__(self, time_list, temperature_list, code_list, rain_list):
         """
@@ -26,7 +25,6 @@ class Forecast:
         self.temperature_list = temperature_list
         self.code_list = code_list
         self.rain_probability_list = rain_list
-  
 
     def _parse_forecast(
         self, freq: int, latitude: float, longitude: float
@@ -71,16 +69,15 @@ class Forecast:
 
             rain_probability = self.rain_probability_list[i]
 
-
             if len(self.time_list) <= 24:
 
                 forecast_data.append(
                     f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
                 )
 
-            #If forecast for more than 1 day, add weekday for clarity
+            # If forecast for more than 1 day, add weekday for clarity
             else:
-                
+
                 weekday = WEEKDAYS[hour_utc.weekday()]
 
                 forecast_data.append(
@@ -95,7 +92,6 @@ class Weather:
         self.logger = logging.getLogger(__name__)
         self._coords_url = os.getenv("COORDS_URL")
         self._weather_url = os.getenv("WEATHER_URL")
-
 
         try:
             if self._coords_url == None or self._weather_url == None:

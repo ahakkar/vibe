@@ -65,7 +65,7 @@ WEATHER_CODES = {
     97: "ukkosta ja vahvoja raekuuroja",
 }
 
-#Already in correct form for TTS
+# Already in correct form for TTS
 WEEKDAYS = [
     "Maanantaina",
     "Tiistaina",
@@ -73,5 +73,5 @@ WEEKDAYS = [
     "Torstaina",
     "Perjantaina",
     "Lauantaina",
-    "Sunnuntaina"
+    "Sunnuntaina",
 ]
