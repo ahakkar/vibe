@@ -70,10 +70,12 @@
         </div>
     </a>
 
-    <div class="center-content">
-        <div class="question">Mitä voin auttaa?</div>
-        <input type="text" class="input-box" placeholder="kysy mitä haluat" />
-    </div>
+    <a href="{{ url_for('chat.chat_page') }}" style="text-decoration: none; color: inherit;">
+        <div class="center-content">
+            <div class="question">Mitä voin auttaa?</div>
+            <input type="text" class="input-box" placeholder="kysy mitä haluat" />
+        </div>
+    </a>
 </body>
 
 </html>
