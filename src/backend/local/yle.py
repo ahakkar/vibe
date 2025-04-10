@@ -4,15 +4,14 @@ import requests
 import json
 import os
 
-#from local.constants import TTV_PAGES
-#from local.baseform import Baseform
+from local.constants import TTV_PAGES
+from local.baseform import Baseform
 
 #For quick testing
-from baseform import Baseform
-from constants import TTV_PAGES
+#from baseform import Baseform
+#rom constants import TTV_PAGES
 
-# TODO: Remove page numbers from returned strings
-# TODO: Create a way to access articles based on the page numbers
+#TODO: clean code and fix comments
 
 class YlePage:
 
@@ -75,7 +74,7 @@ class YlePage:
             return self.subpages.get(most_similiar)
         
         else:
-            print("Failed to find article")
+            #print("Failed to find article")
             return None
     
         
@@ -103,6 +102,8 @@ class YleNewsApi:
 
         if not self.YLE_TTV_URL:
             self.logger.error(f"[yle.py:__init__] Missing YLE_TTV_URL from .env file")
+
+        self.current_page = None
 
     def get_instruction_string(self) -> str:
         """
@@ -136,9 +137,19 @@ class YleNewsApi:
 
             if TTV_PAGES.get(word_baseform) is not None:
 
-                tts_list = self.get_news(TTV_PAGES.get(word_baseform))
+                tts_list = self._get_news(TTV_PAGES.get(word_baseform))
 
                 return_list.extend(tts_list)
+
+            if self.current_page is not None:
+
+                page_num = self.current_page._find_page_from_input(input=input)
+                
+                if page_num is not None:
+                    tts_list = self._get_news(page_number=page_num)
+
+                    return_list.extend(tts_list)
+
 
         if len(return_list) == 0:
             return_list.append("Anteeksi, en ymmärtänyt mitä uutisia haluat kuulla.")
@@ -146,7 +157,7 @@ class YleNewsApi:
 
         return return_list
 
-    def get_news(self, page_number: int = 100) -> str:
+    def _get_news(self, page_number: int = 100) -> str:
         """
         Gets the teletext news from input page number as a list of strings
 
@@ -159,16 +170,18 @@ class YleNewsApi:
             return ["Uutisten hakeminen epäonnistui."]
 
         else:
+            
+            #Updates class variable current_page
+            self._parse_json(page_data)
 
-            page = self._parse_json(page_data)
+       
 
-            print("ok1")
-
-            titles = page._get_titles()
+            titles = self.current_page._get_titles()
             if len(titles) > 0:
+                titles.append("Haluatko kuulla jostain lisää?")
                 return titles
             else:
-                return page._get_content()
+                return self.current_page._get_content()
 
 
     def _get_page_data(self, page_number: int = 100) -> Optional[Dict[str, Any]]:
@@ -190,10 +203,12 @@ class YleNewsApi:
 
     def _parse_json(self, json_data) -> list[Any]:
         """
-        Parse the json data
+        Parse the json data to create an YlePage object
+        This is saved as self.current_page
 
-        :param json json_data: The data that needs to be printed
-        :return YlePage: returns yle page object
+
+        :param json json_data: The data that needs to be parsed
+        :return None
         """
         teletext = json_data["teletext"]["page"]["subpage"][0]
         content = teletext["content"][0]
@@ -211,7 +226,7 @@ class YleNewsApi:
                 
                 
                     #If line doesnt start with a number save it as content
-                    if not words[0].isdigit():
+                    if not words[0].isdigit() or len(words[0]) < 3:
                         page._add_content(line = value)
 
                         
@@ -245,11 +260,11 @@ class YleNewsApi:
                                     i += 1
                             
                             #Ignore one word titles
-                            if len(title.split()) > 1:
+                            if title is not None and len(title.split()) > 1:
                                 page._add_subpage(page_number=new_page_number, title=title)
 
 
                 
 
-        return page
+        self.current_page = page
     
