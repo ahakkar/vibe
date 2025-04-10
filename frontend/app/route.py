@@ -11,3 +11,7 @@ def index():
 @main_bp.route('/tts')
 def tts():
     return render_template('tts.html')
+
+@main_bp.route('/tts/chat')
+def chat():
+    return render_template('chat.html')

@@ -29,6 +29,7 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
+            color: inherit;
         }
 
         .logo span {
@@ -58,24 +59,66 @@
             color: black;
             font-size: 18px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            resize: none;
+            /* Prevent manual resizing */
+            overflow: hidden;
+            /* Hide scrollbars */
+        }
+
+        .response {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #ffcccc;
         }
     </style>
 </head>
 
 <body>
-    <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
-        <div class="logo">
-            <div style="font-size: 24px;">S</div>
-            <span>VIBE - SLT</span>
-        </div>
+    <a href="{{ url_for('main.index') }}" class="logo">
+        <div style="font-size: 24px;">S</div>
+        <span>VIBE - SLT</span>
     </a>
 
-    <a href="{{ url_for('chat.chat_page') }}" style="text-decoration: none; color: inherit;">
-        <div class="center-content">
-            <div class="question">Mitä voin auttaa?</div>
-            <input type="text" class="input-box" placeholder="kysy mitä haluat" />
+    <div class="center-content">
+        <div class="question">Mitä voin auttaa?</div>
+        <textarea class="input-box" placeholder="kysy mitä haluat"></textarea>
+        <div class="response">
+            <p id="response-text"></p>
         </div>
-    </a>
+        <script>
+            const inputBox = document.querySelector('.input-box');
+            const responseText = document.getElementById('response-text');
+
+            // Adjust the height of the textarea dynamically
+            inputBox.addEventListener('input', function () {
+                inputBox.style.height = 'auto'; // Reset height
+                inputBox.style.height = inputBox.scrollHeight + 'px'; // Adjust height based on content
+            });
+
+            inputBox.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && !e.shiftKey) { // Allow Shift+Enter for new lines
+                    e.preventDefault();
+                    const userInput = e.target.value;
+                    const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
+
+                    if (userInput.length > 200) {
+                        responseText.textContent = "Virhe: Teksti on liian pitkä."; // Error for long text
+                    } else if (isEnglish) {
+                        responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi."; // Error for English text
+                    } else {
+                        responseText.textContent = "Kysymys vastaanotettu."; // Success message
+                        window.location.href = "chat.html";
+                    }
+                }
+            });
+
+            // Prevent image drops in the input box
+            inputBox.addEventListener('drop', function (e) {
+                e.preventDefault();
+                responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän."; // Error for image drop
+            });
+        </script>
+    </div>
 </body>
 
 </html>
