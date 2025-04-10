@@ -4,12 +4,12 @@ import requests
 import json
 import os
 
-from local.constants import TTV_PAGES
-from local.baseform import Baseform
+#from local.constants import TTV_PAGES
+#from local.baseform import Baseform
 
 #For quick testing
-#from baseform import Baseform
-#from constants import TTV_PAGES
+from baseform import Baseform
+from constants import TTV_PAGES
 
 # TODO: Remove page numbers from returned strings
 # TODO: Create a way to access articles based on the page numbers
@@ -28,13 +28,16 @@ class YlePage:
 
         self.content.append(line)
 
-    def get_titles(self):
+    def _get_titles(self):
         
         return_list = []
         for title in self.subpages:
             return_list.append(title)
 
-    def get_content(self):
+        return return_list
+
+
+    def _get_content(self):
         return self.content
     
     #TODO: Improve to use finnwordnet?
@@ -156,8 +159,17 @@ class YleNewsApi:
             return ["Uutisten hakeminen epäonnistui."]
 
         else:
-            
-            return self._parse_json(page_data)
+
+            page = self._parse_json(page_data)
+
+            print("ok1")
+
+            titles = page._get_titles()
+            if len(titles) > 0:
+                return titles
+            else:
+                return page._get_content()
+
 
     def _get_page_data(self, page_number: int = 100) -> Optional[Dict[str, Any]]:
         """
@@ -178,7 +190,7 @@ class YleNewsApi:
 
     def _parse_json(self, json_data) -> list[Any]:
         """
-        Print the json data
+        Parse the json data
 
         :param json json_data: The data that needs to be printed
         :return YlePage: returns yle page object
@@ -196,13 +208,48 @@ class YleNewsApi:
                 if len(value) > 2:
                     
                     words = value.split()
+                
+                
+                    #If line doesnt start with a number save it as content
+                    if not words[0].isdigit():
+                        page._add_content(line = value)
 
-                    if words[0].isdigit():
-                        title = ' '.join(words[1:])                        
-                        page._add_subpage(title=title, page_number=int(words[0]))
+                        
 
                     else:
-                        page._add_content(line = value)
+                        
+                        i = 0
+                        
+                        #One line of text can have multiple page numbers
+                        #For example: 101 uutiset 160 talous 190 english
+                        #Following loop parses these as separate subpages
+
+                        while i < len(words):
+
+                            title = None
+
+                            #Teletext page numbers have 3 digits
+                            if words[i].isdigit() and len(words[i]) == 3:
+                                new_page_number = int(words[i])
+                                i += 1
+                                
+                                #Add words to title until end of line or another page number is found
+                                while i < len(words) and not (words[i].isdigit() and len(words[i]) == 3):
+
+                                    if title is None:
+                                        title = words[i]
+                                    else:
+                                        title += " "
+                                        title += words[i]
+                                    
+                                    i += 1
+                            
+                            #Ignore one word titles
+                            if len(title.split()) > 1:
+                                page._add_subpage(page_number=new_page_number, title=title)
+
+
+                
 
         return page
     
