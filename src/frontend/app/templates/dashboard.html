@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VIBE - SLT | Services</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: radial-gradient(circle at center, #a64ca6 0%, #333 60%);
+            font-family: 'Arial', sans-serif;
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo div {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            background-color: red;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 120px;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .features-title {
+            font-size: 20px;
+            margin: 30px 0 10px 0;
+            align-self: flex-start;
+            padding-left: 60px;
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 0 60px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .card {
+            background-color: #aaa;
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.4);
+            min-height: 100px;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+                padding: 0 20px;
+            }
+
+            .features-title {
+                padding-left: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="logo">
+
+        <div>S</div>
+        <span>VIBE - SLT</span>
+    </div>
+
+    <div class="content">
+        <h1>Services</h1>
+        <div class="features-title">Features</div>
+
+        <div class="card-grid">
+            <a href="{{ url_for('main.textGen') }}" style="text-decoration: none;">
+                <div class="card">
+                    <h3>Text generation</h3>
+                    <p>a tool for content creation</p>
+                </div>
+            </a>
+            <div class="card">
+                <h3>Speech -to-text</h3>
+                <p>a powerful tool that helps you create compelling speeches based on</p>
+            </div>
+            <div class="card">
+                <h3>Text-to-speech</h3>
+                <p>a tool form your text into any voice</p>
+            </div>
+            <div class="card">
+                <h3>All services</h3>
+                <p>text generation, speech-to-text, text-to-speech</p>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
