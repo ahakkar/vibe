@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fi">
 
 <head>
@@ -7,196 +7,147 @@
     <style>
         body {
             margin: 0;
-            padding: 0;
-            background: #333;
-            font-family: 'Arial', sans-serif;
+            font-family: Arial, sans-serif;
+            background: #a9a9a9;
+        }
+
+        .header {
+            background: linear-gradient(to right, #2b2b2b, #4b004b);
+            padding: 10px 20px;
             color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: radial-gradient(circle at center, #a64ca6 0%, #333 60%);
-        }
-
-        .chat-background {
-            background-color: #353e32;
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-direction: column;
-            height: 85%;
-            width: 60%;
-        }
-
-        .chat-input {
-            display: flex;
-            align-items: flex-end;
-            padding-top: 20px;
-            margin-bottom: 10px;
-        }
-
-        #chat-messages {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            align-items: flex-start;
-            overflow-y: auto;
-            width: 100%;
-            padding: 20px;
-            gap: 10px;
-            flex-grow: 1;
-        }
-
-        .logo {
-            position: absolute;
-            top: 20px;
-            left: 20px;
             font-weight: bold;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
+            font-size: 24px;
         }
 
-        .logo span {
-            background-color: red;
-            color: white;
-            padding: 5px 10px;
+        .header span {
+            background-color: #e74c3c;
+            padding: 4px 8px;
             border-radius: 5px;
+            margin-right: 10px;
             font-size: 16px;
         }
 
-        .center-content {
-            text-align: center;
+        .chat-container {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .question {
-            font-size: 28px;
-            margin-top: 20px;
-        }
-
-        .input-box {
-            width: 500px;
-            max-width: 90%;
-            padding: 15px;
-            border: none;
+        .user-message,
+        .bot-message {
+            max-width: 60%;
+            padding: 12px;
             border-radius: 10px;
-            background-color: #aaa;
-            color: black;
-            font-size: 18px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        .button1 {
-            width: 50px;
-            max-width: 90%;
-            padding: 15px;
-            border-radius: 10px;
-            background-color: #aaa;
-            color: black;
-            font-size: 18px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 16px;
         }
 
         .user-message {
-            width: 200px;
-            max-width: 90%;
-            padding: 15px;
-            border-radius: 10px;
-            background-color: #aaa;
-            color: black;
-            font-size: 18px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-            text-align: right;
-            align-self: flex-end;
-            margin-right: 80px;
+            background-color: #4b4b4b;
+            align-self: flex-start;
         }
 
         .bot-message {
-            width: 200px;
-            max-width: 90%;
-            padding: 15px;
+            background-color: #7e5a9b;
+            align-self: flex-end;
+            position: relative;
+        }
+
+        .bot-icon {
+            position: absolute;
+            left: -30px;
+            top: 0;
+            font-size: 24px;
+        }
+
+        .input-container {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            width: 90%;
+            background-color: #4b4b4b;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 0;
+            /* Remove border-radius for a flat bottom bar */
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            /* Add a shadow for better visibility */
+        }
+
+        .user-input {
+            flex: 1;
+            border: none;
+            background-color: #4b4b4b;
+            color: white;
+            font-size: 16px;
+            padding: 10px;
             border-radius: 10px;
-            background-color: #aaa;
-            color: black;
-            font-size: 18px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-            text-align: left;
-            align-self: flex-start;
-            margin-left: 80px;
+            outline: none;
+        }
+
+        .user-input::placeholder {
+            color: #ccc;
+        }
+
+        .user-input:focus {
+            background-color: #5a5a5a;
+        }
+
+        .user-input:focus::placeholder {
+            color: #aaa;
+        }
+
+        .user-input:focus+.mic-icon {
+            color: #e74c3c;
+        }
+
+        .user-input:focus+.mic-icon:hover {
+            color: #e74c3c;
+        }
+
+        .user-input:focus+.mic-icon:active {
+            color: #c0392b;
+        }
+
+        .mic-icon {
+            font-size: 24px;
+            cursor: pointer;
+            margin-left: 10px;
+            /* Add spacing between the input and the mic icon */
         }
     </style>
 </head>
 
 <body>
-    <a href="{{ url_for('main.index') }}" style="text-decoration: none; color: inherit;">
-        <div class="logo">
-            <div style="font-size: 24px;">S</div>
-            <span>VIBE - SLT</span>
+
+    <div class="header"><span>VIBE - SLT</span></div>
+
+    <div class="chat-container">
+        <div class="user-message">Moi, Mitä kuuluu?</div>
+        <div class="bot-message">
+            <span class="bot-icon">🤖</span>
+            Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
+            tuuli voi olla navakkaa. ☁️
         </div>
-    </a>
-    <div class="chat-background">
-        <div id="chat-messages">
-            <p class="user-message">Moi</p>
-            <p class="bot-message">Moi</p>
-            <p class="user-message">Mitä kuuluu?</p>
-            <p class="bot-message">Hyvää</p>
+
+        <div class="user-message">Mikä sää on tänään Satakunnassa?</div>
+
+        <div class="bot-message">
+            <span class="bot-icon">🤖</span>
+            Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
+            tuuli voi olla navakkaa. ☁️
         </div>
-        <div class="chat-input">
-            <input type="text" class="input-box" id="user-message" placeholder="kysy mitä haluat" />
-            <button onclick="sendMessage()" class="button1">></button>
+
+        <div class="input-container">
+            <input type="text" class="user-input" placeholder="Kirjoita viestisi tähän..." />
+            <span class="mic-icon">🎤</span>
         </div>
     </div>
 
-    <script>
-
-        function sendMessage() {
-            const userMessage = document.getElementById('user-message').value
-            const chatMessages = document.getElementById('chat-messages');
-
-            chatMessages.innerHTML += `<p class="user-message">${userMessage}</p>`;
-        }
-
-        // function sendMessage() {
-        //     const userMessage = document.getElementById('user-message').value
-        //     fetch('/send', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({
-        //             message: userMessage
-        //         })
-        //     })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             console.log(data)
-        //         });
-        //     document.getElementById('user-message').value = '';
-        // }
-
-        // function receiveMessage() {
-        //     fetch('/receive', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json'
-        //         },
-        //         body: JSON.stringify({
-        //             message: 'Placeholder message'  // Send a placeholder message for demonstration purposes
-        //         })
-        //     })
-        //         .then(response => response.json())
-        //         .then(data => {
-        //             const chatMessages = document.getElementById('chat-messages');
-        //             chatMessages.innerHTML += `<p class="user-message">${data.message}</p>`;
-        //         })
-        // }
-        // setInterval(receiveMessage, 5000);
-
-    </script>
 </body>
 
 </html>

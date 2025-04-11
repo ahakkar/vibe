@@ -91,23 +91,23 @@
 
             // Adjust the height of the textarea dynamically
             inputBox.addEventListener('input', function () {
-                inputBox.style.height = 'auto'; // Reset height
-                inputBox.style.height = inputBox.scrollHeight + 'px'; // Adjust height based on content
+                inputBox.style.height = 'auto'; // 
+                inputBox.style.height = inputBox.scrollHeight + 'px';
             });
 
             inputBox.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) { // Allow Shift+Enter for new lines
+                if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
                     const userInput = e.target.value;
                     const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
 
-                    if (userInput.length > 200) {
-                        responseText.textContent = "Virhe: Teksti on liian pitkä."; // Error for long text
+                    if (userInput.length > 500) {
+                        responseText.textContent = "Virhe: Teksti on liian pitkä.";
                     } else if (isEnglish) {
-                        responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi."; // Error for English text
+                        responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
                     } else {
-                        responseText.textContent = "Kysymys vastaanotettu."; // Success message
-                        window.location.href = "chat.html";
+                        responseText.textContent = "Kysymys vastaanotettu.";
+                        window.location.href = "/tts/chat";
                     }
                 }
             });
