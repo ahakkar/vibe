@@ -12,6 +12,18 @@ def index():
 def textGen():
     return render_template('textGen.html')
 
+@main_bp.route('/stt')
+def stt():
+    return render_template('stt.html')
+
+@main_bp.route('/tts')
+def tts():
+    return render_template('tts.html')
+
+@main_bp.route('/all')
+def all():
+    return render_template('all.html')
+
 @main_bp.route('/text-gen/chat')
 def chat():
     return render_template('chat.html')
