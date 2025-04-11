@@ -114,24 +114,31 @@
         <div class="features-title">Features</div>
 
         <div class="card-grid">
-            <a href="{{ url_for('main.tts') }}" style="text-decoration: none;">
+            <a href="{{ url_for('main.tg')}}" style="text-decoration: none;">
                 <div class="card">
                     <h3>Text generation</h3>
                     <p>a tool for content creation</p>
                 </div>
             </a>
-            <div class="card">
-                <h3>Speech -to-text</h3>
-                <p>a powerful tool that helps you create compelling speeches based on</p>
-            </div>
-            <div class="card">
-                <h3>Text-to-speech</h3>
-                <p>a tool form your text into any voice</p>
-            </div>
-            <div class="card">
-                <h3>All services</h3>
-                <p>text generation, speech-to-text, text-to-speech</p>
-            </div>
+            <a href="{{ url_for('main.stt')}}" style="text-decoration: none">
+                <div class="card">
+                    <h3>Speech -to-text</h3>
+                    <p>a powerful tool that helps you create compelling speeches based on</p>
+                </div>
+            </a>
+
+            <a href="{{ url_for('main.tts')}}" style="text-decoration: none;">
+                <div class="card">
+                    <h3>Text-to-speech</h3>
+                    <p>a tool form your text into any voice</p>
+                </div>
+            </a>
+            <a href="{{ url_for('main.all')}}" style="text-decoration: none;">
+                <div class="card">
+                    <h3>All services</h3>
+                    <p>text generation, speech-to-text, text-to-speech</p>
+                </div>
+            </a>
         </div>
     </div>
 </body>

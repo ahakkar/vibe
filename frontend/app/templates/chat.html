@@ -27,6 +27,16 @@
             font-size: 16px;
         }
 
+        .logo {
+            top: 20px;
+            left: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            gap: 10px;
+            text-decoration: none;
+            color: inherit;
+        }
+
         .chat-container {
             padding: 20px;
             display: flex;
@@ -123,8 +133,9 @@
 </head>
 
 <body>
-
-    <div class="header"><span>VIBE - SLT</span></div>
+    <a href="{{ url_for('main.index') }}" class="logo">
+        <div class="header"><span>VIBE - SLT</span></div>
+    </a>
 
     <div class="chat-container">
         <div class="user-message">Moi, Mitä kuuluu?</div>
