@@ -17,6 +17,7 @@ from local.audio import AudioService
 from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
+from api.webapp import WebApp
 from pathlib import Path
 
 
@@ -141,6 +142,8 @@ class AppManager:
         # Could run as a background if we had voice activation detection
 
         # Could perhaps run the web server here too
+        elif self.args.web:
+            self._run_web()
 
     def _run_cli(self):
         """
@@ -155,6 +158,10 @@ class AppManager:
                 f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}"
             )
             self.exit()
+
+    def _run_web(self):
+        webApp = WebApp(self)
+        webApp.run_server()
 
     def speech_to_text(self, audio) -> str:
         """
@@ -192,6 +199,15 @@ class AppManager:
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
             self.services[Srv.CLI].print_text(intent_response)
+
+    def text_gen_web(self, input_text: str):
+        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
+        full_text = "".join(
+            token["choices"][0]["delta"].get("content", "")
+            for token in llm_output
+        )
+        return full_text
+
 
     def text_gen(self, input_text: str, synthesize: bool = False):
         """
