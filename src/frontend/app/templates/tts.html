@@ -63,6 +63,24 @@
             /* Prevent manual resizing */
             overflow: hidden;
             /* Hide scrollbars */
+
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+
+        .input-button {
+            max-width: 90%;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #aaa;
+            color: black;
+            font-size: 18px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            resize: none;
         }
 
         .response {
@@ -81,7 +99,10 @@
 
     <div class="center-content">
         <div class="question">Kirjoita jotain</div>
-        <textarea class="input-box" placeholder="Kirjoita jotain"></textarea>
+        <div class="input-container">
+            <textarea class="input-box" placeholder="Kirjoita jotain"></textarea>
+            <button class="input-button">TTS</button>
+        </div>
         <div class="response">
             <p id="response-text"></p>
         </div>

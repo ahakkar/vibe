@@ -24,6 +24,10 @@ def tts():
 def all():
     return render_template('all.html')
 
+@main_bp.route('/ir')
+def ir():
+    return render_template('textGen.html')
+
 @main_bp.route('/text-gen/chat')
 def chat():
     return render_template('chat.html')
