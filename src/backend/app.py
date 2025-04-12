@@ -6,6 +6,7 @@ import shutil
 import time
 import local.constants
 
+
 from local.constants import Srv
 from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
@@ -17,6 +18,8 @@ from local.audio import AudioService
 from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
+
+
 from pathlib import Path
 
 
@@ -187,7 +190,9 @@ class AppManager:
         if intent == None:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
-            intent_response = self.services[Srv.IR].process_intent(intent)
+            intent_response = self.services[Srv.IR].process_intent(
+                intent, input=input_text
+            )
             self.logger.info(
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
