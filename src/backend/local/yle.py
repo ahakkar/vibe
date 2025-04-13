@@ -13,19 +13,33 @@ from local.baseform import Baseform
 class YlePage:
 
     def __init__(self):
+        """
+        Initialize Yle page
+        """
         self.subpages = {}
         self.content = []
 
     def _add_subpage(self, title: str, page_number: int):
+        """
+        Add subpage to the subpages dictionary
 
+        :param str title: title of the sub page
+        :param int page_number: page number of the subpage
+        """
         self.subpages[title] = page_number
 
     def _add_content(self, line: str):
+        """
+        Add content's line
 
+        :param str line: The line that will be added
+        """
         self.content.append(line)
 
     def _get_titles(self):
-
+        """
+        Get the list of titles
+        """
         return_list = []
         for title in self.subpages:
             return_list.append(title)
@@ -33,6 +47,9 @@ class YlePage:
         return return_list
 
     def _get_content(self):
+        """
+        Get the content
+        """
         return self.content
 
     # TODO: Improve to use finnwordnet?
@@ -75,6 +92,9 @@ class YlePage:
 class YleNewsApi:
 
     def __init__(self):
+        """
+        Initialize Yle News API
+        """
         self.logger = logging.getLogger(__name__)
 
         self.YLE_APP_ID = os.getenv("YLE_APP_ID")
