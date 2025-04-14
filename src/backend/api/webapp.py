@@ -21,6 +21,15 @@ class WebApp:
         self._setup_routes()
 
     def _setup_routes(self):
+        @self.appAPI.post("/api/intent")
+        async def intent_recognition_api(payload: TextInput):
+            try:
+                input_text = payload.input_text
+                intent_response = self.app.intent_recognition_web(input_text)
+                return JSONResponse(content={"response": intent_response}, status_code=200)
+            except Exception as e:
+                return JSONResponse(content={"Text generations error": str(e)}, status_code=500)
+            
         @self.appAPI.post("/api/text")
         async def text_gen_api(payload: TextInput):
             try:
@@ -28,7 +37,9 @@ class WebApp:
                 full_text = self.app.text_gen_web(input_text)
                 return JSONResponse(content={"response": full_text}, status_code=200)
             except Exception as e:
-                return JSONResponse(content={"error": str(e)}, status_code=500)
+                return JSONResponse(content={"Text generation error": str(e)}, status_code=500)
+            
+        
 
     def run_server(self):
         uvicorn.run(self.appAPI, host="0.0.0.0", port=5000)
