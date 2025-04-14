@@ -6,6 +6,7 @@ import shutil
 import time
 import local.constants
 
+
 from local.constants import Srv
 from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
@@ -194,7 +195,9 @@ class AppManager:
         if intent == None:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
-            intent_response = self.services[Srv.IR].process_intent(intent)
+            intent_response = self.services[Srv.IR].process_intent(
+                intent, input=input_text
+            )
             self.logger.info(
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
@@ -227,7 +230,7 @@ class AppManager:
         if intent == None:
             intent_response = "Intenttiä ei havaittu\n"
         else:
-            intent_response = self.services[Srv.IR].process_intent(intent)
+            intent_response = self.services[Srv.IR].process_intent(intent, input=input_text)
             self.logger.info(
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )

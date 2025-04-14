@@ -64,3 +64,14 @@ WEATHER_CODES = {
     96: "ukkosta ja heikkoja raekuuroja",
     97: "ukkosta ja vahvoja raekuuroja",
 }
+
+# Already in correct form for TTS
+WEEKDAYS = [
+    "Maanantaina",
+    "Tiistaina",
+    "Keskiviikkona",
+    "Torstaina",
+    "Perjantaina",
+    "Lauantaina",
+    "Sunnuntaina",
+]

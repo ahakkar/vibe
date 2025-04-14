@@ -31,33 +31,45 @@ class IrService(IntentRecognitionInterface):
 
         Discards most contents of a RecognizeResult and returns only the essential information.
 
-        :param str text:
-        :param str lang:
+        :param str text: the intent text
+        :param str lang: The language that is used for the intents
 
-        :return
+        :return: The reconigzed intent
         """
 
         return recognize(text, self.intents)
 
-    def process_intent(self, result: RecognizeResult) -> str:
+    def process_intent(self, result: RecognizeResult, input=None) -> str:
         """
-        Matches the intents with fi.yaml by string and calls the related
+        Matches the intents with fi.yaml by string and cal  s the related
         class methods to provide response for each intent.
 
         :param RecognizeResult result: Whole recognized intent result from hassil library
 
         :return str: The processed intent
         """
-        if result.intent.name == "GetNews":
+        intentName = result.intent.name.strip()
+        if intentName == "GetNews":
+
             try:
-                page_data = self.app.get_service(Srv.NEWS).get_news(100)
-                page_data = [data.strip() for data in page_data]
-                page_data_str = "".join(page_data)
+
+                if input is None:
+                    page_data = self.app.get_service(Srv.NEWS).parse_user_input(
+                        "pääuutiset"
+                    )
+                else:
+                    page_data = self.app.get_service(Srv.NEWS).parse_user_input(input)
+
+                    page_data = [data.strip() for data in page_data]
+                    page_data_str = " ".join(page_data)
+
                 return page_data_str
+
             except Exception as e:
                 self.logger.error(f"Uutisten hakeminen epäonnistui: {e}")
                 return "Uutisten hakeminen epäonnistui."
-        elif result.intent.name == "GetCurrentWeather":
+
+        elif intentName == "GetCurrentWeather":
             try:
                 weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
                 return weather_data
@@ -65,12 +77,11 @@ class IrService(IntentRecognitionInterface):
                 self.logger.error(f"Sään hakeminen epäonnistui: {e}")
 
                 return "Sään hakeminen epäonnistui."
-        elif result.intent.name == "GetTime":
+        elif intentName == "GetTime":
             try:
                 return "Ajan hakemista ei ole vielä toteutettu."
             except Exception as e:
                 self.logger.error(f"Ajan hakeminen epäonnistui: {e}")
                 return "Ajan hakeminen epäonnistui."
-
-        self.logger.info(f"Tuntematon intent havaittu: {result.intent.name}")
-        return f"Tuntematon intent havaittu: {result.intent.name}"
+        self.logger.info(f"Tuntematon intent havaittu: {intentName}")
+        return f"Tuntematon intent havaittu: {intentName}"

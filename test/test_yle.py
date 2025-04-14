@@ -8,10 +8,9 @@ from src.backend.local.yle import YleNewsApi
 class TestYleNewsApi:
     def setup_method(self):
         """Setup method to run before each test."""
-        self.app = MagicMock()
         self.root = Path(__file__).parent.parent / "src" / "backend"
         with patch("pathlib.Path.__new__", return_value=self.root):
-            self.ir_service = Weather(self.app)
+            self.yle_news_api = YleNewsApi()
 
     def teardown_method(self):
         """ """

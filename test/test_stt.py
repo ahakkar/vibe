@@ -16,7 +16,7 @@ with patch.dict(
         "torchaudio": MagicMock(),
     },
 ):
-    from src.backend.local.stt import SpeechToTextService
+    from stt import SpeechToTextService
 
 
 @patch.dict(
@@ -43,24 +43,28 @@ class TestSTTService:
         self.project_root = None
 
     @pytest.mark.unit()
-    def test_speech_to_text_service_init_try(self):
+    @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
+    @patch.object(ort, "InferenceSession", return_value=MagicMock())
+    def test_speech_to_text_service_init_try(
+        self,
+        mock_from_pretrained,
+        mock_inference_session,
+    ):
         """
         Test the try block of initialization of the STT class
         Assert that the processor and ort_session are not None
         """
-        with patch.object(
-            Wav2Vec2Processor, "from_pretrained", return_value=MagicMock()
-        ), patch.object(ort, "InferenceSession", return_value=MagicMock()):
-            self.stt_service = SpeechToTextService(self.project_root)
+
+        self.stt_service = SpeechToTextService(self.project_root)
 
         assert self.stt_service.processor is not None
         assert self.stt_service.ort_session is not None
 
     @pytest.mark.unit()
     @patch("logging.Logger.error")
-    @patch.object(ort, "InferenceSession", side_effect=Exception("Error"))
-    @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
-    def test_speech_to_text_service_init_except_onnx(
+    @patch.object(ort, "InferenceSession", return_value=MagicMock())
+    @patch.object(Wav2Vec2Processor, "from_pretrained", side_effect=Exception("Error"))
+    def test_speech_to_text_service_init_except_processor(
         self,
         mock_from_pretrained,
         mock_inference_session,
@@ -95,37 +99,37 @@ class TestSTTService:
         )
 
     @pytest.mark.skip()
-    def test_transcribe(self):
+    @pytest.mark.unit()
+    @patch("torch.tensor", return_value=MagicMock())
+    @patch.object(Wav2Vec2Processor, "from_pretrained", return_value=MagicMock())
+    @patch.object(ort, "InferenceSession", return_value=MagicMock())
+    def test_speech_to_text_service_transcribe(
+        self,
+        mock_inference_session,
+        mock_processor,
+        mock_torch_tensor,
+    ):
         """
-        Test the process_audio method of the SpeechToTextService class
-        Mock the run (ONNX model inference return value)
-        Mock batch_decode (transcription return value)
-        Assert transcribe return value is the mocked transcription
+        Test the transcribe method of the SpeechToTextService class with torch mocked.
         """
-        self.project_root = Path(__file__).parent.parent
-        with patch.dict(
-            os.environ,
-            {
-                "MODEL_FOLDER": "models",
-                "PROCESSOR": "wav2vec2_processor",
-                "ONNX_MODEL": "wav2vec2_model.onnx",
-            },
-        ):
 
-            self.stt_service = SpeechToTextService(self.project_root)
+        self.stt_service = SpeechToTextService(self.project_root)
 
-        audio_data = np.random.randn(16000).astype(np.float32)
+        mock_processor_instance = mock_processor.return_value
+        mock_processor_instance.return_tensors = "np"
+        mock_processor_instance.batch_decode.return_value = ["test"]
 
-        with patch.object(
-            self.stt_service.ort_session,
-            "run",
-            return_value=[np.random.randn(1, 100, 32)],
-        ) as mock_run, patch.object(
-            self.stt_service.processor,
-            "batch_decode",
-            return_value=["test transcription"],
-        ) as mock_decode:
-            result = self.stt_service.transcribe(audio_data)
-            mock_run.assert_called_once()
-            mock_decode.assert_called_once()
-            assert result == "test transcription"
+        mock_onnx_session = mock_inference_session.return_value
+        mock_onnx_session.get_inputs.return_value = [
+            MagicMock(name="input_values"),
+            MagicMock(name="attention_mask"),
+        ]
+        mock_onnx_session.run.return_value = [np.array([[0.1, 0.9]])]
+
+        result = self.stt_service.transcribe(np.array([1.0, 2.0, 3.0]))
+
+        mock_processor.assert_called_once()
+        mock_onnx_session.run.assert_called_once()
+        mock_processor_instance.batch_decode.assert_called_once()
+
+        assert result == "test"

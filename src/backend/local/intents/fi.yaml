@@ -5,6 +5,10 @@ intents:
     data:
       - sentences:
           - "kerro [tämän] päivän uutiset"
+          - "(kerro | lue) uutiset"
+          - "(kerro | lue) [uutiset] (kotimaasta | ulkomaista | taloudesta | urheilusta)"
+          - "(kerro | lue) [uutiset] [aiheesta] (pääuutiset | kotimaa | ulkomaat | talous | urheilu)"
+          - "(kerro | lue) [(lisää | uutinen)] {aihe}"
   GetCurrentWeather:
     data:
       - sentences:
@@ -15,3 +19,8 @@ intents:
           - "(kuinka paljon | paljonko | mitä) kello on"
 skip_words:
   - "kiitos"
+
+lists:
+  aihe:
+    wildcard: true
+  
