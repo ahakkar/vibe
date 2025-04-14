@@ -107,7 +107,7 @@
                         responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
                     } else {
                         responseText.textContent = "Kysymys vastaanotettu.";
-                        window.location.href = "/text-gen/chat";
+                        window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput);
                     }
                 }
             });

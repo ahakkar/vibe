@@ -126,7 +126,7 @@
     </a>
 
     <div class="chat-container" id="chat">
-        <div class="user-message">Moi, Mitä kuuluu?</div>
+        <!-- <div class="user-message">Moi, Mitä kuuluu?</div>
         <div class="bot-message">
             <span class="bot-icon">🤖</span>
             Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
@@ -137,7 +137,7 @@
             <span class="bot-icon">🤖</span>
             Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
             tuuli voi olla navakkaa. ☁️
-        </div>
+        </div> -->
     </div>
 
     <div class="input-container">
@@ -175,6 +175,40 @@
                     botMessage.innerHTML = `<span class="bot-icon">🤖</span> ${data.response ? data.response : "En saanut vastausta palvelimelta."}`;
                     chatContainer.appendChild(botMessage);
 
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+
+
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            const params = new URLSearchParams(window.location.search);
+            const question = params.get('question');
+
+            if (question) {
+                const userMessage = document.createElement('div');
+                userMessage.className = 'user-message';
+                userMessage.textContent = question;
+                chatContainer.appendChild(userMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                try {
+                    const response = await fetch('http://localhost:5000/api/text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ input_text: question })
+                    });
+
+                    const data = await response.json();
+
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+                    botMessage.innerHTML = `<span class="bot-icon">🤖</span> ${data.response || "En saanut vastausta palvelimelta."}`;
+                    chatContainer.appendChild(botMessage);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 } catch (error) {
