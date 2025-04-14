@@ -8,6 +8,7 @@ from timezonefinder import TimezoneFinder
 from typing import Optional, Tuple
 from local.constants import WEATHER_CODES, WEEKDAYS
 
+
 class Forecast:
     def __init__(self, time_list, temperature_list, code_list, rain_list):
         """
@@ -40,14 +41,13 @@ class Forecast:
         :return [str]: List of Forecast data.
         Return format: Kello {hour}: {weather type}, {temperature} astetta celsiusta. Sateen todennäköisyys {probability} prosenttia.
         """
-   
+
         forecast_data = []
 
         timezone_finder = TimezoneFinder()
         coords_timezone = timezone_finder.timezone_at(
             lng=float(longitude), lat=float(latitude)
         )
-
 
         current_time = datetime.now(pytz.timezone(coords_timezone))
 
@@ -68,7 +68,7 @@ class Forecast:
             date_diff = (hour_utc.date() - current_time.date()).days
 
             if skip_days > date_diff:
-                continue 
+                continue
 
             temperature = self.temperature_list[i]
 
@@ -77,7 +77,7 @@ class Forecast:
             rain_probability = self.rain_probability_list[i]
 
             if len(self.time_list) <= 24:
-                
+
                 if rain_probability > 0:
                     forecast_data.append(
                         f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
@@ -91,7 +91,7 @@ class Forecast:
             else:
 
                 weekday = WEEKDAYS[hour_utc.weekday()]
-                
+
                 if rain_probability > 0:
                     forecast_data.append(
                         f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
@@ -100,8 +100,6 @@ class Forecast:
                     forecast_data.append(
                         f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta."
                     )
-
- 
 
         return forecast_data
 
@@ -139,8 +137,6 @@ class Weather:
 
         latitude, longitude = coords
 
-        
-
         temperature, precipitation, weather_code = (
             self._get_current_weather_from_coords(
                 longitude=longitude, latitude=latitude
@@ -157,7 +153,11 @@ class Weather:
             return f"Paikassa {location} on {WEATHER_CODES[weather_code]}, {temperature} astetta celsiusta."
 
     def get_forecast(
-        self, location: str = "Tampere", days: int = 1, skip_days: int = 0, frequency: int = 3
+        self,
+        location: str = "Tampere",
+        days: int = 1,
+        skip_days: int = 0,
+        frequency: int = 3,
     ) -> Optional[list[str]]:
         """
         Returns a list of weather forecast strings ready for TTS to read
@@ -172,31 +172,26 @@ class Weather:
         :return [str]: List of Forecast data
         """
 
-        
-  
         if skip_days >= days:
             return None
-
 
         coords = self._get_coordinates(location=location)
 
         if coords is None:
             self.logger.error(f"Sijaintia {location} ei löytynyt.")
             return None
- 
-        
+
         latitude, longitude = coords
 
         forecast = self._get_forecast_from_coords(latitude, longitude, days)
-        
+
         if not forecast:
             return None
 
-  
         forecast_data = forecast._parse_forecast(
             freq=frequency, latitude=latitude, longitude=longitude, skip_days=skip_days
         )
-  
+
         return forecast_data
 
     def _get_coordinates(self, location="Tampere") -> Optional[tuple[float, float]]:

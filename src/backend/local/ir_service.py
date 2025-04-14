@@ -51,7 +51,7 @@ class IrService(IntentRecognitionInterface):
         if result.intent.name == "GetNews":
 
             try:
-                
+
                 if input is None:
                     page_data = self.app.get_service(Srv.NEWS).parse_user_input(
                         "pääuutiset"
@@ -67,7 +67,7 @@ class IrService(IntentRecognitionInterface):
             except Exception as e:
                 self.logger.error(f"Uutisten hakeminen epäonnistui: {e}")
                 return "Uutisten hakeminen epäonnistui."
-            
+
         elif result.intent.name == "GetCurrentWeather":
             try:
                 weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
@@ -76,22 +76,27 @@ class IrService(IntentRecognitionInterface):
                 self.logger.error(f"Sään hakeminen epäonnistui: {e}")
 
                 return "Sään hakeminen epäonnistui."
-            
+
         elif result.intent.name == "GetForecast":
             try:
 
-               
                 time = result.entities["aika"].value
-           
+
                 if time == "tänään":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location="Tampere", days=1, skip_days=0, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=1, skip_days=0, frequency=3
+                    )
                 elif time == "huomenna":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location="Tampere", days=2, skip_days=1, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=2, skip_days=1, frequency=3
+                    )
                 elif time == "ylihuomenna":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location="Tampere", days=3, skip_days=2, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=3, skip_days=2, frequency=3
+                    )
                 else:
                     return "Haettua aikaa ei tunnistettu"
-               
+
                 weather_data = [data.strip() for data in weather_data]
                 weather_data_str = " ".join(weather_data)
 
@@ -104,19 +109,25 @@ class IrService(IntentRecognitionInterface):
 
         elif result.intent.name == "GetForecastAtLocation":
             try:
-                
+
                 time = result.entities["aika"].value
                 location = result.entities["sijainti"].value
 
                 if time == "tänään":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location=location, days=1, skip_days=0, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=1, skip_days=0, frequency=3
+                    )
                 elif time == "huomenna":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location=location, days=2, skip_days=1, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=2, skip_days=1, frequency=3
+                    )
                 elif time == "ylihuomenna":
-                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(location=location, days=3, skip_days=2, frequency=3)
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=3, skip_days=2, frequency=3
+                    )
                 else:
                     return "Haettua aikaa ei tunnistettu"
-                
+
                 weather_data = [data.strip() for data in weather_data]
                 weather_data_str = " ".join(weather_data)
 
