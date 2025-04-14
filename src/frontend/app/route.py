@@ -26,7 +26,7 @@ def all():
 
 @main_bp.route('/ir')
 def ir():
-    return render_template('textGen.html')
+    return render_template('intent.html')
 
 @main_bp.route('/text-gen/chat')
 def chat():

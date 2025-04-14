@@ -88,7 +88,7 @@
             const responseText = document.getElementById('response-text');
 
             inputBox.addEventListener('input', function () {
-                inputBox.style.height = 'auto'; // 
+                inputBox.style.height = 'auto';
                 inputBox.style.height = inputBox.scrollHeight + 'px';
             });
 
@@ -104,11 +104,11 @@
                         responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
                     } else {
                         responseText.textContent = "Kysymys vastaanotettu.";
-                        window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput);
+
+                        window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput) + "&intent=true";
                     }
                 }
             });
-
 
             inputBox.addEventListener('drop', function (e) {
                 e.preventDefault();

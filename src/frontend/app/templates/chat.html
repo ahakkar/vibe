@@ -145,6 +145,7 @@
         <span class="mic-icon">🎤</span>
     </div>
 
+
     <script>
         const inputField = document.querySelector('.user-input');
         const chatContainer = document.getElementById('chat');
@@ -161,8 +162,13 @@
 
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
+                const params = new URLSearchParams(window.location.search);
+                const service = params.get('intent') ? 'intent' : 'text';
+
                 try {
-                    const response = await fetch('http://localhost:5000/api/text', {
+                    const endpoint = service === 'intent' ? '/api/intent' : '/api/text';
+
+                    const response = await fetch(`http://localhost:5000${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ input_text: userText })
@@ -172,7 +178,7 @@
 
                     const botMessage = document.createElement('div');
                     botMessage.className = 'bot-message';
-                    botMessage.innerHTML = `<span class="bot-icon">🤖</span> ${data.response ? data.response : "En saanut vastausta palvelimelta."}`;
+                    botMessage.innerHTML = `<span class="bot-icon"><i class="bi bi-robot"></i></span> ${data.response || "En saanut vastausta palvelimelta."}`;
                     chatContainer.appendChild(botMessage);
 
                     chatContainer.scrollTop = chatContainer.scrollHeight;
@@ -183,11 +189,10 @@
             }
         });
 
-
-
         document.addEventListener('DOMContentLoaded', async function () {
             const params = new URLSearchParams(window.location.search);
             const question = params.get('question');
+            const service = params.get('intent') ? 'intent' : 'text';
 
             if (question) {
                 const userMessage = document.createElement('div');
@@ -197,7 +202,9 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 try {
-                    const response = await fetch('http://localhost:5000/api/text', {
+                    const endpoint = service === 'intent' ? '/api/intent' : '/api/text';
+
+                    const response = await fetch(`http://localhost:5000${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ input_text: question })
@@ -207,7 +214,7 @@
 
                     const botMessage = document.createElement('div');
                     botMessage.className = 'bot-message';
-                    botMessage.innerHTML = `<span class="bot-icon">🤖</span> ${data.response || "En saanut vastausta palvelimelta."}`;
+                    botMessage.innerHTML = `<span class="bot-icon"><i class="bi bi-robot"></i></span> ${data.response || "En saanut vastausta palvelimelta."}`;
                     chatContainer.appendChild(botMessage);
                     chatContainer.scrollTop = chatContainer.scrollHeight;
 
