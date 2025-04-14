@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <title>VIBE - SLT</title>
     <style>
+        html,
         body {
             margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: Arial, sans-serif;
             background: #a9a9a9;
         }
@@ -28,20 +31,24 @@
         }
 
         .logo {
-            top: 20px;
-            left: 20px;
-            font-weight: bold;
-            font-size: 18px;
-            gap: 10px;
             text-decoration: none;
             color: inherit;
         }
 
         .chat-container {
+            position: absolute;
+            top: 50px;
+            /* below header */
+            bottom: 80px;
+            /* above input field */
+            left: 0;
+            right: 0;
             padding: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            overflow-y: auto;
+            box-sizing: border-box;
         }
 
         .user-message,
@@ -51,6 +58,7 @@
             border-radius: 10px;
             color: white;
             font-size: 16px;
+            word-wrap: break-word;
         }
 
         .user-message {
@@ -73,19 +81,16 @@
 
         .input-container {
             position: fixed;
-            bottom: 40px;
-            left: 40px;
-            width: 90%;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background-color: #4b4b4b;
             color: white;
-            padding: 10px;
+            padding: 10px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-radius: 0;
-            /* Remove border-radius for a flat bottom bar */
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
-            /* Add a shadow for better visibility */
         }
 
         .user-input {
@@ -107,27 +112,10 @@
             background-color: #5a5a5a;
         }
 
-        .user-input:focus::placeholder {
-            color: #aaa;
-        }
-
-        .user-input:focus+.mic-icon {
-            color: #e74c3c;
-        }
-
-        .user-input:focus+.mic-icon:hover {
-            color: #e74c3c;
-        }
-
-        .user-input:focus+.mic-icon:active {
-            color: #c0392b;
-        }
-
         .mic-icon {
             font-size: 24px;
             cursor: pointer;
             margin-left: 10px;
-            /* Add spacing between the input and the mic icon */
         }
     </style>
 </head>
@@ -137,27 +125,64 @@
         <div class="header"><span>VIBE - SLT</span></div>
     </a>
 
-    <div class="chat-container">
+    <div class="chat-container" id="chat">
         <div class="user-message">Moi, Mitä kuuluu?</div>
         <div class="bot-message">
             <span class="bot-icon">🤖</span>
             Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
             tuuli voi olla navakkaa. ☁️
         </div>
-
         <div class="user-message">Mikä sää on tänään Satakunnassa?</div>
-
         <div class="bot-message">
             <span class="bot-icon">🤖</span>
             Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
             tuuli voi olla navakkaa. ☁️
         </div>
-
-        <div class="input-container">
-            <input type="text" class="user-input" placeholder="Kirjoita viestisi tähän..." />
-            <span class="mic-icon">🎤</span>
-        </div>
     </div>
+
+    <div class="input-container">
+        <input type="text" class="user-input" placeholder="Kirjoita viestisi tähän..." />
+        <span class="mic-icon">🎤</span>
+    </div>
+
+    <script>
+        const inputField = document.querySelector('.user-input');
+        const chatContainer = document.getElementById('chat');
+
+        inputField.addEventListener('keypress', async function (e) {
+            if (e.key === 'Enter' && inputField.value.trim() !== "") {
+                const userText = inputField.value.trim();
+
+                const userMessage = document.createElement('div');
+                userMessage.className = 'user-message';
+                userMessage.textContent = userText;
+                chatContainer.appendChild(userMessage);
+                inputField.value = '';
+
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                try {
+                    const response = await fetch('http://localhost:5000/api/text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ input_text: userText })
+                    });
+
+                    const data = await response.json();
+
+                    const botMessage = document.createElement('div');
+                    botMessage.className = 'bot-message';
+                    botMessage.innerHTML = `<span class="bot-icon">🤖</span> ${data.response ? data.response : "En saanut vastausta palvelimelta."}`;
+                    chatContainer.appendChild(botMessage);
+
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            }
+        });
+    </script>
 
 </body>
 
