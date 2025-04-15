@@ -27,7 +27,7 @@ class Forecast:
         self.rain_probability_list = rain_list
 
     def _parse_forecast(
-        self, freq: int, latitude: float, longitude: float
+        self, freq: int, latitude: float, longitude: float, skip_days: int
     ) -> list[str]:
         """
         Parses forecast information into a list of strings for TTS to read
@@ -35,6 +35,8 @@ class Forecast:
         :param int freq: How frequent forecasts are added to list (1 = every hour, 3 = every 3rd hour)
         :param float latitude: Latitude coordinates
         :param float longitude: Longitude coordinates
+        :param int skip_days: How many days from the beginning are not returned
+            used for e.g. getting only tomorrow's weather without today's
 
         :return [str]: List of Forecast data.
         Return format: Kello {hour}: {weather type}, {temperature} astetta celsiusta. Sateen todennäköisyys {probability} prosenttia.
@@ -59,8 +61,13 @@ class Forecast:
 
             time_diff = current_time - hour_utc
 
-            # Skips forecasts that are for over one over ago (e.g. so at 17.15 still shows 17 forecast)
+            # Skips forecasts that are from over one hour ago (e.g. so at 17.15 still shows 17 forecast)
             if time_diff > timedelta(hours=1):
+                continue
+
+            date_diff = (hour_utc.date() - current_time.date()).days
+
+            if skip_days > date_diff:
                 continue
 
             temperature = self.temperature_list[i]
@@ -71,18 +78,28 @@ class Forecast:
 
             if len(self.time_list) <= 24:
 
-                forecast_data.append(
-                    f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
-                )
+                if rain_probability > 0:
+                    forecast_data.append(
+                        f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
+                    )
+                else:
+                    forecast_data.append(
+                        f"Kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta."
+                    )
 
             # If forecast for more than 1 day, add weekday for clarity
             else:
 
                 weekday = WEEKDAYS[hour_utc.weekday()]
 
-                forecast_data.append(
-                    f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
-                )
+                if rain_probability > 0:
+                    forecast_data.append(
+                        f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta. Sateen todennäköisyys {rain_probability} prosenttia."
+                    )
+                else:
+                    forecast_data.append(
+                        f"{weekday} kello {hour_utc.hour}: {weather}, {temperature} astetta celsiusta."
+                    )
 
         return forecast_data
 
@@ -112,10 +129,13 @@ class Weather:
         :return str: The current weather in given location
         """
 
-        latitude, longitude = self._get_coordinates(location=location)
+        coords = self._get_coordinates(location=location)
 
-        if latitude is None or longitude is None:
-            return f"Sijaintia {location} ei löytynyt."
+        if coords is None:
+            self.logger.error(f"Sijaintia {location} ei löytynyt.")
+            return None
+
+        latitude, longitude = coords
 
         temperature, precipitation, weather_code = (
             self._get_current_weather_from_coords(
@@ -133,7 +153,11 @@ class Weather:
             return f"Paikassa {location} on {WEATHER_CODES[weather_code]}, {temperature} astetta celsiusta."
 
     def get_forecast(
-        self, location: str = "Tampere", days: int = 1, frequency: int = 3
+        self,
+        location: str = "Tampere",
+        days: int = 1,
+        skip_days: int = 0,
+        frequency: int = 3,
     ) -> Optional[list[str]]:
         """
         Returns a list of weather forecast strings ready for TTS to read
@@ -141,15 +165,23 @@ class Weather:
 
         :param str location: Location name to fetch forecast for. Can be in Finnish
         :param int days: How many days' forecast (1 = only today)
+        :param int skip_days: How many days from the beginning are not returned
+            used for e.g. getting only tomorrow's weather without today's
         :param int frequency: Frequency in hours for forecasts (1 = forecast every hour)
 
         :return [str]: List of Forecast data
         """
 
-        latitude, longitude = self._get_coordinates(location=location)
+        if skip_days >= days:
+            return None
 
-        if latitude is None or longitude is None:
-            return [f"Sijaintia {location} ei löytynyt."]
+        coords = self._get_coordinates(location=location)
+
+        if coords is None:
+            self.logger.error(f"Sijaintia {location} ei löytynyt.")
+            return None
+
+        latitude, longitude = coords
 
         forecast = self._get_forecast_from_coords(latitude, longitude, days)
 
@@ -157,7 +189,7 @@ class Weather:
             return None
 
         forecast_data = forecast._parse_forecast(
-            freq=frequency, latitude=latitude, longitude=longitude
+            freq=frequency, latitude=latitude, longitude=longitude, skip_days=skip_days
         )
 
         return forecast_data

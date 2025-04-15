@@ -9,10 +9,23 @@ intents:
           - "(kerro | lue) [uutiset] (kotimaasta | ulkomaista | taloudesta | urheilusta)"
           - "(kerro | lue) [uutiset] [aiheesta] (pääuutiset | kotimaa | ulkomaat | talous | urheilu)"
           - "(kerro | lue) [(lisää | uutinen)] {aihe}"
+  #Default location tampere
   GetCurrentWeather:
     data:
       - sentences:
-          - "(mikä | mitä) sää on tänään"
+          - "(mikä | mitä | millainen) sää on nyt"
+
+  #Default location tampere
+  GetForecast:
+    data:
+      - sentences:
+          - "(kerro | millainen) sää [on] {aika}"
+
+  GetForecastAtLocation:
+    data:
+      - sentences:
+        - "(kerro | millainen) sää [on] {aika} [paikassa] {sijainti}"
+  
   GetTime:
     data:
       - sentences:
@@ -22,5 +35,13 @@ skip_words:
 
 lists:
   aihe:
+    wildcard: true
+  aika:
+    values:
+    #Tänään does not work for some reason in IR
+      - "tänään"
+      - "huomenna"
+      - "ylihuomenna"
+  sijainti:
     wildcard: true
   
