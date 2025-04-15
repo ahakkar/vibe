@@ -42,5 +42,5 @@ class WebApp:
         
 
     def run_server(self):
-        uvicorn.run(self.appAPI, host="0.0.0.0", port=5000)
+        uvicorn.run(self.appAPI, host="0.0.0.0", port=5000,  log_level="critical")
     

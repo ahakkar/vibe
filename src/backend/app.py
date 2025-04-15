@@ -5,6 +5,7 @@ import sys
 import shutil
 import time
 import local.constants
+import threading
 
 
 from local.constants import Srv
@@ -134,35 +135,37 @@ class AppManager:
 
     def run(self):
         """
-        Starts the app
+        Starts both the web and CLI services concurrently without any `if` condition.
         """
+   
+    # Start the Web service in the background (non-blocking)
+        if self.args.web:
+            # Redirect web server logs to /dev/null
+            logging.getLogger("werkzeug").setLevel(logging.ERROR)  # Suppress Flask logs
+            web_thread = threading.Thread(target=self._run_web, daemon=True)
+            web_thread.start()
 
+    # Run the CLI service in the terminal (blocking)
         if self.args.cli:
             self._run_cli()
 
-        # Could run as a background if we had voice activation detection
 
-        # Could perhaps run the web server here too
-        elif self.args.web:
-            self._run_web()
-
+    def _run_web(self):
+            webApp = WebApp(self)
+            webApp.run_server()
     def _run_cli(self):
         """
-        Run the Command Line Service
+        Run the Command Line Service (interactive)
         """
         try:
             self.services[Srv.CLI] = CommandLineService(self)
             self.services[Srv.CLI].display_cli()
-            self.exit()
+            self.exit()  # Exit after finishing the CLI tasks
         except Exception as e:
             self.logger.error(
                 f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}"
             )
-            self.exit()
-
-    def _run_web(self):
-        webApp = WebApp(self)
-        webApp.run_server()
+            self.exit()  # Graceful exit in case of an error
 
     def speech_to_text(self, audio) -> str:
         """
