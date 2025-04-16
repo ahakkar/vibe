@@ -1,3 +1,4 @@
+import os
 import chromadb
 from sentence_transformers import SentenceTransformer
 from datetime import datetime, timezone
@@ -11,13 +12,27 @@ path = "./chroma_db"
 
 class Chroma:
 
-    def __init__(self):
+    def __init__(self, project_root):
         """
         Initialize the RAG service.
         The function sets up the embedding model and the ChromaDB client.
         It also creates a collection in the database to store the entries.
         """
-        self.embedding_model = SentenceTransformer(EMBED_MODEL)
+        try:
+            embed_filepath = (
+                str(project_root)
+                + "/"
+                + os.getenv("MODEL_FOLDER")
+                + "/"
+                + os.getenv("EMBEDDING_MODEL")
+            )
+
+            self.embedding_model = SentenceTransformer(embed_filepath)
+
+        except Exception as e:
+            print(f"Error loading model: {e}")
+            raise
+
         self.chroma_client = chromadb.PersistentClient(path)
 
         # self.chroma_client.delete_collection(name="voice_data")
@@ -47,7 +62,7 @@ class Chroma:
             documents=[entry],
         )
 
-    def retrieve_similar_entries(self, query, n=1, similarity_threshold=0.6):
+    def retrieve_similar_entries(self, query, n=1, similarity_threshold=0.65):
         """
         Retrieve the most similar entries from the database based on the query.
         The function uses cosine similarity to find the closest match.

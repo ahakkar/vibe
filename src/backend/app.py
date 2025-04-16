@@ -283,7 +283,7 @@ class AppManager:
             self.exit()
 
         try:
-            self.services[Srv.RAG] = Chroma()
+            self.services[Srv.RAG] = Chroma(self.root)
         except Exception as e:
             self.logger.error(f"Failed to load rag service: {e}")
             self.exit()

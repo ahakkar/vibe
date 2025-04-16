@@ -47,7 +47,7 @@ def download_folder(repo_url, folder_path, dest_path):
 
     os.makedirs(dest_path, exist_ok=True)
 
-    required_files = (
+    required_files_bart = (
         {
             "config.json",
             "model.safetensors",
@@ -61,15 +61,42 @@ def download_folder(repo_url, folder_path, dest_path):
         else None
     )
 
+    required_files_sbert = (
+        {
+            "1_Pooling/config.json",
+            "added_tokens.json",
+            "config.json",
+            "config_sentence_transformers.json",
+            "model.safetensors",
+            "modules.json",
+            "sentence_bert_config.json",
+            "special_tokens_map.json",
+            "tokenizer_config.json",
+            "vocab.txt",
+        }
+        if repo_url == "TurkuNLP/sbert-cased-finnish-paraphrase"
+        else None
+    )
+
     for file in files:
         if file["type"] == "file":
 
-            if required_files and file["path"] not in required_files:
+            if required_files_bart and file["path"] not in required_files_bart:
+                continue
+
+            if required_files_sbert and file["path"] not in required_files_sbert:
                 continue
 
             file_url = f"https://huggingface.co/{repo_url}/resolve/main/{file['path']}"
             file_dest_path = os.path.join(dest_path, os.path.basename(file["path"]))
             download_file(file_url, file_dest_path)
+
+        elif file["type"] == "directory":
+            subfolder_path = file["path"]
+            subfolder_dest_path = os.path.join(
+                dest_path, os.path.relpath(subfolder_path, folder_path)
+            )
+            download_folder(repo_url, subfolder_path, subfolder_dest_path)
 
 
 def main():
@@ -99,9 +126,13 @@ def main():
     download_folder(repo_url, folder_path, dest_path)
 
     repo_url = "facebook/bart-large-cnn"
-    folder_path = ""  # Root directory of the model
+    folder_path = ""
     dest_path = os.path.join("./models/bart-large-cnn", folder_path)
+    download_folder(repo_url, folder_path, dest_path)
 
+    repo_url = "TurkuNLP/sbert-cased-finnish-paraphrase"
+    folder_path = ""
+    dest_path = os.path.join("./models/sbert-cased-finnish-paraphrase", folder_path)
     download_folder(repo_url, folder_path, dest_path)
 
 
