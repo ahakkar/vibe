@@ -203,39 +203,6 @@ class AppManager:
             )
             self.services[Srv.CLI].print_text(intent_response)
 
-    def text_gen_web(self, input_text: str):
-        """
-        The language model generates text based on user's input text
-
-        :param str input_text: The user's input text
-        :return str: Language generated output
-        """
-        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
-        full_text = "".join(
-            token["choices"][0]["delta"].get("content", "")
-            for token in llm_output
-        )
-        return full_text
-    
-
-    def intent_recognition_web(self, input_text: str):
-        """
-        Run the intent recognition service in the web version
-
-        :param str input_text: user input, either STT'd text or plain text
-        :return str: The intent recongition responsed user's intent
-        """
-        intent = self.services[Srv.IR].recognize_intent(input_text)
-        intent_response = ""
-        if intent == None:
-            intent_response = "Intenttiä ei havaittu\n"
-        else:
-            intent_response = self.services[Srv.IR].process_intent(intent, input=input_text)
-            self.logger.info(
-                f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
-            )
-        return intent_response
-
     def text_gen(self, input_text: str, synthesize: bool = False):
         """
         The language model generates text based on user's input text
@@ -264,6 +231,48 @@ class AppManager:
         self.services[Srv.CLI].print_separator()
 
         return
+    
+    def text_gen_web(self, input_text: str):
+        """
+        The language model generates text based on user's input text
+
+        :param str input_text: The user's input text
+        :return str: Language generated output
+        """
+        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
+        full_text = "".join(
+            token["choices"][0]["delta"].get("content", "")
+            for token in llm_output
+        )
+        return full_text
+    
+    def text_to_speech_web(self, input_text: str):
+        """
+        Run the text to speech service
+
+        :param str input_text: result from llm, intents etc.
+        """
+
+        return self.services[Srv.TTS].synthesize_to_buffer(input_text)
+    
+
+    def intent_recognition_web(self, input_text: str):
+        """
+        Run the intent recognition service in the web version
+
+        :param str input_text: user input, either STT'd text or plain text
+        :return str: The intent recongition responsed user's intent
+        """
+        intent = self.services[Srv.IR].recognize_intent(input_text)
+        intent_response = ""
+        if intent == None:
+            intent_response = "Intenttiä ei havaittu\n"
+        else:
+            intent_response = self.services[Srv.IR].process_intent(intent, input=input_text)
+            self.logger.info(
+                f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
+            )
+        return intent_response
 
     def _load_services(self):
         """

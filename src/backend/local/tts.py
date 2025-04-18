@@ -5,6 +5,8 @@ import queue
 import sounddevice as sd
 import sox
 import threading
+from io import BytesIO
+import wave
 
 from piper.voice import PiperVoice
 from abstract_classes import TextToSpeechInterface
@@ -90,6 +92,32 @@ class TextToSpeech(TextToSpeechInterface):
         :param str text: The text to synthesize
         """
         self.sentence_queue.put(text)
+
+    def synthesize_to_buffer(self, text: str) -> BytesIO:
+        """
+        Synthesize the text to buffer to send to web
+        """
+        full_audio = bytearray()
+
+        for audio_bytes in self.voice.synthesize_stream_raw(text):
+            full_audio.extend(audio_bytes)
+
+        int_data = np.frombuffer(full_audio, dtype=np.int16)
+
+        print(f"Int data: {int_data}")
+        if self.output_sample_rate != self.piper_sample_rate:
+            int_data = self.resample_audio(int_data, self.piper_sample_rate, self.output_sample_rate)
+        print(f"Resample int data: {int_data}")
+        buffer = BytesIO()
+        with wave.open(buffer, 'wb') as wf:
+            wf.setnchannels(1)
+            wf.setsampwidth(2)
+            wf.setframerate(self.output_sample_rate)
+            wf.writeframes(int_data.tobytes())
+        print(f"Buffer: {buffer}")
+        buffer.seek(0)
+        print(f"Buffer 0: {buffer}")
+        return buffer
 
     def _process_queue(self):
         """

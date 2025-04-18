@@ -1,11 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
+from io import BytesIO
+import soundfile as sf
 from pydantic import BaseModel
 
 class TextInput(BaseModel):
     input_text: str
+class AudioFileInput(BaseModel):
+    audioFile: UploadFile = File(...)
 
 class WebApp:
     def __init__(self, app):
@@ -38,8 +42,30 @@ class WebApp:
                 return JSONResponse(content={"response": full_text}, status_code=200)
             except Exception as e:
                 return JSONResponse(content={"Text generation error": str(e)}, status_code=500)
-            
         
+        @self.appAPI.post("/api/tts")
+        async def text_to_speech_api(payload: TextInput):
+            try:
+                input_text = payload.input_text
+
+                audio_data = self.app.text_to_speech_web(input_text)
+                print(f"Audio data: {audio_data}")
+                return StreamingResponse(content=iter([audio_data.getvalue()]), media_type="audio/wav")
+            except Exception as e:
+                return JSONResponse(content={"Text to speech error": str(e)}, status_code=500)
+            
+        @self.appAPI.post("/api/stt")
+        async def speech_to_text_api(payload: AudioFileInput):
+            try:
+                audioFile = payload.audioFile
+                audio_bytes = await audioFile.read()
+                audio_data, sample_rate = sf.read(BytesIO(audio_bytes), dtype='float32')
+
+                recorded_sentence = self.app.speech_to_text(audio_data)
+
+                return JSONResponse(content={"response": recorded_sentence}, status_code=200)
+            except Exception as e:
+                return JSONResponse(content={"Speech to text error": str(e)}, status_code=500)
 
     def run_server(self):
         uvicorn.run(self.appAPI, host="0.0.0.0", port=5000)
