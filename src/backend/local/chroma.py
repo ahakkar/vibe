@@ -83,7 +83,7 @@ class Chroma:
             n_results=n,
         )
 
-        if not results.get("documents"):
+        if not results["documents"][0]:
             return ""
 
         top_document = results["documents"][0][0]
