@@ -23,4 +23,4 @@ ENV PIPEWIRE_SERVER=unix:/run/user/1000/pipewire-0
 
 EXPOSE 5000
 
-CMD ["python", "app.py", "--web"]
+CMD ["python", "app.py", "--cli", "--web"]

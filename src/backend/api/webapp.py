@@ -68,5 +68,5 @@ class WebApp:
                 return JSONResponse(content={"Speech to text error": str(e)}, status_code=500)
 
     def run_server(self):
-        uvicorn.run(self.appAPI, host="0.0.0.0", port=5000)
+        uvicorn.run(self.appAPI, host="0.0.0.0", port=5000,  log_level="critical")
     
