@@ -13,7 +13,7 @@ class Srv(Enum):
     CLI = "Command Line Interface"
     WEATHER = "Open weather API"
     NEWS = "Yle Teksti-TV API"
-
+    BASEFORM = "Voikko Baseform Service"
 
 # Currently very short dict of topics and corrensponding teletext pages
 TTV_PAGES = {

@@ -18,6 +18,7 @@ from local.audio import AudioService
 from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
+from local.baseform import Baseform
 
 
 from pathlib import Path
@@ -62,6 +63,7 @@ class AppManager:
             Srv.CLI: None,
             Srv.WEATHER: None,
             Srv.NEWS: None,
+            Srv.BASEFORM: None,
         }
 
         self._setup_env()
@@ -268,12 +270,19 @@ class AppManager:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
             self.logger.error(f"Failed to load weather service: {e}")
-
+            self.exit()
         try:
-            self.services[Srv.NEWS] = YleNewsApi()
+            self.services[Srv.NEWS] = YleNewsApi(self)
         except Exception as e:
             self.logger.error(f"Failed to load yle news service: {e}")
             self.exit()
+
+        try:
+            self.services[Srv.BASEFORM] = Baseform()
+        except Exception as e:
+            self.logger.error(f"Failed to load baseform service: {e}")
+            self.exit()
+
 
     def _setup_env(self):
         """

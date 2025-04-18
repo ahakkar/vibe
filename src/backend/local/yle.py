@@ -4,20 +4,20 @@ import requests
 import json
 import os
 
-from local.constants import TTV_PAGES
-from local.baseform import Baseform
+from local.constants import TTV_PAGES, Srv
 
 # TODO: clean code and fix comments
 
 
 class YlePage:
 
-    def __init__(self):
+    def __init__(self, app):
         """
         Initialize Yle page
         """
         self.subpages = {}
         self.content = []
+        self.app = app
 
     def _add_subpage(self, title: str, page_number: int):
         """
@@ -52,7 +52,6 @@ class YlePage:
         """
         return self.content
 
-    # TODO: Improve to use finnwordnet?
     def _find_page_from_input(self, input: str):
         """
         Finds the most similiar article title to user input by simply comparing words
@@ -60,12 +59,16 @@ class YlePage:
 
         :param str input: The user input
         :return int: The page number for the most similar article
+
+        TODO: Fails if words have non-letter chars,
+            example title - Ukraina: Aiesopimus USA:n kanssa
+            -> does not find title from word "Ukraina due to ":" "
+            Fix by parsing title words
         """
 
-        b = Baseform()
 
         input_words = input.lower().split()
-        input_baseforms = set(b.get_baseform(word) for word in input_words)
+        input_baseforms = set(self.app.get_service(Srv.BASEFORM).get_baseform(word) for word in input_words)
 
         most_similiar = None
         most_common_words = 0
@@ -73,7 +76,7 @@ class YlePage:
         for title in self.subpages:
 
             title_words = title.lower().split()
-            title_baseforms = set(b.get_baseform(word) for word in title_words)
+            title_baseforms = set(self.app.get_service(Srv.BASEFORM).get_baseform(word) for word in title_words)
 
             intersection = input_baseforms & title_baseforms
 
@@ -91,7 +94,7 @@ class YlePage:
 
 class YleNewsApi:
 
-    def __init__(self):
+    def __init__(self, app):
         """
         Initialize Yle News API
         """
@@ -100,6 +103,8 @@ class YleNewsApi:
         self.YLE_APP_ID = os.getenv("YLE_APP_ID")
         self.YLE_APP_KEY = os.getenv("YLE_APP_KEY")
         self.YLE_TTV_URL = os.getenv("YLE_TTV_URL")
+
+        self.app = app
 
         if not self.YLE_APP_ID:
             self.logger.error(f"[yle.py:__init__] Missing YLE_APP_ID from .env file")
@@ -132,15 +137,13 @@ class YleNewsApi:
         :return list: The teletext page(s)
         """
 
-        b = Baseform()
-
         words = input.lower().split()
 
         return_list = []
 
         for word in words:
             # Use baseform of words to deal with different user inputs
-            word_baseform = b.get_baseform(word)
+            word_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(word)
 
             if TTV_PAGES.get(word_baseform) is not None:
 
@@ -217,7 +220,7 @@ class YleNewsApi:
         content = teletext["content"][0]
         lines = content["line"]
 
-        page = YlePage()
+        page = YlePage(self.app)
 
         for line in lines:
             for _, value in line.items():

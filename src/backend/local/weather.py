@@ -67,6 +67,8 @@ class Forecast:
 
             date_diff = (hour_utc.date() - current_time.date()).days
 
+
+            
             if skip_days > date_diff:
                 continue
 
