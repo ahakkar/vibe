@@ -5,6 +5,7 @@ WORKDIR /usr/src/
 COPY requirements.txt ./
 
 RUN mkdir /usr/src/logs
+RUN mkdir -p chroma_db && chmod a+rwx -R chroma_db
 
 RUN apt-get update && apt-get install -y \
     build-essential linux-perf  \

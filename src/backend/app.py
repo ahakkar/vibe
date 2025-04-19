@@ -13,6 +13,8 @@ from dotenv import load_dotenv
 from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
+from local.chroma import Chroma
+from local.context_manager import ContextManager
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
@@ -66,6 +68,8 @@ class AppManager:
             Srv.STT: None,
             Srv.TTS: None,
             Srv.TEXT_GEN: None,
+            Srv.RAG: None,
+            Srv.CONTEXT_MANAGER: None,
             Srv.IR: None,
             Srv.AUDIO: None,
             Srv.CLI: None,
@@ -130,6 +134,21 @@ class AppManager:
         :param Srv service_name: enum from constants.py
         """
         return self.services.get(service_name)
+
+    def exit_and_save(self):
+        """
+        Exit the program gracefully with cleanup
+        """
+        if self.services[Srv.CLI]:
+            self.services[Srv.CLI].print_text("Saving context and exiting the program.")
+
+        context_from_conversation = self.services[Srv.CONTEXT_MANAGER].summarizer()
+        self.services[Srv.RAG].save_to_db(context_from_conversation)
+
+        self.services[Srv.AUDIO].terminate_audio()
+        self.services[Srv.TTS].stop()
+        self.logger.info(f"APP shutdown at {time.asctime()}")
+        sys.exit(0)
 
     def exit(self):
         """
@@ -216,14 +235,25 @@ class AppManager:
         :param bool synthesize: If True, synthesize the generated text
         """
         self.logger.info("PERF : [text_gen] Generating text")
-        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
+        context = self.services[Srv.RAG].retrieve_similar_entries(input_text)
+
+        # print("\nContext:", context, "\n")
+
+        assistant_input = ""
+        if len(self.services[Srv.CONTEXT_MANAGER].messages):
+            assistant_input = self.services[Srv.CONTEXT_MANAGER].messages[-1]["content"]
+
+        # print("\nAssistant input:", assistant_input)
+
+        llm_output = self.services[Srv.TEXT_GEN].generate(
+            input_text, context, assistant_input
+        )
         sentence = ""
 
         for token in llm_output:
             text = token["choices"][0]["delta"].get("content", "")
             sentence += text
 
-            # Check if the sentence is complete
             if synthesize and (
                 any(punc in sentence for punc in local.constants.PUNCTATIONS)
             ):
@@ -232,6 +262,13 @@ class AppManager:
                 sentence = ""
 
             self.services[Srv.CLI].print_text(text, None, False)
+
+        self.services[Srv.CONTEXT_MANAGER].messages.extend(
+            [
+                {"role": "user", "content": input_text},
+                {"role": "assistant", "content": sentence.strip()},
+            ]
+        )
 
         self.services[Srv.CLI].print_separator()
 
@@ -266,6 +303,18 @@ class AppManager:
             self.services[Srv.TEXT_GEN] = TextGenService(self.root)
         except Exception as e:
             self.logger.error(f"Failed to load text gen service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.RAG] = Chroma(self.root)
+        except Exception as e:
+            self.logger.error(f"Failed to load rag service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.CONTEXT_MANAGER] = ContextManager(self.root)
+        except Exception as e:
+            self.logger.error(f"Failed to load text context management service: {e}")
             self.exit()
 
         try:

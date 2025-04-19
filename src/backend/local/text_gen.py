@@ -58,21 +58,29 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-    def generate(self, user_input, system_prompt=""):
+    def generate(self, user_input, context="", assistant_input=""):
         """
         The text generation service will generate responses based on user input
 
         :param str user_input: The given user input
-        :param str system_prompt: The system prompt that change change how the text generation will respond, defaults to empty string
+        :param str context: text_gen gets a context from rag to help with response generation
 
         :return generator generator: The service generated output
         """
-        if not system_prompt:
-            system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
+        system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
 
         messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_input},
+            {
+                "role": "system",
+                "content": system_prompt
+                + "Käyttäen seuraavaa kontekstia tarpeen mukaan: "
+                + context,
+            },
+            {"role": "assistant", "content": assistant_input},
+            {
+                "role": "user",
+                "content": user_input,
+            },
         ]
 
         try:

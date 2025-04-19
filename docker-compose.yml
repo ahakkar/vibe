@@ -7,6 +7,7 @@ services:
       - "5000:5000"
     volumes:
       - ./models:/models
+      - ./chroma_data:/usr/src/chroma_db
       - ./logs:/usr/src/logs
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering

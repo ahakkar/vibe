@@ -133,11 +133,15 @@ class CommandLineService:
             print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
-                self.term.ljust("Choose service (from 0 to 5) or (q)uit:")
+                self.term.ljust(
+                    "Choose service (from 0 to 5), (q)uit or (s)ave and exit:"
+                )
             ).strip()
 
             if command_input == "q" or command_input == "quit":
                 self.app.exit()
+            if command_input == "s" or command_input == "save":
+                self.app.exit_and_save()
             elif command_input == "0":
                 self.display_settings_menu()
             elif command_input == "1":
