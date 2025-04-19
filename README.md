@@ -67,8 +67,7 @@ docker compose run --rm --service-ports  \
   -- python app.py --cli
 ```
 
-
-Perf data is saved to hosts /tmp/perf_data/perf.data file and it can be analysed with hotspot
+Perf data is saved to host's /tmp/perf_data/perf.data file and it can be analysed with hotspot
 ```bash
 sudo chown $USER:$USER /tmp/perf_data/perf.data
 sudo apt install hotspot

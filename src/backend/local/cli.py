@@ -117,9 +117,8 @@ class CommandLineService:
         4. Only text to speech service
         """
         while True:
-            print(f"Testing: {self.testing}")  # Debugging statement
+            # print(f"Testing: {self.testing}")  # Debugging statement
             # print(self.term.clear)
-            print(self.testing)
             print(self.term.move_down(2))
             print(self.term.ljust("Available services:\n"))
             print(
