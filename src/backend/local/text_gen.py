@@ -58,7 +58,7 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-    def generate(self, user_input, context, assistant_input=""):
+    def generate(self, user_input, context="", assistant_input=""):
         """
         The text generation service will generate responses based on user input
 
@@ -76,13 +76,6 @@ class TextGenService(TextGenerationInterface):
                 + "Käyttäen seuraavaa kontekstia tarpeen mukaan: "
                 + context,
             },
-            # {
-            #     "role": "user",
-            #     "content": "Vastaa käyttäjän syötteeseen: "
-            #     + user_input
-            #     + "\nKäyttäen seuraavaa kontekstia tarpeen mukaan: "
-            #     + context,
-            # },
             {"role": "assistant", "content": assistant_input},
             {
                 "role": "user",
