@@ -25,6 +25,7 @@ with patch.dict(
         "requests": MagicMock(),
         "timezonefinder": MagicMock(),
         "libvoikko": MagicMock(),
+        "logging": MagicMock(),
     },
 ):
     from src.backend.app import AppManager
