@@ -8,6 +8,7 @@ services:
     volumes:
       - ./models:/models
       - ./chroma_data:/usr/src/chroma_db
+      - ./logs:/usr/src/logs
     environment:
       - PYTHONUNBUFFERED=1 # Disable output buffering
       - RUNNING_IN_DOCKER=true # Indicate that the code is running inside Docker

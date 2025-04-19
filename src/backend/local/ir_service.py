@@ -39,9 +39,9 @@ class IrService(IntentRecognitionInterface):
 
         return recognize(text, self.intents)
 
-    def process_intent(self, result: RecognizeResult) -> str:
+    def process_intent(self, result: RecognizeResult, input=None) -> str:
         """
-        Matches the intents with fi.yaml by string and calls the related
+        Matches the intents with fi.yaml by string and cal  s the related
         class methods to provide response for each intent.
 
         :param RecognizeResult result: Whole recognized intent result from hassil library
@@ -49,14 +49,25 @@ class IrService(IntentRecognitionInterface):
         :return str: The processed intent
         """
         if result.intent.name == "GetNews":
+
             try:
-                page_data = self.app.get_service(Srv.NEWS).get_news(100)
-                page_data = [data.strip() for data in page_data]
-                page_data_str = "".join(page_data)
-                return page_data_str
+
+                if input is None:
+                    page_data = self.app.get_service(Srv.NEWS).parse_user_input(
+                        "pääuutiset"
+                    )
+                else:
+                    page_data = self.app.get_service(Srv.NEWS).parse_user_input(input)
+
+                    page_data = [data.strip() for data in page_data]
+                    page_data_str = " ".join(page_data)
+
+                    return page_data_str
+
             except Exception as e:
                 self.logger.error(f"Uutisten hakeminen epäonnistui: {e}")
                 return "Uutisten hakeminen epäonnistui."
+
         elif result.intent.name == "GetCurrentWeather":
             try:
                 weather_data = self.app.get_service(Srv.WEATHER).get_current_weather()
@@ -65,6 +76,67 @@ class IrService(IntentRecognitionInterface):
                 self.logger.error(f"Sään hakeminen epäonnistui: {e}")
 
                 return "Sään hakeminen epäonnistui."
+
+        elif result.intent.name == "GetForecast":
+            try:
+
+                time = result.entities["aika"].value
+
+                if time == "tänään":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=1, skip_days=0, frequency=3
+                    )
+                elif time == "huomenna":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=2, skip_days=1, frequency=3
+                    )
+                elif time == "ylihuomenna":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=3, skip_days=2, frequency=3
+                    )
+                else:
+                    return "Haettua aikaa ei tunnistettu"
+
+                weather_data = [data.strip() for data in weather_data]
+                weather_data_str = " ".join(weather_data)
+
+                return weather_data_str
+
+            except Exception as e:
+                self.logger.error(f"Sään hakeminen epäonnistui: {e}")
+
+                return "Sääennusteen hakeminen epäonnistui."
+
+        elif result.intent.name == "GetForecastAtLocation":
+            try:
+
+                time = result.entities["aika"].value
+                location = result.entities["sijainti"].value
+
+                if time == "tänään":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=1, skip_days=0, frequency=3
+                    )
+                elif time == "huomenna":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=2, skip_days=1, frequency=3
+                    )
+                elif time == "ylihuomenna":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location, days=3, skip_days=2, frequency=3
+                    )
+                else:
+                    return "Haettua aikaa ei tunnistettu"
+
+                weather_data = [data.strip() for data in weather_data]
+                weather_data_str = " ".join(weather_data)
+
+                return weather_data_str
+            except Exception as e:
+                self.logger.error(f"Sään hakeminen epäonnistui: {e}")
+
+                return "Sääennusteen hakeminen epäonnistui."
+
         elif result.intent.name == "GetTime":
             try:
                 return "Ajan hakemista ei ole vielä toteutettu."

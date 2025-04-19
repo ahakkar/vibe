@@ -6,6 +6,7 @@ import shutil
 import time
 import local.constants
 
+
 from local.constants import Srv
 from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
@@ -19,6 +20,8 @@ from local.audio import AudioService
 from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
+
+
 from pathlib import Path
 
 
@@ -27,11 +30,28 @@ class AppManager:
         """
         Initialize app manager
         """
+
+        # Determine the correct .env and logs path based if running in Docker
+        if os.getenv("RUNNING_IN_DOCKER"):
+            self.root = os.path.join("/")
+            self.ENV_PATH = os.path.join(self.root, "usr/src")
+            self.LOG_PATH = os.path.join(self.root, "usr/src/logs")
+        else:
+            self.root = self._find_project_root()
+            self.ENV_PATH = os.path.join(self.root, "src/backend")
+            self.LOG_PATH = os.path.join(self.root, "logs")
+
         self.logger = logging.getLogger(__name__)
         logfile_name = APP_LOG_FILE
 
-        logging.basicConfig(filename=logfile_name, level=logging.INFO)
-        self.logger.info(f"APP start at {time.asctime()}")
+        logging.basicConfig(
+            level=logging.INFO,
+            format="{asctime}.{msecs:03.0f} - {levelname} - {message}",
+            style="{",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            handlers=[logging.FileHandler(os.path.join(self.LOG_PATH, logfile_name))],
+        )
+        self.logger.info(f"APP start")
 
         desc = [
             "App runs by default on background. Enable web server with --web",
@@ -43,14 +63,6 @@ class AppManager:
         parser.add_argument("--cli", action="store_true", help="Enable CLI")
         parser.add_argument("--web", action="store_true", help="Enable Web server")
         self.args = parser.parse_args()
-
-        # Determine the correct .env path based if running in Docker
-        if os.getenv("RUNNING_IN_DOCKER"):
-            self.root = os.path.join("/")
-            self.ENV_PATH = os.path.join(self.root, "usr/src")
-        else:
-            self.root = self._find_project_root()
-            self.ENV_PATH = os.path.join(self.root, "src/backend")
 
         self.services = {
             Srv.STT: None,
@@ -146,7 +158,7 @@ class AppManager:
             self.services[Srv.CLI].print_text("Exiting the program.")
         self.services[Srv.AUDIO].terminate_audio()
         self.services[Srv.TTS].stop()
-        self.logger.info(f"APP shutdown at {time.asctime()}")
+        self.logger.info(f"APP shutdown")
         sys.exit(0)
 
     def run(self):
@@ -183,7 +195,7 @@ class AppManager:
 
         :return str: The recorded sentence that is transcribed from audio data
         """
-
+        self.logger.info("PERF : [speech_to_text] Transcribing audio")
         return self.services[Srv.STT].transcribe(audio)
 
     def text_to_speech(self, input_text: str):
@@ -192,7 +204,7 @@ class AppManager:
 
         :param str input_text: result from llm, intents etc.
         """
-
+        self.logger.info("PERF : [text_to_speech] Synthesizing text")
         self.services[Srv.TTS].synthesize(input_text)
 
     def intent_recognition(self, input_text: str):
@@ -201,12 +213,14 @@ class AppManager:
 
         :param str input_text: user input, either STT'd text or plain text
         """
-
+        self.logger.info("PERF : [intent_recognition] Recognizing intent")
         intent = self.services[Srv.IR].recognize_intent(input_text)
         if intent == None:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
         else:
-            intent_response = self.services[Srv.IR].process_intent(intent)
+            intent_response = self.services[Srv.IR].process_intent(
+                intent, input=input_text
+            )
             self.logger.info(
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
@@ -220,6 +234,7 @@ class AppManager:
         :param str input_text: The user's input text
         :param bool synthesize: If True, synthesize the generated text
         """
+        self.logger.info("PERF : [text_gen] Generating text")
         context = self.services[Srv.RAG].retrieve_similar_entries(input_text)
 
         print("\nContext:", context, "\n")

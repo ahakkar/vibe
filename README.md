@@ -1,16 +1,38 @@
-## Backend Structure
-
-- `Backend`: The backend of the project
-  - `service1`: Services for loaiding and performing tasks using the pre-trained models
-    - `src`: Source file for all modules
-      - `app.py`: The main python file that the docker container will run, every modules are called in this file
-      - `Dockerfile`: Dockerfile will create the image in docker container which contains of all the installed packages and pre-trainded models
-      - `requirements.txt`: this text file contains all the required python packages for running the pre-trained models
-- `docker-compose.yml`: This file run all the services in the backend
+## Project Structure
+- `.github/workflows`: Github Action workflow 
+  - `tests.yml`: Github Action CI pipeline
+- `src`: All the scripts of the backend and frontend
+  - `backend`: The backend of the project
+    - `app.py`: The main python file that the docker container will run, every modules are called in this file
+    - `Dockerfile`: Dockerfile will create the image in docker container which contains of all the installed packages and pre-trainded models
+    - `requirements.txt`: this text file contains all the required python packages for running the pre-trained models
+    - `.env.default`: This is a default template for .env file which will be created when running the application
+    - `local`: This contains all the modules and services for local application
+      - `audio.py`: The audio service which uses to record the user's voice
+      - `stt.py`: The speech to text service which transcribe user's voice to text
+      - `text_gen.py`: The text generation service uses language model to generate texts
+      - `tts.py`: The text to speech service which synthesize the generated text to voice output
+      - `ir_service.py`: The intent recognition service which recognize user's intention in the sentence
+      - `weather.py`: The weather service will provide the forecast of the weather in given location
+      - `yle.py`: The YLE News service will provide news of the user's given topic
+      - `cli.py`: The Command line service will run by the docker which runs the command line and provide all application's functionalities.
+- `test`: Contains all the test files
+- `docker-compose.yml`: This file run all the services in the backend and frontend
+- `download_models.py`: This file download all the AI models for STT, TTS, and LLM
+- `run.sh`: The bashscript used to download required dependencies and run the application
 
 ## Quickstart with Bash
 
-Run run.sh file to download all the packages
+Firstly, run the download_models.py to download all the models.
+
+```bash
+python download_models.py
+```
+
+Before running the application, create .env file and copy the .env.default content to .env in the same folder. 
+Add YLE_APP_ID and YLE_APP_KEY.
+
+Run run.sh file to download all necessary packages and run docker. 
 
 ```bash
 ./run.sh
@@ -24,11 +46,14 @@ Make sure Pipewire is installed and running on Linux.
 
 Install Sox on Linux for efficient audio manipulation (changing sample rates)
 
+Before running the application, create .env file and copy the .env.default content to .env in the same folder. 
+Add YLE_APP_ID and YLE_APP_KEY.
+
 Ensure Docker is installed. In order to run the application, execute the following commands:
 
 ```bash
 docker compose build
-sudo docker compose run --rm --service-ports app
+docker compose run --rm --service-ports app
 ```
 
 You can try running "sudo modprobe uinput" if there's problems, delete this line if not needed
@@ -51,6 +76,27 @@ To go inside docker shell, execute this command:
 
 ```bash
 docker run -it image_name /bin/bash
+```
+
+## Run Docker CLI with performance recording
+
+Note that starting and stopping the application takes time due to logging processes
+
+```bash
+docker compose run --rm --service-ports  \
+  --volume /tmp/perf_data:/perf_data \
+  --entrypoint perf \
+  app \
+  record -F 100 --call-graph dwarf \
+  --output /perf_data/perf.data \
+  -- python app.py --cli
+```
+
+Perf data is saved to host's /tmp/perf_data/perf.data file and it can be analysed with hotspot
+```bash
+sudo chown $USER:$USER /tmp/perf_data/perf.data
+sudo apt install hotspot
+hotspot /tmp/perf_data/perf.data 
 ```
 
 ### Local Installation
@@ -83,8 +129,29 @@ source env/bin/activate
 source env/Scripts/activate
 ```
 
-Next, install the required python dependencies using:
+#### Run the application
+
+Firstly, run the download_models.py to download all the models.
 
 ```bash
-pip install -r requirements.txt
+python download_models.py
 ```
+
+Next, install the required python dependencies of backend using:
+
+```bash
+pip install -r src/backend/requirements.txt
+```
+
+Before running the application, create .env file and copy the .env.default content to .env in the same folder. 
+Add YLE_APP_ID and YLE_APP_KEY.
+
+Run the app.py with command line service option.
+
+```bash
+python src/backend/app.py --cli
+```
+
+#### Track the log to debug
+
+There is a vibe.log file that will be created when the application run locally. 

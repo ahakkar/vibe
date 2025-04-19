@@ -24,6 +24,7 @@ class CommandLineService:
         """
 
         self.logger = logging.getLogger(__name__)
+        self.testing = False
         self.term = Terminal()
         self.app = app
         signal.signal(signal.SIGINT, self._signal_handler)
@@ -115,8 +116,8 @@ class CommandLineService:
         3. Only language model service
         4. Only text to speech service
         """
-
         while True:
+            # print(f"Testing: {self.testing}")  # Debugging statement
             # print(self.term.clear)
             print(self.term.move_down(2))
             print(self.term.ljust("Available services:\n"))
@@ -153,6 +154,10 @@ class CommandLineService:
                 self._input_tts()
             elif command_input == "5":
                 self._input_ir()
+
+            if self.testing:
+                # If testing is enabled, exit after one iteration
+                break
 
     def _toggle_recording(self, all=False):
         """
@@ -191,6 +196,9 @@ class CommandLineService:
                 break
             else:
                 service_method(input_text)
+                if self.testing:
+                    # If testing is enabled, exit after one iteration
+                    break
 
     def _input_text_gen(self):
         """
