@@ -128,7 +128,7 @@ class Weather:
 
         :return str: The current weather in given location
         """
-
+        self.logger.info("PERF : [Weather] fetching current weather")
         coords = self._get_coordinates(location=location)
 
         if coords is None:
@@ -171,7 +171,7 @@ class Weather:
 
         :return [str]: List of Forecast data
         """
-
+        self.logger.info("PERF : [Weather] fetching forecast")
         if skip_days >= days:
             return None
 

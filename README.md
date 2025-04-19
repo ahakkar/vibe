@@ -78,6 +78,27 @@ To go inside docker shell, execute this command:
 docker run -it image_name /bin/bash
 ```
 
+## Run Docker CLI with performance recording
+
+Note that starting and stopping the application takes time due to logging processes
+
+```bash
+docker compose run --rm --service-ports  \
+  --volume /tmp/perf_data:/perf_data \
+  --entrypoint perf \
+  app \
+  record -F 100 --call-graph dwarf \
+  --output /perf_data/perf.data \
+  -- python app.py --cli
+```
+
+Perf data is saved to host's /tmp/perf_data/perf.data file and it can be analysed with hotspot
+```bash
+sudo chown $USER:$USER /tmp/perf_data/perf.data
+sudo apt install hotspot
+hotspot /tmp/perf_data/perf.data 
+```
+
 ### Local Installation
 
 _Prerequisites:_ Python 3.9 & Pip
