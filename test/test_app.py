@@ -26,6 +26,7 @@ with patch.dict(
         "timezonefinder": MagicMock(),
         "libvoikko": MagicMock(),
         "logging": MagicMock(),
+        "chromadb": MagicMock(),
     },
 ):
     from src.backend.app import AppManager
