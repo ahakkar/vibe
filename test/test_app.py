@@ -28,7 +28,7 @@ with patch.dict(
         "logging": MagicMock(),
         "chromadb": MagicMock(),
         "sentence_transformers": MagicMock(),
-        "scikit-learn": MagicMock()
+        "sklearn": MagicMock(),
     },
 ):
     from src.backend.app import AppManager
