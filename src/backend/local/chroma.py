@@ -6,7 +6,6 @@ import uuid
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-EMBED_MODEL = "TurkuNLP/sbert-cased-finnish-paraphrase"
 path = "./chroma_db"
 
 

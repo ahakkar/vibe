@@ -224,7 +224,15 @@ class AppManager:
 
         print("\nContext:", context, "\n")
 
-        llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
+        assistant_input = ""
+        if len(self.services[Srv.CONTEXT_MANAGER].messages):
+            assistant_input = self.services[Srv.CONTEXT_MANAGER].messages[-1]["content"]
+
+        print("\nAssistant input:", assistant_input)
+
+        llm_output = self.services[Srv.TEXT_GEN].generate(
+            input_text, context, assistant_input
+        )
         sentence = ""
 
         for token in llm_output:
