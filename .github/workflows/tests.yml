@@ -38,4 +38,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          pytest --cov=. --cov-report=term --cov-report=xml test
+          pytest --cov=. --cov-report=term --cov-report=xml --cov-config=.coveragerc test
