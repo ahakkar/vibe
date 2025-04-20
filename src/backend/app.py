@@ -40,14 +40,16 @@ class AppManager:
             self.LOG_PATH = os.path.join(self.root, "logs")
 
         self.logger = logging.getLogger(__name__)
-        logfile_name = APP_LOG_FILE
+        logfile_name = f"{APP_LOG_FILE}_{time.strftime('%Y%m%d_%H%M')}.log"
 
         logging.basicConfig(
             level=logging.INFO,
             format="{asctime}.{msecs:03.0f} - {levelname} - {message}",
             style="{",
             datefmt="%Y-%m-%d %H:%M:%S",
-            handlers=[logging.FileHandler(os.path.join(self.LOG_PATH, logfile_name))],
+            handlers=[
+                logging.FileHandler(os.path.join(self.LOG_PATH, logfile_name), mode="w")
+            ],
         )
         self.logger.info(f"APP start")
 
@@ -187,6 +189,7 @@ class AppManager:
         """
         self.logger.info("PERF : [text_to_speech] Synthesizing text")
         self.services[Srv.TTS].synthesize(input_text)
+        self.logger.info("PERF : [text_to_speech] Done synthesizing text")
 
     def intent_recognition(self, input_text: str):
         """
@@ -206,6 +209,7 @@ class AppManager:
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
             self.services[Srv.CLI].print_text(intent_response)
+        self.logger.info("PERF : [intent_recognition] Done recognizing intent")
 
     def text_gen(self, input_text: str, synthesize: bool = False):
         """
@@ -234,7 +238,7 @@ class AppManager:
             self.services[Srv.CLI].print_text(text, None, False)
 
         self.services[Srv.CLI].print_separator()
-
+        self.logger.info("PERF : [text_gen] Done generating text")
         return
 
     def _load_services(self):

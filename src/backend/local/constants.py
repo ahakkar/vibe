@@ -1,7 +1,7 @@
 from enum import Enum
 
 APP_TITLE = "SLT-VIBE"
-APP_LOG_FILE = "vibe.log"
+APP_LOG_FILE = "vibe"
 
 
 class Srv(Enum):
