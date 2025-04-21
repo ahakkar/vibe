@@ -58,7 +58,7 @@ class TextGenService(TextGenerationInterface):
             n_threads=6,
         )
 
-    def generate(self, user_input, context="", assistant_input=""):
+    def generate(self, user_input, context=""):
         """
         The text generation service will generate responses based on user input
 
@@ -67,16 +67,15 @@ class TextGenService(TextGenerationInterface):
 
         :return generator generator: The service generated output
         """
-        system_prompt = "Olet tekoälyavustaja. Vastaat aina mahdollisimman avuliaasti ja ystävällisesti. Pidä vastauksesi lyhyinä ja ytimekkäinä."
+        system_prompt = "Olen tekoälyavustaja. Vastaan aina mahdollisimman avuliaasti ja ystävällisesti. Pidän vastaukseni ytimekkäinä."
 
         messages = [
             {
-                "role": "system",
+                "role": "assistant",
                 "content": system_prompt
-                + "Käyttäen seuraavaa kontekstia tarpeen mukaan: "
+                + "Vastaan käyttäjän kysymykseen käyttäen seuraavaa kontekstia tarpeen mukaan: "
                 + context,
             },
-            {"role": "assistant", "content": assistant_input},
             {
                 "role": "user",
                 "content": user_input,
