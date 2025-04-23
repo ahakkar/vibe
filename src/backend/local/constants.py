@@ -24,6 +24,14 @@ TTV_PAGES = {
     "urheilu": 201,
 }
 
+TTV_PAGE_NUMS = [
+    100,
+    102,
+    130,
+    160,
+    201,
+]
+
 
 THEME = {
     "title": "bold underline",
