@@ -114,6 +114,10 @@ class IrService(IntentRecognitionInterface):
                     weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
                         location="Tampere", days=3, skip_days=2, frequency=3
                     )
+                elif time == "tällä viikolla":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location="Tampere", days=7, skip_days=0, frequency=12
+                    )
                 else:
                     return "Haettua aikaa ei tunnistettu"
 
@@ -150,6 +154,10 @@ class IrService(IntentRecognitionInterface):
                 elif time == "ylihuomenna":
                     weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
                         location=location_baseform, days=3, skip_days=2, frequency=3
+                    )
+                elif time == "tällä viikolla":
+                    weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
+                        location=location_baseform, days=7, skip_days=0, frequency=12
                     )
                 else:
                     return "Haettua aikaa ei tunnistettu"

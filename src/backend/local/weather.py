@@ -78,7 +78,7 @@ class Forecast:
 
             rain_probability = self.rain_probability_list[i]
 
-            if len(self.time_list) <= 24:
+            if len(self.time_list) - (skip_days*24) <= 24:
 
                 if rain_probability > 0:
                     forecast_data.append(

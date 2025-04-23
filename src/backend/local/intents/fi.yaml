@@ -5,10 +5,7 @@ intents:
     data:
       - sentences:
           - "kerro [tämän] päivän uutiset"
-          - "(kerro | lue) uutiset"
-          - "(kerro | lue) [uutiset] (kotimaasta | ulkomaista | taloudesta | urheilusta)"
-          - "(kerro | lue) [uutiset] [aiheesta] (pääuutiset | kotimaa | ulkomaat | talous | urheilu)"
-          - "(kerro | lue) [(lisää | uutinen)] {aihe}"
+          - "(kerro | lue) [(lisää | uutinen | uutiset)] [aiheesta] {aihe}"
   #Default location tampere
   GetCurrentWeather:
     data:
@@ -47,6 +44,8 @@ lists:
       - "tänään"
       - "huomenna"
       - "ylihuomenna"
+    #Tällä viikolla gets just next 7 days' forecast
+      - "tällä viikolla"
   sijainti:
     wildcard: true
   
