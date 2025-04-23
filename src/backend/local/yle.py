@@ -59,15 +59,18 @@ class YlePage:
 
         :param str input: The user input
         :return int: The page number for the most similar article
-
-        TODO: Fails if words have non-letter chars,
-            example title - Ukraina: Aiesopimus USA:n kanssa
-            -> does not find title from word "Ukraina due to ":" "
-            Fix by parsing title words
         """
 
 
         input_words = input.lower().split()
+
+        #Remove special chars from end of words, eg ":"
+        for i, word_check in enumerate(input_words):
+            if not word_check[-1].isalpha():
+                input_words[i] = word_check[:-1]
+
+            
+
         input_baseforms = set(self.app.get_service(Srv.BASEFORM).get_baseform(word) for word in input_words)
 
         most_similiar = None
