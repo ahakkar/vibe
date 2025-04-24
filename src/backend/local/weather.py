@@ -128,7 +128,6 @@ class Weather:
 
         :return str: The current weather in given location
         """
-
         coords = self._get_coordinates(location=location)
 
         if coords is None:
@@ -171,7 +170,6 @@ class Weather:
 
         :return [str]: List of Forecast data
         """
-
         if skip_days >= days:
             return None
 
@@ -191,7 +189,6 @@ class Weather:
         forecast_data = forecast._parse_forecast(
             freq=frequency, latitude=latitude, longitude=longitude, skip_days=skip_days
         )
-
         return forecast_data
 
     def _get_coordinates(self, location="Tampere") -> Optional[tuple[float, float]]:

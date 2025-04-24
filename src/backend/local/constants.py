@@ -1,13 +1,15 @@
 from enum import Enum
 
 APP_TITLE = "SLT-VIBE"
-APP_LOG_FILE = "vibe.log"
+APP_LOG_FILE = "vibe"
 
 
 class Srv(Enum):
     STT = "Speech to Text Service"
     TTS = "Text to Speech Service"
     TEXT_GEN = "Text Generation Service"
+    RAG = "RAG context management service"
+    CONTEXT_MANAGER = "Context Management Service"
     IR = "Intent Recognition Service"
     AUDIO = "Audio Service"
     CLI = "Command Line Interface"

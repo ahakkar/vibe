@@ -175,7 +175,6 @@ class YleNewsApi:
 
         :param int page_number: The page number to get the page data
         """
-
         page_data = self._get_page_data(page_number=page_number)
 
         if page_data is None:

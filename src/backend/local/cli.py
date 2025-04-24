@@ -117,9 +117,8 @@ class CommandLineService:
         4. Only text to speech service
         """
         while True:
-            print(f"Testing: {self.testing}")  # Debugging statement
+            # print(f"Testing: {self.testing}")  # Debugging statement
             # print(self.term.clear)
-            print(self.testing)
             print(self.term.move_down(2))
             print(self.term.ljust("Available services:\n"))
             print(
@@ -134,11 +133,15 @@ class CommandLineService:
             print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
-                self.term.ljust("Choose service (from 0 to 5) or (q)uit:")
+                self.term.ljust(
+                    "Choose service (from 0 to 5), (q)uit or (s)ave and exit:"
+                )
             ).strip()
 
             if command_input == "q" or command_input == "quit":
                 self.app.exit()
+            if command_input == "s" or command_input == "save":
+                self.app.exit_and_save()
             elif command_input == "0":
                 self.display_settings_menu()
             elif command_input == "1":
