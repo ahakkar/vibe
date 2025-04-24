@@ -67,8 +67,6 @@ class Forecast:
 
             date_diff = (hour_utc.date() - current_time.date()).days
 
-
-            
             if skip_days > date_diff:
                 continue
 
@@ -78,7 +76,7 @@ class Forecast:
 
             rain_probability = self.rain_probability_list[i]
 
-            if len(self.time_list) - (skip_days*24) <= 24:
+            if len(self.time_list) - (skip_days * 24) <= 24:
 
                 if rain_probability > 0:
                     forecast_data.append(

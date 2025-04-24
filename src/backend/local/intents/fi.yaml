@@ -10,23 +10,23 @@ intents:
   GetCurrentWeather:
     data:
       - sentences:
-          - "(mikä | mitä | millainen) sää on [nyt]"
+          - "millainen sää on [nyt]"
 
   GetCurrentWeatherAtLocation:
     data:
       - sentences:
-          - "(mikä | mitä | millainen) sää on nyt [paikassa] {sijainti}"
+          - "millainen sää on nyt [paikassa] {sijainti}"
 
   #Default location tampere
   GetForecast:
     data:
       - sentences:
-          - "(kerro | millainen) sää [on] {aika}"
+          - "millainen sää on {aika}"
 
   GetForecastAtLocation:
     data:
       - sentences:
-        - "(kerro | millainen) sää [on] {aika} [paikassa] {sijainti}"
+        - "millainen sää on {aika} [paikassa] {sijainti}"
   
   GetTime:
     data:
