@@ -137,6 +137,24 @@ class AppManager:
         """
         return self.services.get(service_name)
 
+    def update_device_indexes(self):
+        """
+        Update the devices index of audio and tts services
+        """
+
+        try:
+            env_file_path = os.path.join(self.ENV_PATH, ".env")
+            load_dotenv(env_file_path, override=True)
+
+            self.services[Srv.AUDIO].update_device_indexes()
+            self.services[Srv.TTS].update_device_index(
+                self.services[Srv.AUDIO].output_device_index
+            )
+
+            self.logger.info("Successfully update input/output device indexes")
+        except Exception as e:
+            self.logger.error("Failed to update input/output device indexes")
+
     def exit_and_save(self):
         """
         Exit the program gracefully with cleanup

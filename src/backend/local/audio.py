@@ -189,3 +189,13 @@ class AudioService:
             ):
                 return i
         return None
+
+    def update_device_indexes(self):
+        """
+        Update input and output device indexes
+        """
+        input_device_name = os.getenv("INPUT_DEVICE_NAME")
+        output_device_name = os.getenv("OUTPUT_DEVICE_NAME")
+
+        self.input_device_index = self._get_device_index(input_device_name, "input")
+        self.output_device_index = self._get_device_index(output_device_name, "output")

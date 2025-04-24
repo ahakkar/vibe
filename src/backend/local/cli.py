@@ -100,6 +100,8 @@ class CommandLineService:
 
             self.logger.info("Settings successfully saved to .env file!")
 
+            self.app.update_device_indexes()
+
         except Exception as e:
             self.logger.error(
                 f'Failed to write to .env at: {self.app.ENV_PATH}/.env"\nwhile updating env in settings menu. Error: {e}'
