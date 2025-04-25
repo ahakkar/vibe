@@ -177,6 +177,8 @@ class YleNewsApi:
         Gets the teletext news from input page number as a list of strings
 
         :param int page_number: The page number to get the page data
+
+        :return str: Current page content
         """
         page_data = self._get_page_data(page_number=page_number)
 
@@ -218,13 +220,13 @@ class YleNewsApi:
             self.logger.error(f"[yle.py:_get_page_data]: Error fetching Yle data: {e}")
             return None
 
-    def _parse_json(self, json_data, page_number) -> list[Any]:
+    def _parse_json(self, json_data, page_number):
         """
         Parse the json data to create an YlePage object
         This is saved as self.current_page
 
-
         :param json json_data: The data that needs to be parsed
+
         :return None
         """
         teletext = json_data["teletext"]["page"]["subpage"][0]

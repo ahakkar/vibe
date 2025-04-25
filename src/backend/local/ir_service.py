@@ -31,10 +31,10 @@ class IrService(IntentRecognitionInterface):
 
         Discards most contents of a RecognizeResult and returns only the essential information.
 
-        :param str text:
-        :param str lang:
+        :param str text: User input text
+        :param str lang: The language of the user input text
 
-        :return
+        :return Optional[RecognizeResult]: The intent recognized result from the user input text
         """
 
         return recognize(text, self.intents)

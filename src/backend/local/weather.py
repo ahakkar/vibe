@@ -116,10 +116,6 @@ class Weather:
         except Exception as e:
             self.logger.error("Missing .env COORDS_URL or WEATHER_URL from .env")
 
-    """
-    Returns a string ready for TTS to read current weather data
-    """
-
     def get_current_weather(self, location: str = "Tampere") -> str:
         """
         Get the current weather in given location
