@@ -17,6 +17,7 @@ class Srv(Enum):
     NEWS = "Yle Teksti-TV API"
     BASEFORM = "Voikko Baseform Service"
 
+
 # Currently very short dict of topics and corrensponding teletext pages
 TTV_PAGES = {
     "pääuutinen": 100,

@@ -74,7 +74,9 @@ class IrService(IntentRecognitionInterface):
             self.logger.info("PERF : [Weather] Fetching current weather")
             try:
 
-                weather_data = self.app.get_service(Srv.WEATHER).get_current_weather(location="Tampere")
+                weather_data = self.app.get_service(Srv.WEATHER).get_current_weather(
+                    location="Tampere"
+                )
 
                 if weather_data is None:
                     raise ValueError("Säädataa ei ole (None)")
@@ -87,21 +89,27 @@ class IrService(IntentRecognitionInterface):
                 self.logger.info("PERF : [Weather] Done fetching current weather")
 
                 return "Sään hakeminen epäonnistui."
-            
+
         elif result.intent.name == "GetCurrentWeatherAtLocation":
             try:
                 location = result.entities["sijainti"].value
 
-                location_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(location)
+                location_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(
+                    location
+                )
 
-                weather_data = self.app.get_service(Srv.WEATHER).get_current_weather(location=location_baseform)
+                weather_data = self.app.get_service(Srv.WEATHER).get_current_weather(
+                    location=location_baseform
+                )
 
                 if weather_data is None:
                     raise ValueError("Säädataa ei ole (None)")
 
                 return weather_data
             except Exception as e:
-                self.logger.error(f"Sään hakeminen paikasta {location_baseform} epäonnistui: {e}")
+                self.logger.error(
+                    f"Sään hakeminen paikasta {location_baseform} epäonnistui: {e}"
+                )
 
                 return f"Sään hakeminen epäonnistui paikasta {location_baseform}"
         elif result.intent.name == "GetForecast":
@@ -133,14 +141,14 @@ class IrService(IntentRecognitionInterface):
 
                 weather_data = [data.strip() for data in weather_data]
 
-
                 if weather_data is None:
                     raise ValueError("Säädataa ei ole (None)")
 
-                weather_data_str = f"Sääennuste {time} paikassa Tampere: {' '.join(weather_data)}"
+                weather_data_str = (
+                    f"Sääennuste {time} paikassa Tampere: {' '.join(weather_data)}"
+                )
 
                 self.logger.info("PERF : [Weather] Done fetching forecast")
-
 
                 return weather_data_str
 
@@ -157,7 +165,9 @@ class IrService(IntentRecognitionInterface):
                 time = result.entities["aika"].value
                 location = result.entities["sijainti"].value
 
-                location_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(location)
+                location_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(
+                    location
+                )
 
                 if time == "tänään":
                     weather_data = self.app.get_service(Srv.WEATHER).get_forecast(
@@ -181,18 +191,15 @@ class IrService(IntentRecognitionInterface):
                     )
 
                     return "Haettua aikaa ei tunnistettu"
-                
-                
 
                 weather_data = [data.strip() for data in weather_data]
 
                 if weather_data is None:
                     raise ValueError("Säädataa ei ole (None)")
-                
+
                 weather_data_str = f"Sääennuste {time} paikassa {location_baseform}: {' '.join(weather_data)}"
 
                 self.logger.info("PERF : [Weather] Done fetching forecast @ location")
-
 
                 return weather_data_str
             except Exception as e:

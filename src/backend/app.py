@@ -338,7 +338,6 @@ class AppManager:
             self.logger.error(f"Failed to load baseform service: {e}")
             self.exit()
 
-
     def _setup_env(self):
         """
         Set up env file if it doesn't exist, the user can choose input and output devices.

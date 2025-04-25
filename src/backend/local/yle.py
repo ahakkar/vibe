@@ -61,17 +61,17 @@ class YlePage:
         :return int: The page number for the most similar article
         """
 
-
         input_words = input.lower().split()
 
-        #Remove special chars from end of words, eg ":"
+        # Remove special chars from end of words, eg ":"
         for i, word_check in enumerate(input_words):
             if not word_check[-1].isalpha():
                 input_words[i] = word_check[:-1]
 
-            
-
-        input_baseforms = set(self.app.get_service(Srv.BASEFORM).get_baseform(word) for word in input_words)
+        input_baseforms = set(
+            self.app.get_service(Srv.BASEFORM).get_baseform(word)
+            for word in input_words
+        )
 
         most_similiar = None
         most_common_words = 0
@@ -79,7 +79,10 @@ class YlePage:
         for title in self.subpages:
 
             title_words = title.lower().split()
-            title_baseforms = set(self.app.get_service(Srv.BASEFORM).get_baseform(word) for word in title_words)
+            title_baseforms = set(
+                self.app.get_service(Srv.BASEFORM).get_baseform(word)
+                for word in title_words
+            )
 
             intersection = input_baseforms & title_baseforms
 
@@ -187,14 +190,14 @@ class YleNewsApi:
 
             titles = self.current_page._get_titles()
 
-            #Returns the titles from a title/"main" page
-            #Currently used main pages listed in TTV_PAGES and TTV_PAGE_NUMS
-            #Could be extended
+            # Returns the titles from a title/"main" page
+            # Currently used main pages listed in TTV_PAGES and TTV_PAGE_NUMS
+            # Could be extended
             if len(titles) > 0 and page_number in TTV_PAGE_NUMS:
                 titles.append("Haluatko kuulla jostain lisää?")
                 return titles
-            
-            #Other pages have no 
+
+            # Other pages have no
             else:
                 return self.current_page._get_content()
 
@@ -230,14 +233,14 @@ class YleNewsApi:
 
         page = YlePage(self.app)
 
-        #If not a main title page save everything as content
+        # If not a main title page save everything as content
         if page_number not in TTV_PAGE_NUMS:
             for line in lines:
                 for _, value in line.items():
                     if len(value) > 2:
                         page._add_content(line=value)
 
-        #Otherwise separate into titles and content
+        # Otherwise separate into titles and content
         else:
             for line in lines:
                 for _, value in line.items():
