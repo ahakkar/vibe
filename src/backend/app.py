@@ -60,7 +60,6 @@ class AppManager:
             "And command line interface with --cli argument",
         ]
 
-        # https://docs.python.org/3/library/argparse.html
         parser = argparse.ArgumentParser(prog="SLT-VIBE", usage="\n".join(desc))
         parser.add_argument("--cli", action="store_true", help="Enable CLI")
         parser.add_argument("--web", action="store_true", help="Enable Web server")
@@ -82,7 +81,7 @@ class AppManager:
         self._setup_env()
         self._load_services()
 
-    def toggle_recording(self, all):
+    def toggle_recording(self, all, silent):
         """
         Toggle recording state and process audio if recording is stopped.
 
@@ -94,23 +93,26 @@ class AppManager:
         if self.services[Srv.AUDIO].is_recording:
             audio_data = self.services[Srv.AUDIO].stop_recording()
             if audio_data is not None:
-                self._process_recording(audio_data, all)
+                self._process_recording(audio_data, all, silent)
             elif self.args.cli:
                 self.services[Srv.CLI].print_text("No audio recorded.")
 
         else:
             self.services[Srv.AUDIO].start_recording()
 
-    def _process_recording(self, recording, all):
+    def _process_recording(self, recording, all, silent):
         """
         Transcribe audio with STT, detect intent, provide response based on
         intent or if no intent was detected, provide an answer with text gen.
 
         :param NDArray[floating[Any]] recording: The recorded audio data
+        :param all bool: Activate all services
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
-        self.logger.info("Text:", audio_text)
+        self.logger.info(f"Text: {audio_text}")
+        if not silent:
+            self.services[Srv.CLI].print_text(f"Audio text: {audio_text}")
 
         if all:
             intent = self.services[Srv.IR].recognize_intent(audio_text)
@@ -118,15 +120,15 @@ class AppManager:
             # Intent is recognized, handle it
             if intent != None:
                 intent_response = self.services[Srv.IR].process_intent(intent)
-                if self.args.cli:
-                    self.services[Srv.CLI].print_text(intent_response)
+                if self.args.cli and not silent:
+                    self.services[Srv.CLI].print_text(f"Intent response: {intent_response}")
                 self.logger.info(
-                    "f[_process_recording] Intent response: {intent_response}"
+                    f"[_process_recording] Intent response: {intent_response}"
                 )
                 self.services[Srv.TTS].synthesize(intent_response)
             # If no intent is recognized, pass user prompt to LLM
             else:
-                self.text_gen(audio_text, True)
+                self.text_gen(audio_text, True, silent)
 
     def get_service(self, service_name: Srv):
         """
@@ -248,7 +250,7 @@ class AppManager:
             self.services[Srv.CLI].print_text(intent_response)
         self.logger.info("PERF : [intent_recognition] Done recognizing intent")
 
-    def text_gen(self, input_text: str, synthesize: bool = False):
+    def text_gen(self, input_text: str, synthesize: bool = False, silent: bool = False):
         """
         The language model generates text based on user's input text
         Print the language model's generated text
@@ -262,29 +264,44 @@ class AppManager:
         # print("\nContext:", context, "\n")
 
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
-        sentence = ""
+        if silent:
+            full_text = "".join(
+                token["choices"][0]["delta"].get("content", "")
+                for token in llm_output
+            ).strip()
+            self.services[Srv.TTS].synthesize(full_text)
 
-        for token in llm_output:
-            text = token["choices"][0]["delta"].get("content", "")
-            sentence += text
+            self.services[Srv.CONTEXT_MANAGER].messages.extend(
+                [
+                    {"role": "user", "content": input_text},
+                    {"role": "assistant", "content": full_text},
+                ]
+            )
 
-            if synthesize and (
-                any(punc in sentence for punc in local.constants.PUNCTATIONS)
-            ):
-                sentence = sentence.strip()
-                self.services[Srv.TTS].synthesize(sentence)
-                sentence = ""
+        else:
+            sentence = ""
 
-            self.services[Srv.CLI].print_text(text, None, False)
+            for token in llm_output:
+                text = token["choices"][0]["delta"].get("content", "")
+                sentence += text
 
-        self.services[Srv.CONTEXT_MANAGER].messages.extend(
-            [
-                {"role": "user", "content": input_text},
-                {"role": "assistant", "content": sentence.strip()},
-            ]
-        )
+                if synthesize and (
+                    any(punc in sentence for punc in local.constants.PUNCTATIONS)
+                ):
+                    sentence = sentence.strip()
+                    self.services[Srv.TTS].synthesize(sentence)
+                    sentence = ""
 
-        self.services[Srv.CLI].print_separator()
+                self.services[Srv.CLI].print_text(text, None, False)
+
+            self.services[Srv.CONTEXT_MANAGER].messages.extend(
+                [
+                    {"role": "user", "content": input_text},
+                    {"role": "assistant", "content": sentence.strip()},
+                ]
+            )
+            self.services[Srv.CLI].print_separator()
+        
         self.logger.info("PERF : [text_gen] Done generating text")
         return
 
