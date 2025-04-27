@@ -2,12 +2,8 @@ import pytest
 
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+from datetime import datetime
 from src.backend.local.weather import Forecast, Weather
-import test.weather_test_consts as weather_constants
-
-
-
-
 
 class TestWeatherService:
     def setup_method(self):
@@ -85,42 +81,6 @@ class TestWeatherService:
 
         assert result is None
 
-
-    #TODO: Figure a way to fix the tests to work without being dependant on current time
-    """ def test_get_forecast_single_success(self):
-
-            self.weather._get_coordinates.return_value = (61.4980214, 23.7603118)
-
-            self.weather._get_forecast_from_coords.return_value = Forecast(weather_constants.TEST_TIMES_24,
-                                                                        weather_constants.TEST_TEMPERATURES_24,
-                                                                        weather_constants.TEST_WEATHER_CODES_24,
-                                                                        weather_constants.TEST_PRECIPITATION_ZEROS_24)
-
-            result = self.weather.get_forecast(location = "Tampere", days = 1, skip_days = 0, frequency = 6)
-
-            assert result == ["Kello 0: pilvistä, 0.0 astetta celsiusta.",
-                            "Kello 6: pilvistä, 0.0 astetta celsiusta.",
-                            "Kello 12: pilvistä, 0.0 astetta celsiusta.",
-                            "Kello 18: pilvistä, 0.0 astetta celsiusta."]
-    
-
-    def test_get_forecast_single_success_with_rain(self):
-
-        
-            self.weather._get_coordinates.return_value = (61.4980214, 23.7603118)
-
-            self.weather._get_forecast_from_coords.return_value = Forecast(weather_constants.TEST_TIMES_24,
-                                                                            weather_constants.TEST_TEMPERATURES_24,
-                                                                            weather_constants.TEST_WEATHER_CODES_24,
-                                                                            weather_constants.TEST_PRECIPITATION_TENS_24)
-
-            result = self.weather.get_forecast(location = "Tampere", days = 1, skip_days = 0, frequency = 6)
-
-            assert result == ["Kello 0: pilvistä, 0.0 astetta celsiusta. Sateen todennäköisyys 10 prosenttia.",
-                                "Kello 6: pilvistä, 0.0 astetta celsiusta. Sateen todennäköisyys 10 prosenttia.",
-                                "Kello 12: pilvistä, 0.0 astetta celsiusta. Sateen todennäköisyys 10 prosenttia.",
-                                "Kello 18: pilvistä, 0.0 astetta celsiusta. Sateen todennäköisyys 10 prosenttia."] """
-        
     def teardown_method(self):
         """ """
         pass
