@@ -21,13 +21,15 @@ class TestYleNewsApi:
             return "urheilu"
         else:
             return word
-        
 
     def test_get_instruction_string(self):
 
         result = self.yle_news_api.get_instruction_string()
 
-        assert result == "Mistä aiheesta haluat kuulla uutisia: pääuutiset, kotimaa, ulkomaat, talous vai urheilu?"
+        assert (
+            result
+            == "Mistä aiheesta haluat kuulla uutisia: pääuutiset, kotimaa, ulkomaat, talous vai urheilu?"
+        )
 
     def test_parse_user_input(self):
 
@@ -48,4 +50,3 @@ class TestYleNewsApi:
     def teardown_method(self):
         """ """
         pass
-
