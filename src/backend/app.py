@@ -112,7 +112,7 @@ class AppManager:
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
-        self.logger.info("Text:", audio_text)
+        self.logger.info(f"Text: {audio_text}")
 
         if all:
             intent = self.services[Srv.IR].recognize_intent(audio_text)
@@ -123,7 +123,7 @@ class AppManager:
                 if self.args.cli:
                     self.services[Srv.CLI].print_text(intent_response)
                 self.logger.info(
-                    "f[_process_recording] Intent response: {intent_response}"
+                    f"[_process_recording] Intent response: {intent_response}"
                 )
                 self.services[Srv.TTS].synthesize(intent_response)
             # If no intent is recognized, pass user prompt to LLM
