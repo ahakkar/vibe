@@ -29,9 +29,7 @@ class WebApp:
             try:
                 input_text = payload.input_text
                 intent_response = self.app.intent_recognition_web(input_text)
-                return JSONResponse(
-                    content={"response": intent_response}, status_code=200
-                )
+                return JSONResponse(content={"response": intent_response}, status_code=200)
             except Exception as e:
                 self.app.logger.error(f"[post api/intent] Error while running webapp: {e}")
                 return JSONResponse(
@@ -55,10 +53,14 @@ class WebApp:
             try:
                 input_text = payload.input_text
 
-                audio_data = self.app.text_to_speech_web(input_text)
-                print(f"Audio data: {audio_data}")
+                audio_buffer: BytesIO = self.app.text_to_speech_web(input_text)
+                if not isinstance(audio_buffer, BytesIO):
+                    raise TypeError("Expected BytesIO from text_to_speech_web")
+
                 return StreamingResponse(
-                    content=iter([audio_data.getvalue()]), media_type="audio/wav"
+                    audio_buffer,  # stream the buffer directly
+                    media_type="audio/wav", 
+                    headers={"Content-Disposition": "inline; filename=tts.wav"}
                 )
             except Exception as e:
                 self.app.logger.error(f"[post api/tts] Error while running webapp: {e}")
@@ -78,10 +80,7 @@ class WebApp:
                     dtype="float32",
                 )
                 recorded_sentence = self.app.speech_to_text(audio_data)
-
-                return JSONResponse(
-                    content={"response": recorded_sentence}, status_code=200
-                )
+                return JSONResponse(content={"response": recorded_sentence}, status_code=200)
             except Exception as e:
                 self.app.logger.error(f"[post api/stt] Error while running webapp: {e}")
                 return JSONResponse(

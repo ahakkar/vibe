@@ -1,11 +1,9 @@
 from flask import Flask
+from flask_cors import CORS  # ← ADD THIS
 from app.route import main_bp
-
-# from app.text_gen_page import text_gen_bp
-
 
 def create_app():
     app = Flask(__name__)
+    CORS(app)  # ← ADD THIS HERE to enable CORS globally
     app.register_blueprint(main_bp)
-    # app.register_blueprint(text_gen_bp)
     return app

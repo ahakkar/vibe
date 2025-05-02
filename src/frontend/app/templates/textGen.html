@@ -68,6 +68,12 @@
             font-size: 16px;
             color: #ffcccc;
         }
+
+        #loading-indicator {
+            display: none;
+            color: #ffcc00;
+            font-size: 18px;
+        }
     </style>
 </head>
 
@@ -80,42 +86,91 @@
     <div class="center-content">
         <div class="question">Mitä voin auttaa?</div>
         <textarea class="input-box" placeholder="kysy mitä haluat"></textarea>
+        <div id="loading-indicator">Luodaan ääntä...</div> <!-- Loading Indicator -->
         <div class="response">
             <p id="response-text"></p>
         </div>
-        <script>
-            const inputBox = document.querySelector('.input-box');
-            const responseText = document.getElementById('response-text');
-
-            inputBox.addEventListener('input', function () {
-                inputBox.style.height = 'auto'; // 
-                inputBox.style.height = inputBox.scrollHeight + 'px';
-            });
-
-            inputBox.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const userInput = e.target.value;
-                    const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
-
-                    if (userInput.length > 500) {
-                        responseText.textContent = "Virhe: Teksti on liian pitkä.";
-                    } else if (isEnglish) {
-                        responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
-                    } else {
-                        responseText.textContent = "Kysymys vastaanotettu.";
-                        window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput);
-                    }
-                }
-            });
-
-
-            inputBox.addEventListener('drop', function (e) {
-                e.preventDefault();
-                responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän.";
-            });
-        </script>
     </div>
+
+    <script>
+        const inputBox = document.querySelector('.input-box');
+        const responseText = document.getElementById('response-text');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        inputBox.addEventListener('input', function () {
+            inputBox.style.height = 'auto';
+            inputBox.style.height = inputBox.scrollHeight + 'px';
+        });
+
+        inputBox.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const userInput = e.target.value;
+                const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
+
+                if (userInput.length > 500) {
+                    responseText.textContent = "Virhe: Teksti on liian pitkä.";
+                } else if (isEnglish) {
+                    responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
+                } else {
+                    responseText.textContent = "Kysymys vastaanotettu.";
+                    loadingIndicator.style.display = 'block';  // Show loading indicator
+                    window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput) + "&tts=true";
+                }
+            }
+        });
+
+        inputBox.addEventListener('drop', function (e) {
+            e.preventDefault();
+            responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän.";
+        });
+
+        // window.addEventListener('DOMContentLoaded', async () => {
+        //     const urlParams = new URLSearchParams(window.location.search);
+        //     const question = urlParams.get('question');
+        //     const useTTS = urlParams.get('tts');
+
+        //     if (question) {
+        //         inputBox.value = question;
+        //         responseText.textContent = "Kysymys vastaanotettu: " + question;
+        //     }
+
+        //     if (question && useTTS === 'true') {
+        //         try {
+        //             responseText.textContent = "Luodaan ääntä...";
+        //             loadingIndicator.style.display = 'block'; // Show loading indicator
+
+        //             const response = await fetch('/api/tts', {
+        //                 method: 'POST',
+        //                 headers: { 'Content-Type': 'application/json' },
+        //                 body: JSON.stringify({ input_text: question })
+        //             });
+
+        //             if (!response.ok) {
+        //                 throw new Error("TTS API error");
+        //             }
+
+        //             const blob = await response.blob();
+        //             const audioUrl = URL.createObjectURL(blob);
+        //             const audio = new Audio(audioUrl);
+
+        //             // Wait for metadata to load before playing
+        //             audio.addEventListener('canplaythrough', () => {
+        //                 audio.play().catch(err => {
+        //                     console.error("Playback error:", err);
+        //                     responseText.textContent = "Äänen toisto epäonnistui.";
+        //                 });
+        //                 loadingIndicator.style.display = 'none';  // Hide loading indicator after playing
+        //             });
+
+        //         } catch (err) {
+        //             console.error("TTS fetch error:", err);
+        //             responseText.textContent = "TTS-ääni epäonnistui.";
+        //             loadingIndicator.style.display = 'none';  // Hide loading indicator on error
+        //         }
+        //     }
+        // });
+    </script>
 </body>
 
 </html>
