@@ -10,6 +10,7 @@ from pydantic import BaseModel
 class TextInput(BaseModel):
     input_text: str
 
+
 class WebApp:
     def __init__(self, app):
         self.app = app
@@ -29,11 +30,15 @@ class WebApp:
             try:
                 input_text = payload.input_text
                 intent_response = self.app.intent_recognition_web(input_text)
-                return JSONResponse(content={"response": intent_response}, status_code=200)
-            except Exception as e:
-                self.app.logger.error(f"[post api/intent] Error while running webapp: {e}")
                 return JSONResponse(
-                    content={"Text generations error": str(e)}, status_code=500
+                    content={"response": intent_response}, status_code=200
+                )
+            except Exception as e:
+                self.app.logger.error(
+                    f"[post api/intent] Error while running webapp: {e}"
+                )
+                return JSONResponse(
+                    content={"Intent recognition error": str(e)}, status_code=500
                 )
 
         @self.appAPI.post("/api/text")
@@ -43,7 +48,9 @@ class WebApp:
                 full_text = self.app.text_gen_web(input_text)
                 return JSONResponse(content={"response": full_text}, status_code=200)
             except Exception as e:
-                self.app.logger.error(f"[post api/text] Error while running webapp: {e}")
+                self.app.logger.error(
+                    f"[post api/text] Error while running webapp: {e}"
+                )
                 return JSONResponse(
                     content={"Text generation error": str(e)}, status_code=500
                 )
@@ -59,8 +66,8 @@ class WebApp:
 
                 return StreamingResponse(
                     audio_buffer,  # stream the buffer directly
-                    media_type="audio/wav", 
-                    headers={"Content-Disposition": "inline; filename=tts.wav"}
+                    media_type="audio/wav",
+                    headers={"Content-Disposition": "inline; filename=tts.wav"},
                 )
             except Exception as e:
                 self.app.logger.error(f"[post api/tts] Error while running webapp: {e}")
@@ -80,11 +87,40 @@ class WebApp:
                     dtype="float32",
                 )
                 recorded_sentence = self.app.speech_to_text(audio_data)
-                return JSONResponse(content={"response": recorded_sentence}, status_code=200)
+                return JSONResponse(
+                    content={"response": recorded_sentence}, status_code=200
+                )
             except Exception as e:
                 self.app.logger.error(f"[post api/stt] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Speech to text error": str(e)}, status_code=500
+                )
+
+        @self.appAPI.post("/api/all")
+        async def all_services_api(audio: UploadFile = File(...)):
+            try:
+                audio_bytes = await audio.read()
+
+                audio_data, sample_rate = librosa.load(
+                    BytesIO(audio_bytes),
+                    sr=16_000,
+                    mono=True,
+                    dtype="float32",
+                )
+                audio_buffer: BytesIO = self.app.process_recording_web(audio_data)
+
+                if not isinstance(audio_buffer, BytesIO):
+                    raise TypeError("Expected BytesIO from process_recording_web")
+
+                return StreamingResponse(
+                    audio_buffer,  # stream the buffer directly
+                    media_type="audio/wav",
+                    headers={"Content-Disposition": "inline; filename=all.wav"},
+                )
+            except Exception as e:
+                self.app.logger.error(f"[post api/all] Error while running webapp: {e}")
+                return JSONResponse(
+                    content={"All services error": str(e)}, status_code=500
                 )
 
     def run_server(self):

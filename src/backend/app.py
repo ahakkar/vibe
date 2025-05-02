@@ -356,6 +356,21 @@ class AppManager:
             )
         return intent_response
 
+    def process_recording_web(self, recording):
+        audio_text = self.services[Srv.STT].transcribe(recording)
+        self.logger.info(f"Text: {audio_text}")
+
+        intent = self.services[Srv.IR].recognize_intent(audio_text)
+
+        # Intent is recognized, handle it
+        if intent != None:
+            intent_response = self.services[Srv.IR].process_intent(intent)
+            self.logger.info(f"[_process_recording] Intent response: {intent_response}")
+            return self.services[Srv.TTS].synthesize_to_buffer(intent_response)
+        else:
+            full_text = self.text_gen_web(audio_text)
+            return self.services[Srv.TTS].synthesize_to_buffer(full_text)
+
     def _load_services(self):
         """
         This function loads all the services based on the chosen input and output devices

@@ -8,3 +8,4 @@ recorded_audio.wav
 *.log
 chroma_data/
 venv/
+output.wav

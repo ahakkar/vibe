@@ -104,21 +104,17 @@ class TextToSpeech(TextToSpeechInterface):
 
         int_data = np.frombuffer(full_audio, dtype=np.int16)
 
-        print(f"Int data: {int_data}")
         if self.output_sample_rate != self.piper_sample_rate:
             int_data = self.resample_audio(
                 int_data, self.piper_sample_rate, self.output_sample_rate
             )
-        print(f"Resample int data: {int_data}")
         buffer = BytesIO()
         with wave.open(buffer, "wb") as wf:
             wf.setnchannels(1)
             wf.setsampwidth(2)
             wf.setframerate(self.output_sample_rate)
             wf.writeframes(int_data.tobytes())
-        print(f"Buffer: {buffer}")
         buffer.seek(0)
-        print(f"Buffer 0: {buffer}")
         return buffer
 
     def _process_queue(self):
