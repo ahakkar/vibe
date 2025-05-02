@@ -169,22 +169,22 @@ class AppManager:
         """
         Starts both the web and CLI services concurrently without any `if` condition.
         """
-   
-    # Start the Web service in the background (non-blocking)
+
+        # Start the Web service in the background (non-blocking)
         if self.args.web:
             # Redirect web server logs to /dev/null
             logging.getLogger("werkzeug").setLevel(logging.ERROR)  # Suppress Flask logs
             web_thread = threading.Thread(target=self._run_web, daemon=True)
             web_thread.start()
 
-    # Run the CLI service in the terminal (blocking)
+        # Run the CLI service in the terminal (blocking)
         if self.args.cli:
             self._run_cli()
 
-
     def _run_web(self):
-            webApp = WebApp(self)
-            webApp.run_server()
+        webApp = WebApp(self)
+        webApp.run_server()
+
     def _run_cli(self):
         """
         Run the Command Line Service (interactive)
@@ -279,7 +279,7 @@ class AppManager:
         self.services[Srv.CLI].print_separator()
         self.logger.info("PERF : [text_gen] Done generating text")
         return
-    
+
     def text_gen_web(self, input_text: str):
         """
         The language model generates text based on user's input text
@@ -289,11 +289,10 @@ class AppManager:
         """
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
         full_text = "".join(
-            token["choices"][0]["delta"].get("content", "")
-            for token in llm_output
+            token["choices"][0]["delta"].get("content", "") for token in llm_output
         )
         return full_text
-    
+
     def text_to_speech_web(self, input_text: str):
         """
         Run the text to speech service
@@ -302,7 +301,6 @@ class AppManager:
         """
 
         return self.services[Srv.TTS].synthesize_to_buffer(input_text)
-    
 
     def intent_recognition_web(self, input_text: str):
         """
@@ -316,7 +314,9 @@ class AppManager:
         if intent == None:
             intent_response = "Intenttiä ei havaittu\n"
         else:
-            intent_response = self.services[Srv.IR].process_intent(intent, input=input_text)
+            intent_response = self.services[Srv.IR].process_intent(
+                intent, input=input_text
+            )
             self.logger.info(
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
