@@ -3,7 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>VIBE - SLT</title>
+    <title>VIBE - TTS</title>
+    <!-- Include Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
@@ -16,7 +18,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: radial-gradient(circle at center, #a64ca6 0%, #333 60%);
+            background: radial-gradient(circle at center, #4ca6a6 0%, #333 60%);
         }
 
         .logo {
@@ -49,6 +51,14 @@
             margin-bottom: 20px;
         }
 
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+        }
+
         .input-box {
             width: 500px;
             max-width: 90%;
@@ -60,27 +70,33 @@
             font-size: 18px;
             box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
             resize: none;
-            /* Prevent manual resizing */
             overflow: hidden;
-            /* Hide scrollbars */
-
         }
 
-        .input-container {
+        .audio-button {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: #ff6666;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
-            flex-direction: row;
             align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .input-button {
-            max-width: 90%;
-            padding: 15px;
-            border-radius: 10px;
-            background-color: #aaa;
-            color: black;
-            font-size: 18px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            resize: none;
+        .audio-button:hover {
+            background-color: #ff4d4d;
+        }
+
+        .audio-button i {
+            font-size: 20px;
+            color: white;
         }
 
         .response {
@@ -88,58 +104,104 @@
             font-size: 16px;
             color: #ffcccc;
         }
+
+        #loading-indicator {
+            display: none;
+            color: #ffcc00;
+            font-size: 18px;
+        }
     </style>
 </head>
 
 <body>
     <a href="{{ url_for('main.index') }}" class="logo">
         <div style="font-size: 24px;">S</div>
-        <span>VIBE - SLT</span>
+        <span>VIBE - TTS</span>
     </a>
 
     <div class="center-content">
-        <div class="question">Kirjoita jotain</div>
+        <div class="question">Mitä voin auttaa?</div>
         <div class="input-container">
-            <textarea class="input-box" placeholder="Kirjoita jotain"></textarea>
-            <button class="input-button">TTS</button>
+            <textarea class="input-box" placeholder="kysy mitä haluat"></textarea>
+            <button class="audio-button" id="audio-button">
+                <i class="bi bi-mic-fill"></i>
+            </button>
         </div>
+        <div id="loading-indicator">Luodaan ääntä...</div> <!-- Loading Indicator -->
         <div class="response">
             <p id="response-text"></p>
         </div>
-        <script>
-            const inputBox = document.querySelector('.input-box');
-            const responseText = document.getElementById('response-text');
-
-            // Adjust the height of the textarea dynamically
-            inputBox.addEventListener('input', function () {
-                inputBox.style.height = 'auto'; // 
-                inputBox.style.height = inputBox.scrollHeight + 'px';
-            });
-
-            inputBox.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    const userInput = e.target.value;
-                    const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
-
-                    if (userInput.length > 500) {
-                        responseText.textContent = "Virhe: Teksti on liian pitkä.";
-                    } else if (isEnglish) {
-                        responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
-                    } else {
-                        responseText.textContent = "Kysymys vastaanotettu.";
-                        window.location.href = "/tts/chat";
-                    }
-                }
-            });
-
-            // Prevent image drops in the input box
-            inputBox.addEventListener('drop', function (e) {
-                e.preventDefault();
-                responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän."; // Error for image drop
-            });
-        </script>
     </div>
+
+    <script>
+        const inputBox = document.querySelector('.input-box');
+        const responseText = document.getElementById('response-text');
+        const audioButton = document.getElementById('audio-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        inputBox.addEventListener('input', function () {
+            inputBox.style.height = 'auto';
+            inputBox.style.height = inputBox.scrollHeight + 'px';
+        });
+
+        inputBox.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const userInput = e.target.value;
+                const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
+
+                if (userInput.length > 500) {
+                    responseText.textContent = "Virhe: Teksti on liian pitkä.";
+                } else if (isEnglish) {
+                    responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
+                } else {
+                    responseText.textContent = "Kysymys vastaanotettu.";
+                    loadingIndicator.style.display = 'block'; // Show loading indicator
+                    window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput) + "&tts=true";
+                }
+            }
+        });
+
+        inputBox.addEventListener('drop', function (e) {
+            e.preventDefault();
+            responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän.";
+        });
+
+        audioButton.addEventListener('click', function () {
+            const userInput = inputBox.value;
+            if (userInput.trim() === "") {
+                responseText.textContent = "Virhe: Tekstiä ei voi olla tyhjä.";
+                return;
+            }
+
+            responseText.textContent = "Luodaan ääntä...";
+            loadingIndicator.style.display = 'block';
+
+            fetch('http://localhost:5000/api/tts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input_text: userInput })
+            })
+                .then(response => response.blob())
+                .then(blob => {
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+
+                    audio.addEventListener('canplaythrough', () => {
+                        audio.play().catch(err => {
+                            console.error("Playback error:", err);
+                            responseText.textContent = "Äänen toisto epäonnistui.";
+                        });
+                        loadingIndicator.style.display = 'none';
+                    });
+                })
+                .catch(err => {
+                    console.error("TTS API error:", err);
+                    responseText.textContent = "TTS-ääni epäonnistui.";
+                    loadingIndicator.style.display = 'none';
+                });
+        });
+    </script>
 </body>
 
 </html>
