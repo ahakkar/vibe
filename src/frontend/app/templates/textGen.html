@@ -50,7 +50,7 @@
         }
 
         .input-box {
-            width: 100%;
+            width: 500px;
             max-width: 90%;
             padding: 15px;
             border: none;
@@ -125,51 +125,51 @@
             responseText.textContent = "Virhe: Kuvia ei voi pudottaa tähän.";
         });
 
-        window.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const question = urlParams.get('question');
-            const useTTS = urlParams.get('tts');
+        // window.addEventListener('DOMContentLoaded', async () => {
+        //     const urlParams = new URLSearchParams(window.location.search);
+        //     const question = urlParams.get('question');
+        //     const useTTS = urlParams.get('tts');
 
-            if (question) {
-                inputBox.value = question;
-                responseText.textContent = "Kysymys vastaanotettu: " + question;
-            }
+        //     if (question) {
+        //         inputBox.value = question;
+        //         responseText.textContent = "Kysymys vastaanotettu: " + question;
+        //     }
 
-            if (question && useTTS === 'true') {
-                try {
-                    responseText.textContent = "Luodaan ääntä...";
-                    loadingIndicator.style.display = 'block'; // Show loading indicator
+        //     if (question && useTTS === 'true') {
+        //         try {
+        //             responseText.textContent = "Luodaan ääntä...";
+        //             loadingIndicator.style.display = 'block'; // Show loading indicator
 
-                    const response = await fetch('/api/tts', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ input_text: question })
-                    });
+        //             const response = await fetch('/api/tts', {
+        //                 method: 'POST',
+        //                 headers: { 'Content-Type': 'application/json' },
+        //                 body: JSON.stringify({ input_text: question })
+        //             });
 
-                    if (!response.ok) {
-                        throw new Error("TTS API error");
-                    }
+        //             if (!response.ok) {
+        //                 throw new Error("TTS API error");
+        //             }
 
-                    const blob = await response.blob();
-                    const audioUrl = URL.createObjectURL(blob);
-                    const audio = new Audio(audioUrl);
+        //             const blob = await response.blob();
+        //             const audioUrl = URL.createObjectURL(blob);
+        //             const audio = new Audio(audioUrl);
 
-                    // Wait for metadata to load before playing
-                    audio.addEventListener('canplaythrough', () => {
-                        audio.play().catch(err => {
-                            console.error("Playback error:", err);
-                            responseText.textContent = "Äänen toisto epäonnistui.";
-                        });
-                        loadingIndicator.style.display = 'none';  // Hide loading indicator after playing
-                    });
+        //             // Wait for metadata to load before playing
+        //             audio.addEventListener('canplaythrough', () => {
+        //                 audio.play().catch(err => {
+        //                     console.error("Playback error:", err);
+        //                     responseText.textContent = "Äänen toisto epäonnistui.";
+        //                 });
+        //                 loadingIndicator.style.display = 'none';  // Hide loading indicator after playing
+        //             });
 
-                } catch (err) {
-                    console.error("TTS fetch error:", err);
-                    responseText.textContent = "TTS-ääni epäonnistui.";
-                    loadingIndicator.style.display = 'none';  // Hide loading indicator on error
-                }
-            }
-        });
+        //         } catch (err) {
+        //             console.error("TTS fetch error:", err);
+        //             responseText.textContent = "TTS-ääni epäonnistui.";
+        //             loadingIndicator.style.display = 'none';  // Hide loading indicator on error
+        //         }
+        //     }
+        // });
     </script>
 </body>
 

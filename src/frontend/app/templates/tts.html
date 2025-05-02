@@ -147,18 +147,7 @@
         inputBox.addEventListener('keypress', function (e) {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
-                const userInput = e.target.value;
-                const isEnglish = /^[a-zA-Z\s]+$/.test(userInput);
-
-                if (userInput.length > 500) {
-                    responseText.textContent = "Virhe: Teksti on liian pitkä.";
-                } else if (isEnglish) {
-                    responseText.textContent = "Virhe: Kysymys ei voi olla englanniksi.";
-                } else {
-                    responseText.textContent = "Kysymys vastaanotettu.";
-                    loadingIndicator.style.display = 'block'; // Show loading indicator
-                    window.location.href = "/text-gen/chat?question=" + encodeURIComponent(userInput) + "&tts=true";
-                }
+                triggerTTS();
             }
         });
 
@@ -168,14 +157,17 @@
         });
 
         audioButton.addEventListener('click', function () {
+            triggerTTS();
+        });
+
+        function triggerTTS() {
             const userInput = inputBox.value;
             if (userInput.trim() === "") {
                 responseText.textContent = "Virhe: Tekstiä ei voi olla tyhjä.";
                 return;
             }
 
-            responseText.textContent = "Luodaan ääntä...";
-            loadingIndicator.style.display = 'block';
+            loadingIndicator.style.display = 'block'; // Show loading indicator
 
             fetch('http://localhost:5000/api/tts', {
                 method: 'POST',
@@ -192,15 +184,15 @@
                             console.error("Playback error:", err);
                             responseText.textContent = "Äänen toisto epäonnistui.";
                         });
-                        loadingIndicator.style.display = 'none';
+                        loadingIndicator.style.display = 'none'; // Hide loading indicator
                     });
                 })
                 .catch(err => {
                     console.error("TTS API error:", err);
                     responseText.textContent = "TTS-ääni epäonnistui.";
-                    loadingIndicator.style.display = 'none';
+                    loadingIndicator.style.display = 'none'; // Hide loading indicator
                 });
-        });
+        }
     </script>
 </body>
 
