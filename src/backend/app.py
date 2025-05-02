@@ -123,9 +123,7 @@ class AppManager:
             if intent != None:
                 intent_response = self.services[Srv.IR].process_intent(intent)
                 if self.args.cli and not silent:
-                    self.services[Srv.CLI].print_text(
-                        f"{intent_response}"
-                    )
+                    self.services[Srv.CLI].print_text(f"{intent_response}")
                 self.logger.info(
                     f"[_process_recording] Intent response: {intent_response}"
                 )
