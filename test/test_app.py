@@ -10,6 +10,8 @@ with patch.dict(
         "shutil": MagicMock(),
         "dotenv": MagicMock(),
         "time": MagicMock(),
+        "uvicorn": MagicMock(),
+        "soundfile": MagicMock(),
         "pyfiglet": MagicMock(),
         "blessed": MagicMock(),
         "numpy": MagicMock(),
