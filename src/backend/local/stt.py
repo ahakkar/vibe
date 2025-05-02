@@ -83,4 +83,5 @@ class SpeechToTextService(SpeechToTextInterface):
             recorded_ids.numpy(), skip_special_tokens=False
         )[0]
 
+        self.logger.info("RETURN : [speech_to_text] Transcribing audio")
         return recorded_sentence

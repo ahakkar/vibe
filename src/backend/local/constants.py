@@ -1,18 +1,21 @@
 from enum import Enum
 
 APP_TITLE = "SLT-VIBE"
-APP_LOG_FILE = "vibe.log"
+APP_LOG_FILE = "vibe"
 
 
 class Srv(Enum):
     STT = "Speech to Text Service"
     TTS = "Text to Speech Service"
     TEXT_GEN = "Text Generation Service"
+    RAG = "RAG context management service"
+    CONTEXT_MANAGER = "Context Management Service"
     IR = "Intent Recognition Service"
     AUDIO = "Audio Service"
     CLI = "Command Line Interface"
     WEATHER = "Open weather API"
     NEWS = "Yle Teksti-TV API"
+    BASEFORM = "Voikko Baseform Service"
 
 
 # Currently very short dict of topics and corrensponding teletext pages
@@ -23,6 +26,14 @@ TTV_PAGES = {
     "talous": 160,
     "urheilu": 201,
 }
+
+TTV_PAGE_NUMS = [
+    100,
+    102,
+    130,
+    160,
+    201,
+]
 
 
 THEME = {

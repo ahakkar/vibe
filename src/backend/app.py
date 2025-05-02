@@ -14,11 +14,14 @@ from dotenv import load_dotenv
 from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
+from local.chroma import Chroma
+from local.context_manager import ContextManager
 from local.tts import TextToSpeech
 from local.audio import AudioService
 from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
+from local.baseform import Baseform
 from api.webapp import WebApp
 from pathlib import Path
 
@@ -28,11 +31,30 @@ class AppManager:
         """
         Initialize app manager
         """
-        self.logger = logging.getLogger(__name__)
-        logfile_name = APP_LOG_FILE
 
-        logging.basicConfig(filename=logfile_name, level=logging.INFO)
-        self.logger.info(f"APP start at {time.asctime()}")
+        # Determine the correct .env and logs path based if running in Docker
+        if os.getenv("RUNNING_IN_DOCKER"):
+            self.root = os.path.join("/")
+            self.ENV_PATH = os.path.join(self.root, "usr/src")
+            self.LOG_PATH = os.path.join(self.root, "usr/src/logs")
+        else:
+            self.root = self._find_project_root()
+            self.ENV_PATH = os.path.join(self.root, "src/backend")
+            self.LOG_PATH = os.path.join(self.root, "logs")
+
+        self.logger = logging.getLogger(__name__)
+        logfile_name = f"{APP_LOG_FILE}_{time.strftime('%Y%m%d_%H%M')}.log"
+
+        logging.basicConfig(
+            level=logging.INFO,
+            format="{asctime}.{msecs:03.0f} - {levelname} - {message}",
+            style="{",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            handlers=[
+                logging.FileHandler(os.path.join(self.LOG_PATH, logfile_name), mode="w")
+            ],
+        )
+        self.logger.info(f"APP start")
 
         desc = [
             "App runs by default on background. Enable web server with --web",
@@ -45,23 +67,18 @@ class AppManager:
         parser.add_argument("--web", action="store_true", help="Enable Web server")
         self.args = parser.parse_args()
 
-        # Determine the correct .env path based if running in Docker
-        if os.getenv("RUNNING_IN_DOCKER"):
-            self.root = os.path.join("/")
-            self.ENV_PATH = os.path.join(self.root, "usr/src")
-        else:
-            self.root = self._find_project_root()
-            self.ENV_PATH = os.path.join(self.root, "src/backend")
-
         self.services = {
             Srv.STT: None,
             Srv.TTS: None,
             Srv.TEXT_GEN: None,
+            Srv.RAG: None,
+            Srv.CONTEXT_MANAGER: None,
             Srv.IR: None,
             Srv.AUDIO: None,
             Srv.CLI: None,
             Srv.WEATHER: None,
             Srv.NEWS: None,
+            Srv.BASEFORM: None,
         }
 
         self._setup_env()
@@ -122,6 +139,21 @@ class AppManager:
         """
         return self.services.get(service_name)
 
+    def exit_and_save(self):
+        """
+        Exit the program gracefully with cleanup
+        """
+        if self.services[Srv.CLI]:
+            self.services[Srv.CLI].print_text("Saving context and exiting the program.")
+
+        context_from_conversation = self.services[Srv.CONTEXT_MANAGER].summarizer()
+        self.services[Srv.RAG].save_to_db(context_from_conversation)
+
+        self.services[Srv.AUDIO].terminate_audio()
+        self.services[Srv.TTS].stop()
+        self.logger.info(f"APP shutdown at {time.asctime()}")
+        sys.exit(0)
+
     def exit(self):
         """
         Exit the program gracefully with cleanup
@@ -130,7 +162,7 @@ class AppManager:
             self.services[Srv.CLI].print_text("Exiting the program.")
         self.services[Srv.AUDIO].terminate_audio()
         self.services[Srv.TTS].stop()
-        self.logger.info(f"APP shutdown at {time.asctime()}")
+        self.logger.info(f"APP shutdown")
         sys.exit(0)
 
     def run(self):
@@ -175,7 +207,7 @@ class AppManager:
 
         :return str: The recorded sentence that is transcribed from audio data
         """
-
+        self.logger.info("PERF : [speech_to_text] Transcribing audio")
         return self.services[Srv.STT].transcribe(audio)
 
     def text_to_speech(self, input_text: str):
@@ -184,8 +216,9 @@ class AppManager:
 
         :param str input_text: result from llm, intents etc.
         """
-
+        self.logger.info("PERF : [text_to_speech] Synthesizing text")
         self.services[Srv.TTS].synthesize(input_text)
+        self.logger.info("PERF : [text_to_speech] Done synthesizing text")
 
     def intent_recognition(self, input_text: str):
         """
@@ -193,7 +226,7 @@ class AppManager:
 
         :param str input_text: user input, either STT'd text or plain text
         """
-
+        self.logger.info("PERF : [intent_recognition] Recognizing intent")
         intent = self.services[Srv.IR].recognize_intent(input_text)
         if intent == None:
             self.services[Srv.CLI].print_text("Intenttiä ei havaittu\n", None, False)
@@ -205,6 +238,7 @@ class AppManager:
                 f"[intent_recognition] Intent: {intent.intent.name}, response: {intent_response}"
             )
             self.services[Srv.CLI].print_text(intent_response)
+        self.logger.info("PERF : [intent_recognition] Done recognizing intent")
 
     def text_gen(self, input_text: str, synthesize: bool = False):
         """
@@ -214,14 +248,18 @@ class AppManager:
         :param str input_text: The user's input text
         :param bool synthesize: If True, synthesize the generated text
         """
-        llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
+        self.logger.info("PERF : [text_gen] Generating text")
+        context = self.services[Srv.RAG].retrieve_similar_entries(input_text)
+
+        # print("\nContext:", context, "\n")
+
+        llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
         sentence = ""
 
         for token in llm_output:
             text = token["choices"][0]["delta"].get("content", "")
             sentence += text
 
-            # Check if the sentence is complete
             if synthesize and (
                 any(punc in sentence for punc in local.constants.PUNCTATIONS)
             ):
@@ -231,8 +269,15 @@ class AppManager:
 
             self.services[Srv.CLI].print_text(text, None, False)
 
-        self.services[Srv.CLI].print_separator()
+        self.services[Srv.CONTEXT_MANAGER].messages.extend(
+            [
+                {"role": "user", "content": input_text},
+                {"role": "assistant", "content": sentence.strip()},
+            ]
+        )
 
+        self.services[Srv.CLI].print_separator()
+        self.logger.info("PERF : [text_gen] Done generating text")
         return
     
     def text_gen_web(self, input_text: str):
@@ -309,6 +354,18 @@ class AppManager:
             self.exit()
 
         try:
+            self.services[Srv.RAG] = Chroma(self.root)
+        except Exception as e:
+            self.logger.error(f"Failed to load rag service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.CONTEXT_MANAGER] = ContextManager(self.root)
+        except Exception as e:
+            self.logger.error(f"Failed to load text context management service: {e}")
+            self.exit()
+
+        try:
             self.services[Srv.IR] = IrService(self)
         except Exception as e:
             self.logger.error(f"Failed to load ir service: {e}")
@@ -318,11 +375,17 @@ class AppManager:
             self.services[Srv.WEATHER] = Weather()
         except Exception as e:
             self.logger.error(f"Failed to load weather service: {e}")
-
+            self.exit()
         try:
-            self.services[Srv.NEWS] = YleNewsApi()
+            self.services[Srv.NEWS] = YleNewsApi(self)
         except Exception as e:
             self.logger.error(f"Failed to load yle news service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.BASEFORM] = Baseform()
+        except Exception as e:
+            self.logger.error(f"Failed to load baseform service: {e}")
             self.exit()
 
     def _setup_env(self):
