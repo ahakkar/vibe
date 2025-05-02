@@ -4,20 +4,20 @@ import requests
 import json
 import os
 
-from local.constants import TTV_PAGES
-from local.baseform import Baseform
+from local.constants import TTV_PAGES, TTV_PAGE_NUMS, Srv
 
 # TODO: clean code and fix comments
 
 
 class YlePage:
 
-    def __init__(self):
+    def __init__(self, app):
         """
         Initialize Yle page
         """
         self.subpages = {}
         self.content = []
+        self.app = app
 
     def _add_subpage(self, title: str, page_number: int):
         """
@@ -52,7 +52,6 @@ class YlePage:
         """
         return self.content
 
-    # TODO: Improve to use finnwordnet?
     def _find_page_from_input(self, input: str):
         """
         Finds the most similiar article title to user input by simply comparing words
@@ -62,10 +61,17 @@ class YlePage:
         :return int: The page number for the most similar article
         """
 
-        b = Baseform()
-
         input_words = input.lower().split()
-        input_baseforms = set(b.get_baseform(word) for word in input_words)
+
+        # Remove special chars from end of words, eg ":"
+        for i, word_check in enumerate(input_words):
+            if not word_check[-1].isalpha():
+                input_words[i] = word_check[:-1]
+
+        input_baseforms = set(
+            self.app.get_service(Srv.BASEFORM).get_baseform(word)
+            for word in input_words
+        )
 
         most_similiar = None
         most_common_words = 0
@@ -73,7 +79,10 @@ class YlePage:
         for title in self.subpages:
 
             title_words = title.lower().split()
-            title_baseforms = set(b.get_baseform(word) for word in title_words)
+            title_baseforms = set(
+                self.app.get_service(Srv.BASEFORM).get_baseform(word)
+                for word in title_words
+            )
 
             intersection = input_baseforms & title_baseforms
 
@@ -91,7 +100,7 @@ class YlePage:
 
 class YleNewsApi:
 
-    def __init__(self):
+    def __init__(self, app):
         """
         Initialize Yle News API
         """
@@ -100,6 +109,8 @@ class YleNewsApi:
         self.YLE_APP_ID = os.getenv("YLE_APP_ID")
         self.YLE_APP_KEY = os.getenv("YLE_APP_KEY")
         self.YLE_TTV_URL = os.getenv("YLE_TTV_URL")
+
+        self.app = app
 
         if not self.YLE_APP_ID:
             self.logger.error(f"[yle.py:__init__] Missing YLE_APP_ID from .env file")
@@ -132,15 +143,13 @@ class YleNewsApi:
         :return list: The teletext page(s)
         """
 
-        b = Baseform()
-
         words = input.lower().split()
 
         return_list = []
 
         for word in words:
             # Use baseform of words to deal with different user inputs
-            word_baseform = b.get_baseform(word)
+            word_baseform = self.app.get_service(Srv.BASEFORM).get_baseform(word)
 
             if TTV_PAGES.get(word_baseform) is not None:
 
@@ -168,6 +177,8 @@ class YleNewsApi:
         Gets the teletext news from input page number as a list of strings
 
         :param int page_number: The page number to get the page data
+
+        :return str: Current page content
         """
         page_data = self._get_page_data(page_number=page_number)
 
@@ -177,12 +188,18 @@ class YleNewsApi:
         else:
 
             # Updates class variable current_page
-            self._parse_json(page_data)
+            self._parse_json(page_data, page_number=page_number)
 
             titles = self.current_page._get_titles()
-            if len(titles) > 0:
+
+            # Returns the titles from a title/"main" page
+            # Currently used main pages listed in TTV_PAGES and TTV_PAGE_NUMS
+            # Could be extended
+            if len(titles) > 0 and page_number in TTV_PAGE_NUMS:
                 titles.append("Haluatko kuulla jostain lisää?")
                 return titles
+
+            # Other pages have no
             else:
                 return self.current_page._get_content()
 
@@ -203,65 +220,74 @@ class YleNewsApi:
             self.logger.error(f"[yle.py:_get_page_data]: Error fetching Yle data: {e}")
             return None
 
-    def _parse_json(self, json_data) -> list[Any]:
+    def _parse_json(self, json_data, page_number):
         """
         Parse the json data to create an YlePage object
         This is saved as self.current_page
 
-
         :param json json_data: The data that needs to be parsed
+
         :return None
         """
         teletext = json_data["teletext"]["page"]["subpage"][0]
         content = teletext["content"][0]
         lines = content["line"]
 
-        page = YlePage()
+        page = YlePage(self.app)
 
-        for line in lines:
-            for _, value in line.items():
-                if len(value) > 2:
-
-                    words = value.split()
-
-                    # If line doesnt start with a number save it as content
-                    if not words[0].isdigit() or len(words[0]) < 3:
+        # If not a main title page save everything as content
+        if page_number not in TTV_PAGE_NUMS:
+            for line in lines:
+                for _, value in line.items():
+                    if len(value) > 2:
                         page._add_content(line=value)
 
-                    else:
+        # Otherwise separate into titles and content
+        else:
+            for line in lines:
+                for _, value in line.items():
+                    if len(value) > 2:
 
-                        i = 0
+                        words = value.split()
 
-                        # One line of text can have multiple page numbers
-                        # For example: 101 uutiset 160 talous 190 english
-                        # Following loop parses these as separate subpages
+                        # If line doesnt start with a number save it as content
+                        if not words[0].isdigit() or len(words[0]) < 3:
+                            page._add_content(line=value)
 
-                        while i < len(words):
+                        else:
 
-                            title = None
+                            i = 0
 
-                            # Teletext page numbers have 3 digits
-                            if words[i].isdigit() and len(words[i]) == 3:
-                                new_page_number = int(words[i])
-                                i += 1
+                            # One line of text can have multiple page numbers
+                            # For example: 101 uutiset 160 talous 190 english
+                            # Following loop parses these as separate subpages
 
-                                # Add words to title until end of line or another page number is found
-                                while i < len(words) and not (
-                                    words[i].isdigit() and len(words[i]) == 3
-                                ):
+                            while i < len(words):
 
-                                    if title is None:
-                                        title = words[i]
-                                    else:
-                                        title += " "
-                                        title += words[i]
+                                title = None
 
+                                # Teletext page numbers have 3 digits
+                                if words[i].isdigit() and len(words[i]) == 3:
+                                    new_page_number = int(words[i])
                                     i += 1
 
-                            # Ignore one word titles
-                            if title is not None and len(title.split()) > 1:
-                                page._add_subpage(
-                                    page_number=new_page_number, title=title
-                                )
+                                    # Add words to title until end of line or another page number is found
+                                    while i < len(words) and not (
+                                        words[i].isdigit() and len(words[i]) == 3
+                                    ):
+
+                                        if title is None:
+                                            title = words[i]
+                                        else:
+                                            title += " "
+                                            title += words[i]
+
+                                        i += 1
+
+                                # Ignore one word titles
+                                if title is not None and len(title.split()) > 1:
+                                    page._add_subpage(
+                                        page_number=new_page_number, title=title
+                                    )
 
         self.current_page = page

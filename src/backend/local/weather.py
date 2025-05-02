@@ -76,7 +76,7 @@ class Forecast:
 
             rain_probability = self.rain_probability_list[i]
 
-            if len(self.time_list) <= 24:
+            if len(self.time_list) - (skip_days * 24) <= 24:
 
                 if rain_probability > 0:
                     forecast_data.append(
@@ -115,10 +115,6 @@ class Weather:
                 raise Exception
         except Exception as e:
             self.logger.error("Missing .env COORDS_URL or WEATHER_URL from .env")
-
-    """
-    Returns a string ready for TTS to read current weather data
-    """
 
     def get_current_weather(self, location: str = "Tampere") -> str:
         """

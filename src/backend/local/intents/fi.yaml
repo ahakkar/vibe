@@ -5,26 +5,28 @@ intents:
     data:
       - sentences:
           - "kerro [tämän] päivän uutiset"
-          - "(kerro | lue) uutiset"
-          - "(kerro | lue) [uutiset] (kotimaasta | ulkomaista | taloudesta | urheilusta)"
-          - "(kerro | lue) [uutiset] [aiheesta] (pääuutiset | kotimaa | ulkomaat | talous | urheilu)"
-          - "(kerro | lue) [(lisää | uutinen)] {aihe}"
+          - "(kerro | lue) [(lisää | uutinen | uutiset)] [aiheesta] {aihe}"
   #Default location tampere
   GetCurrentWeather:
     data:
       - sentences:
-          - "(mikä | mitä | millainen) sää on nyt"
+          - "millainen sää on [nyt]"
+
+  GetCurrentWeatherAtLocation:
+    data:
+      - sentences:
+          - "millainen sää on nyt [paikassa] {sijainti}"
 
   #Default location tampere
   GetForecast:
     data:
       - sentences:
-          - "(kerro | millainen) sää [on] {aika}"
+          - "millainen sää on {aika}"
 
   GetForecastAtLocation:
     data:
       - sentences:
-        - "(kerro | millainen) sää [on] {aika} [paikassa] {sijainti}"
+        - "millainen sää on {aika} [paikassa] {sijainti}"
   
   GetTime:
     data:
@@ -42,6 +44,8 @@ lists:
       - "tänään"
       - "huomenna"
       - "ylihuomenna"
+    #Tällä viikolla gets just next 7 days' forecast
+      - "tällä viikolla"
   sijainti:
     wildcard: true
   
