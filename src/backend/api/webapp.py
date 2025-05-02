@@ -3,17 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 from io import BytesIO
-import soundfile as sf
+import librosa
 from pydantic import BaseModel
 
 
 class TextInput(BaseModel):
     input_text: str
-
-
-class AudioFileInput(BaseModel):
-    audioFile: UploadFile = File(...)
-
 
 class WebApp:
     def __init__(self, app):
@@ -38,7 +33,7 @@ class WebApp:
                     content={"response": intent_response}, status_code=200
                 )
             except Exception as e:
-                self.app.logger.error(f"[post api/intent] Error while running webapp: {e} at line {e.lineno}")
+                self.app.logger.error(f"[post api/intent] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Text generations error": str(e)}, status_code=500
                 )
@@ -50,7 +45,7 @@ class WebApp:
                 full_text = self.app.text_gen_web(input_text)
                 return JSONResponse(content={"response": full_text}, status_code=200)
             except Exception as e:
-                self.app.logger.error(f"[post api/text] Error while running webapp: {e} at line {e.lineno}")
+                self.app.logger.error(f"[post api/text] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Text generation error": str(e)}, status_code=500
                 )
@@ -66,25 +61,29 @@ class WebApp:
                     content=iter([audio_data.getvalue()]), media_type="audio/wav"
                 )
             except Exception as e:
-                self.app.logger.error(f"[post api/tts] Error while running webapp: {e} at line {e.lineno}")
+                self.app.logger.error(f"[post api/tts] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Text to speech error": str(e)}, status_code=500
                 )
 
         @self.appAPI.post("/api/stt")
-        async def speech_to_text_api(payload: AudioFileInput):
+        async def speech_to_text_api(audio: UploadFile = File(...)):
             try:
-                audioFile = payload.audioFile
-                audio_bytes = await audioFile.read()
-                audio_data, sample_rate = sf.read(BytesIO(audio_bytes), dtype="float32")
+                audio_bytes = await audio.read()
 
+                audio_data, sample_rate = librosa.load(
+                    BytesIO(audio_bytes),
+                    sr=16_000,
+                    mono=True,
+                    dtype="float32",
+                )
                 recorded_sentence = self.app.speech_to_text(audio_data)
 
                 return JSONResponse(
                     content={"response": recorded_sentence}, status_code=200
                 )
             except Exception as e:
-                self.app.logger.error(f"[post api/stt] Error while running webapp: {e} at line {e.lineno}")
+                self.app.logger.error(f"[post api/stt] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Speech to text error": str(e)}, status_code=500
                 )
