@@ -164,3 +164,11 @@ class TextToSpeech(TextToSpeechInterface):
             self.stream.abort()  # Stop the audio stream immediately
         self._thread.join()  # Wait for the processing thread to finish
         self._stop_event.clear()  # Reset the stop event for future use
+
+    def update_device_index(self, device_index=1):
+        """
+        Update the device index
+
+        :param int device_index: The index of the audio output device to use, defaults to 1
+        """
+        self.device_index = device_index
