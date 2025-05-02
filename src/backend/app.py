@@ -83,7 +83,7 @@ class AppManager:
         self._setup_env()
         self._load_services()
 
-    def toggle_recording(self, all, silent):
+    def toggle_recording(self, all, silent=False):
         """
         Toggle recording state and process audio if recording is stopped.
 
@@ -102,7 +102,7 @@ class AppManager:
         else:
             self.services[Srv.AUDIO].start_recording()
 
-    def _process_recording(self, recording, all, silent):
+    def _process_recording(self, recording, all, silent=False):
         """
         Transcribe audio with STT, detect intent, provide response based on
         intent or if no intent was detected, provide an answer with text gen.
@@ -123,7 +123,9 @@ class AppManager:
             if intent != None:
                 intent_response = self.services[Srv.IR].process_intent(intent)
                 if self.args.cli and not silent:
-                    self.services[Srv.CLI].print_text(f"Intent response: {intent_response}")
+                    self.services[Srv.CLI].print_text(
+                        f"{intent_response}"
+                    )
                 self.logger.info(
                     f"[_process_recording] Intent response: {intent_response}"
                 )
@@ -268,8 +270,7 @@ class AppManager:
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text, context)
         if silent:
             full_text = "".join(
-                token["choices"][0]["delta"].get("content", "")
-                for token in llm_output
+                token["choices"][0]["delta"].get("content", "") for token in llm_output
             ).strip()
             self.services[Srv.TTS].synthesize(full_text)
 
@@ -303,7 +304,7 @@ class AppManager:
                 ]
             )
             self.services[Srv.CLI].print_separator()
-        
+
         self.logger.info("PERF : [text_gen] Done generating text")
         return
 

@@ -183,6 +183,7 @@ class CommandLineService:
             while True:
                 key = self.term.inkey(timeout=1)
                 if key.name == "KEY_ESCAPE":
+                    self.app.exit()
                     return
                 elif key.name == "KEY_F12":
                     self._flush_input_buffer()
