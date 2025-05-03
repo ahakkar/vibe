@@ -1,6 +1,5 @@
 import logging
 import os
-import torch
 import numpy as np
 import onnxruntime as ort
 
@@ -55,14 +54,15 @@ class SpeechToTextService(SpeechToTextInterface):
         :return str recorded_sentence: The recorded sentence that is transcribed from audio data
         """
 
+        audio_data = audio_data.astype(np.float32)
         audio_data = (audio_data - audio_data.mean()) / audio_data.std()
 
         # Reshape to match expected input shape
-        waveform = torch.tensor(audio_data).unsqueeze(0)
+        waveform = np.expand_dims(audio_data, axis=0)
 
         # Preprocess the input for the model
         inputs = self.processor(
-            waveform.numpy(),
+            waveform,
             sampling_rate=16000,
             return_tensors="np",
             padding=True,
@@ -78,9 +78,9 @@ class SpeechToTextService(SpeechToTextInterface):
         ort_outs = self.ort_session.run(None, ort_inputs)
 
         # Get recorded audio as text
-        recorded_ids = torch.argmax(torch.tensor(ort_outs[0]), dim=-1)
+        recorded_ids = np.argmax(ort_outs[0], axis=-1)
         recorded_sentence = self.processor.batch_decode(
-            recorded_ids.numpy(), skip_special_tokens=False
+            recorded_ids, skip_special_tokens=False
         )[0]
 
         self.logger.info("RETURN : [speech_to_text] Transcribing audio")
