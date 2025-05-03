@@ -112,7 +112,7 @@ class AppManager:
         """
 
         audio_text = self.services[Srv.STT].transcribe(recording)
-        self.logger.info("Text:", audio_text)
+        self.logger.info(f"Text: {audio_text}")
 
         if all:
             intent = self.services[Srv.IR].recognize_intent(audio_text)
