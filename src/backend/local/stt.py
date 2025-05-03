@@ -7,6 +7,7 @@ import onnxruntime as ort
 from transformers import Wav2Vec2Processor
 from abstract_classes import SpeechToTextInterface
 
+DEBUG_MODE= True
 
 class SpeechToTextService(SpeechToTextInterface):
     """
@@ -56,8 +57,10 @@ class SpeechToTextService(SpeechToTextInterface):
         """
 
         audio_data = audio_data.astype(np.float32)
-        audio_data /= np.max(np.abs(audio_data))
+        # audio_data /= np.max(np.abs(audio_data))
         # audio_data = (audio_data - audio_data.mean()) / audio_data.std()
+        if np.max(np.abs(audio_data)) > 0:
+            audio_data /= np.max(np.abs(audio_data))
 
         # Reshape to match expected input shape
         # waveform = torch.tensor(audio_data).unsqueeze(0)
@@ -70,6 +73,17 @@ class SpeechToTextService(SpeechToTextInterface):
             return_tensors="np",
             padding=True,
         )
+
+        if DEBUG_MODE:
+            inputs_torch = self.processor(
+                torch.from_numpy(waveform), 
+                sampling_rate=16000,
+                return_tensors="pt",
+                padding=True,
+            )
+            diff = np.abs(inputs["input_values"] - inputs_torch["input_values"].numpy()).max()
+            print(f"Max input difference: {diff}")  # Should be <1e-6
+
 
         # Include the attention_mask in the inputs
         # ort_inputs = {
