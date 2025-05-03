@@ -1,6 +1,5 @@
 import logging
 import os
-import torch
 import numpy as np
 import onnxruntime as ort
 
@@ -57,8 +56,6 @@ class SpeechToTextService(SpeechToTextInterface):
         """
 
         audio_data = audio_data.astype(np.float32)
-        # audio_data /= np.max(np.abs(audio_data))
-        # audio_data = (audio_data - audio_data.mean()) / audio_data.std()
         if np.max(np.abs(audio_data)) > 0:
             audio_data /= np.max(np.abs(audio_data))
 
@@ -74,22 +71,7 @@ class SpeechToTextService(SpeechToTextInterface):
             padding=True,
         )
 
-        if DEBUG_MODE:
-            inputs_torch = self.processor(
-                torch.from_numpy(waveform), 
-                sampling_rate=16000,
-                return_tensors="pt",
-                padding=True,
-            )
-            diff = np.abs(inputs["input_values"] - inputs_torch["input_values"].numpy()).max()
-            print(f"Max input difference: {diff}")  # Should be <1e-6
-
-
         # Include the attention_mask in the inputs
-        # ort_inputs = {
-        #     self.ort_session.get_inputs()[0].name: inputs.input_values,
-        #     self.ort_session.get_inputs()[1].name: inputs.attention_mask,
-        # }
         ort_inputs = {
             self.ort_session.get_inputs()[0].name: inputs["input_values"],
             self.ort_session.get_inputs()[1].name: inputs["attention_mask"],
@@ -99,16 +81,10 @@ class SpeechToTextService(SpeechToTextInterface):
         ort_outs = self.ort_session.run(None, ort_inputs)
 
         # Get recorded audio as text
-        # recorded_ids = torch.argmax(torch.tensor(ort_outs[0]), dim=-1)
-        # recorded_sentence = self.processor.batch_decode(
-        #     recorded_ids.numpy(), skip_special_tokens=False
-        # )[0]
         recorded_ids = np.argmax(ort_outs[0], axis=-1)
         recorded_sentence = self.processor.batch_decode(
             recorded_ids, skip_special_tokens=True
         )[0]
-
-        print(recorded_sentence)
 
         self.logger.info("RETURN : [speech_to_text] Transcribing audio")
         return recorded_sentence
