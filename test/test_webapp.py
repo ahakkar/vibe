@@ -5,6 +5,8 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 from io import BytesIO
 from fastapi.testclient import TestClient
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
 
 with patch.dict("sys.modules", {"uvicorn": MagicMock(), "soundfile": MagicMock()}):
     from src.backend.api.webapp import WebApp, TextInput
@@ -51,6 +53,20 @@ class TestWebapp:
     def setup_method(self):
         """Setup method to run before each test."""
         pass
+
+    @pytest.mark.unit()
+    def test_webapp_init(self, mock_app):
+        web_app = WebApp(mock_app)
+        assert web_app.app == mock_app
+        assert isinstance(web_app.appAPI, FastAPI)
+
+        cors_middleware = None
+        for middleware in web_app.appAPI.user_middleware:
+            if middleware.cls is CORSMiddleware:
+                cors_middleware = middleware
+                break
+
+        assert cors_middleware is not None, "CORSMiddleware was not added."
 
     @pytest.mark.unit()
     def test_intent_recognition_api(self, client):
@@ -135,7 +151,3 @@ class TestWebapp:
 
         assert response.status_code == 500
         assert "Intent recognition error" in response.json()
-
-    # def _create_wav_file(self):
-
-    #         return files

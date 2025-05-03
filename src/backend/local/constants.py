@@ -16,6 +16,7 @@ class Srv(Enum):
     WEATHER = "Open weather API"
     NEWS = "Yle Teksti-TV API"
     BASEFORM = "Voikko Baseform Service"
+    WEBAPP = "Web App FastAPI Service"
 
 
 # Currently very short dict of topics and corrensponding teletext pages

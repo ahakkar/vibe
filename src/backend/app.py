@@ -78,6 +78,7 @@ class AppManager:
             Srv.WEATHER: None,
             Srv.NEWS: None,
             Srv.BASEFORM: None,
+            Srv.WEBAPP: None,
         }
 
         self._setup_env()
@@ -202,8 +203,7 @@ class AppManager:
             self._run_cli()
 
     def _run_web(self):
-        webApp = WebApp(self)
-        webApp.run_server()
+        self.services[Srv.WEBAPP].run_server()
 
     def _run_cli(self):
         """
@@ -319,6 +319,7 @@ class AppManager:
         The language model generates text based on user's input text
 
         :param str input_text: The user's input text
+
         :return str: Language generated output
         """
         llm_output = self.services[Srv.TEXT_GEN].generate(input_text)
@@ -332,6 +333,8 @@ class AppManager:
         Run the text to speech service
 
         :param str input_text: result from llm, intents etc.
+
+        :return BytesIO: The voice output response
         """
 
         return self.services[Srv.TTS].synthesize_to_buffer(input_text)
@@ -341,6 +344,7 @@ class AppManager:
         Run the intent recognition service in the web version
 
         :param str input_text: user input, either STT'd text or plain text
+
         :return str: The intent recongition responsed user's intent
         """
         intent = self.services[Srv.IR].recognize_intent(input_text)
@@ -357,6 +361,13 @@ class AppManager:
         return intent_response
 
     def process_recording_web(self, recording):
+        """
+        Process recording when web UI gives the recording data and return the voice response
+
+        :param np.array recording: The recording data that recorded in web UI
+
+        :return BytesIO: The voice output response
+        """
         audio_text = self.services[Srv.STT].transcribe(recording)
         self.logger.info(f"Text: {audio_text}")
 
@@ -435,6 +446,12 @@ class AppManager:
             self.services[Srv.BASEFORM] = Baseform()
         except Exception as e:
             self.logger.error(f"Failed to load baseform service: {e}")
+            self.exit()
+
+        try:
+            self.services[Srv.WEBAPP] = WebApp(self)
+        except Exception as e:
+            self.logger.error(f"Failed to load webapp service: {e}")
             self.exit()
 
     def _setup_env(self):

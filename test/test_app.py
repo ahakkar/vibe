@@ -64,6 +64,7 @@ class TestAppManager:
             Srv.CLI: MagicMock(),
             Srv.WEATHER: MagicMock(),
             Srv.NEWS: MagicMock(),
+            Srv.WEBAPP: MagicMock(),
         }
 
     def teardown_method(self):
@@ -176,9 +177,12 @@ class TestAppManager:
         """
         Test the run method.
         """
-        with patch.object(self.app, "_run_cli", return_value=None):
+        with patch.object(self.app, "_run_cli", return_value=None), patch.object(
+            self.app, "_run_web", return_value=None
+        ):
             self.app.run()
             assert self.app._run_cli.called
+            assert self.app._run_web.called
 
     @pytest.mark.skip()
     @pytest.mark.unit()
@@ -271,3 +275,95 @@ class TestAppManager:
         ):
             root = self.app._find_project_root()
             assert root == Path("/mock/root")
+
+    @pytest.mark.unit()
+    def test_run_web(self):
+        """
+        Test the run_web method
+        """
+        with patch.object(
+            self.app.services[Srv.WEBAPP], "run_server", return_value=None
+        ):
+            self.app._run_web()
+            assert self.app.services[Srv.WEBAPP].run_server.called
+
+    @pytest.mark.unit()
+    @pytest.mark.parametrize(
+        "input_text",
+        [
+            "Moi",
+            "Mitä kuuluu?",
+        ],
+    )
+    def test_text_gen_web(self, input_text):
+        def generate(input_text):
+            mock_generate = [{"choices": [{"delta": {"content": input_text}}]}]
+            return mock_generate
+
+        with patch.object(
+            self.app.services[Srv.TEXT_GEN],
+            "generate",
+            return_value=generate(input_text),
+        ):
+            result = self.app.text_gen_web(input_text)
+            assert result == input_text
+
+    @pytest.mark.unit()
+    @pytest.mark.parametrize(
+        "input_text",
+        [
+            "Moi",
+        ],
+    )
+    def test_text_to_speech_web(self, input_text):
+        with patch.object(
+            self.app.services[Srv.TTS],
+            "synthesize_to_buffer",
+            return_value=b"mock_audio_data",
+        ):
+            result = self.app.text_to_speech_web(input_text)
+            assert result == b"mock_audio_data"
+
+    @pytest.mark.unit()
+    def test_intent_recognition_web_None(self):
+        intent = None
+        with patch.object(
+            self.app.services[Srv.IR], "recognize_intent", return_value=intent
+        ), patch.object(
+            self.app.services[Srv.IR], "process_intent", return_value="intent"
+        ):
+            result = self.app.intent_recognition_web("Moi")
+            assert result == "Intenttiä ei havaittu\n"
+
+    @pytest.mark.unit()
+    def test_intent_recognition_web_intent(self):
+        intent = MagicMock()
+        with patch.object(
+            self.app.services[Srv.IR], "recognize_intent", return_value=intent
+        ), patch.object(
+            self.app.services[Srv.IR], "process_intent", return_value="intent"
+        ):
+            result = self.app.intent_recognition_web("Moi")
+            assert result == "intent"
+
+    @pytest.mark.unit()
+    @pytest.mark.parametrize(
+        "intent",
+        [None, MagicMock()],
+    )
+    def process_recording_web(self, intent):
+        with patch.object(
+            self.app.services[Srv.STT],
+            "transcribe",
+            return_value="mocked_transcription",
+        ), patch.object(
+            self.app.services[Srv.IR], "recognize_intent", return_value=intent
+        ), patch.object(
+            self.app.services[Srv.IR], "process_intent", return_value="mocked_response"
+        ), patch.object(
+            self.app.services[Srv.TTS],
+            "synthesize_to_buffer",
+            return_value=b"mock_audio_data",
+        ):
+            result = self.app.process_recording_web(None)
+            assert result == b"mock_audio_data"
