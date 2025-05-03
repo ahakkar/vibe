@@ -22,6 +22,7 @@ from local.stt import SpeechToTextService
 from local.weather import Weather
 from local.yle import YleNewsApi
 from local.baseform import Baseform
+from utils.markdown_to_text import markdown_to_text
 from api.webapp import WebApp
 from pathlib import Path
 
@@ -298,6 +299,7 @@ class AppManager:
                     any(punc in sentence for punc in local.constants.PUNCTATIONS)
                 ):
                     sentence = sentence.strip()
+                    sentence = markdown_to_text(sentence)
                     self.services[Srv.TTS].synthesize(sentence)
                     sentence = ""
 
@@ -380,6 +382,7 @@ class AppManager:
             return self.services[Srv.TTS].synthesize_to_buffer(intent_response)
         else:
             full_text = self.text_gen_web(audio_text)
+            full_text = markdown_to_text(full_text)
             return self.services[Srv.TTS].synthesize_to_buffer(full_text)
 
     def _load_services(self):
@@ -448,11 +451,12 @@ class AppManager:
             self.logger.error(f"Failed to load baseform service: {e}")
             self.exit()
 
-        try:
-            self.services[Srv.WEBAPP] = WebApp(self)
-        except Exception as e:
-            self.logger.error(f"Failed to load webapp service: {e}")
-            self.exit()
+        if self.args.web:
+            try:
+                self.services[Srv.WEBAPP] = WebApp(self)
+            except Exception as e:
+                self.logger.error(f"Failed to load webapp service: {e}")
+                self.exit()
 
     def _setup_env(self):
         """
