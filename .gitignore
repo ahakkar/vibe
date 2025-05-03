@@ -9,3 +9,5 @@ recorded_audio.wav
 chroma_data/
 venv/
 output.wav
+.coverage
+coverage.xml
