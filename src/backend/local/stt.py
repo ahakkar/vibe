@@ -57,8 +57,7 @@ class SpeechToTextService(SpeechToTextInterface):
         """
 
         audio_data = audio_data.astype(np.float32)
-        if np.max(np.abs(audio_data)) > 0:
-            audio_data /= np.max(np.abs(audio_data))
+        audio_data = (audio_data - audio_data.mean()) / audio_data.std()
 
         # Reshape to match expected input shape
         waveform = np.expand_dims(audio_data, axis=0)
@@ -83,7 +82,7 @@ class SpeechToTextService(SpeechToTextInterface):
         # Get recorded audio as text
         recorded_ids = np.argmax(ort_outs[0], axis=-1)
         recorded_sentence = self.processor.batch_decode(
-            recorded_ids, skip_special_tokens=True
+            recorded_ids, skip_special_tokens=False
         )[0]
 
         self.logger.info("RETURN : [speech_to_text] Transcribing audio")
