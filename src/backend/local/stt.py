@@ -6,7 +6,8 @@ import onnxruntime as ort
 from transformers import Wav2Vec2Processor
 from abstract_classes import SpeechToTextInterface
 
-DEBUG_MODE= True
+DEBUG_MODE = True
+
 
 class SpeechToTextService(SpeechToTextInterface):
     """
@@ -60,7 +61,6 @@ class SpeechToTextService(SpeechToTextInterface):
             audio_data /= np.max(np.abs(audio_data))
 
         # Reshape to match expected input shape
-        # waveform = torch.tensor(audio_data).unsqueeze(0)
         waveform = np.expand_dims(audio_data, axis=0)
 
         # Preprocess the input for the model
