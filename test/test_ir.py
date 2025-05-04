@@ -14,6 +14,13 @@ class MockIntent:
 class MockRecognizeResult:
     def __init__(self):
         self.intent = MockIntent()
+        self.entities = MagicMock()
+
+
+@pytest.fixture()
+def mockRecognizeResult():
+    mockRecognizeResult = MockRecognizeResult()
+    return mockRecognizeResult
 
 
 class TestIrService:
@@ -131,23 +138,126 @@ class TestIrService:
 
     @pytest.mark.unit()
     @pytest.mark.parametrize("name", [None, "GetIncorrect"])
-    def test_process_intent_incorrect_intent_name(self, name):
-        mockRecognizeResult = MockRecognizeResult()
+    def test_process_intent_incorrect_intent_name(self, name, mockRecognizeResult):
         mockRecognizeResult.intent.name = name
         result = self.ir_service.process_intent(mockRecognizeResult)
         assert result == f"Tuntematon intent havaittu: {name}"
 
     @pytest.mark.unit()
-    def test_process_intent_news(self):
-        mockRecognizeResult = MockRecognizeResult()
+    def test_process_intent_news(self, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetNews"
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("news"),
+            "parse_user_input",
+            return_value=["pääuutiset"],
+        ):
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            assert result == "pääuutiset"
+            assert self.ir_service.logger.info.call_count == 2
+            calls = [
+                call("PERF : [News] Fetching news"),
+                call("PERF : [News] Done fetching news"),
+            ]
+            self.ir_service.logger.info.assert_has_calls(calls)
+
+    @pytest.mark.unit()
+    def test_process_intent_news_input(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetNews"
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("news"),
+            "parse_user_input",
+            return_value=["news"],
+        ):
+            result = self.ir_service.process_intent(mockRecognizeResult, "Moi")
+            assert result == "news"
+            assert self.ir_service.logger.info.call_count == 2
+            calls = [
+                call("PERF : [News] Fetching news"),
+                call("PERF : [News] Done fetching news"),
+            ]
+            self.ir_service.logger.info.assert_has_calls(calls)
+
+    @pytest.mark.unit()
+    def test_process_intent_news_except(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetNews"
+        errorMsg = "Test Error"
+        with patch.object(
+            self.ir_service.logger, "info", side_effect=Exception(errorMsg)
+        ), pytest.raises(Exception, match=errorMsg) as exc_info:
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            assert result == "Uutisten hakeminen epäonnistui."
+            self.ir_service.logger.error.assert_called_once_with(
+                f"Uutisten hakeminen epäonnistui: {errorMsg}"
+            )
+
+    @pytest.mark.unit()
+    def test_process_intent_current_weather(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetCurrentWeather"
         with patch.object(self.ir_service.logger, "info", return_value=None):
-            result = self.ir_service.process_intent(mockRecognizeResult, "some")
-            # assert self.ir_service.logger.info.call_count == 3
-            # calls = [
-            #     call("PERF : [News] Fetching news"),
-            #     call("PERF : [News] Done fetching news"),
-            #     call("Tuntematon intent havaittu: GetNews"),
-            # ]
-            # self.ir_service.logger.info.assert_has_calls(calls)
-            assert result is None
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            assert result == self.app.get_service("service").get_current_weather()
+            self.ir_service.logger.info.call_count == 2
+            calls = [
+                call("PERF : [Weather] Fetching current weather"),
+                call("PERF : [Weather] Done fetching current weather"),
+            ]
+            self.ir_service.logger.info.assert_has_calls(calls)
+
+    @pytest.mark.unit()
+    def test_process_intent_current_weather_value_error(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetCurrentWeather"
+        valueErrorMsg = "Säädataa ei ole (None)"
+        with patch.object(self.ir_service.logger, "info", return_value=None), patch.object(
+            self.ir_service.logger, "error", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("weather"), "get_current_weather", return_value=None
+        ):
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            assert result == "Sään hakeminen epäonnistui."
+            calls = [
+                call("PERF : [Weather] Fetching current weather"),
+                call("PERF : [Weather] Done fetching current weather")
+            ]
+            self.ir_service.logger.info.assert_has_calls(calls)
+            self.ir_service.logger.error.assert_called_once_with(f"Sään hakeminen epäonnistui: {valueErrorMsg}")
+            
+
+    @pytest.mark.unit()
+    def test_process_intent_current_weather_except(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetCurrentWeather"
+        errorMsg = "Test Error"
+        with patch.object(
+            self.ir_service.logger, "info", side_effect=Exception(errorMsg)
+        ), pytest.raises(Exception, match=errorMsg) as exc_info:
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            assert result == "Sään hakeminen epäonnistui."
+            self.ir_service.logger.error.assert_called_once_with(
+                f"Sään hakeminen epäonnistui: {errorMsg}"
+            )
+            self.ir_service.logger.info.assert_called_once_with(
+                "PERF : [Weather] Done fetching current weather"
+            )
+
+    @pytest.mark.unit()
+    def test_process_intent_current_weather_at_location(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetCurrentWeatherAtLocation"
+        result = self.ir_service.process_intent(mockRecognizeResult)
+        assert result == self.ir_service.app.get_service("weather").get_current_weather()
+
+    @pytest.mark.unit()
+    def test_process_intent_current_weather_at_location_value_error(self, mockRecognizeResult):
+        mockRecognizeResult.intent.name = "GetCurrentWeatherAtLocation"
+        valueError = "Säädataa ei ole (None)"
+        with patch.object(
+            self.ir_service.logger, "error", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("weather"), "get_current_weather", return_value=None
+        ):
+            result = self.ir_service.process_intent(mockRecognizeResult)
+            location_baseform = self.ir_service.app.get_service("weather").get_baseform()
+            assert result == f"Sään hakeminen epäonnistui paikasta {location_baseform}"
+            self.ir_service.logger.error.assert_called_once_with(f"Sään hakeminen paikasta {location_baseform} epäonnistui: {valueError}")
