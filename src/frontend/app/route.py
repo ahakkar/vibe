@@ -38,3 +38,9 @@ def ir():
 @main_bp.route("/text-gen/chat")
 def chat():
     return render_template("chat.html")
+
+
+@main_bp.route("/stt/chat")
+def sttChat():
+    return render_template("chat.html")
+
