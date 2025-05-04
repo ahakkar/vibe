@@ -1,6 +1,12 @@
-from src.backend.abstract_classes import TextToSpeechInterface, SpeechToTextInterface, TextGenerationInterface, IntentRecognitionInterface
+from src.backend.abstract_classes import (
+    TextToSpeechInterface,
+    SpeechToTextInterface,
+    TextGenerationInterface,
+    IntentRecognitionInterface,
+)
 from dataclasses import dataclass
 from abc import ABCMeta
+
 
 class TestAbstractClasses:
     def test_text_to_speech_interface(self):
