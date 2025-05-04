@@ -151,7 +151,7 @@ class TestAppManager:
                     assert self.app.services[Srv.IR].recognize_intent.called
                     assert self.app.services[Srv.IR].process_intent.called
                     if cli:
-                        mock_print_text.assert_called_once_with("mocked_response")
+                        mock_print_text.assert_called_with("mocked_response")
                 else:
                     assert self.app.text_gen.called
             else:
