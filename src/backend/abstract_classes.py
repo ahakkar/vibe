@@ -52,18 +52,3 @@ class IntentRecognitionInterface(ABC):
         """
         pass
 
-
-# not used atm
-class TranslatorInterface(ABC):
-    @abstractmethod
-    def translate(self, text: str, source_language: str, target_language: str) -> str:
-        """
-        Translate text from the source language to the target language.
-
-        :param str text: The input text to be translated.
-        :param str source_language: The language of the input text.
-        :param str target_language: The language of the output text.
-
-        :return str: The translated text.
-        """
-        pass
