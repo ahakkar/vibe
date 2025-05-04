@@ -99,10 +99,11 @@ while true; do
     echo -e "\n${CYAN}Select an option:${RESET}"
     echo -e "1) Install Docker"
     echo -e "2) Install Requirements for testing"
-    echo -e "3) Run application"
-    echo -e "4) Exit"
+    echo -e "3) Download models"
+    echo -e "4) Run application"
+    echo -e "5) Exit"
 
-    read -p "Enter your choice (1-4): " choice
+    read -p "Enter your choice (1-5): " choice
 
     case $choice in
         1)
@@ -114,8 +115,9 @@ while true; do
             fi
             ;;
         2) install_pip && install_requirements && install_portaudio ;;
-        3) run_application ;;
-        4) 
+        3) python download_models.py ;;
+        4) run_application ;;
+        5) 
             echo -e "${GREEN}Exiting...${RESET}"
             exit 0
             ;;

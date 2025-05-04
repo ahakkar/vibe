@@ -23,12 +23,6 @@
 
 ## Quickstart with Bash
 
-Firstly, run the download_models.py to download all the models.
-
-```bash
-python download_models.py
-```
-
 Before running the application, create .env file and copy the .env.default content to .env in the same folder. 
 Add YLE_APP_ID and YLE_APP_KEY.
 
