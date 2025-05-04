@@ -90,7 +90,7 @@ class Chroma:
 
         similarity = cosine_similarity([query_embedding], [top_embedding])[0][0]
 
-        print("\nTop context smilarity:", similarity, "\n")
+        # print("\nTop context smilarity:", similarity, "\n")
 
         if similarity >= similarity_threshold:
             return top_document

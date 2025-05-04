@@ -7,3 +7,4 @@ recorded_audio.wav
 .pytest_cache/
 *.log
 chroma_data/
+venv/
