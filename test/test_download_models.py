@@ -5,6 +5,7 @@ from unittest.mock import patch, mock_open, MagicMock
 from download_models import download_file, download_folder, main
 
 class TestDownloadFile:
+    @pytest.mark.unit()
     @patch('os.path.exists')
     @patch('requests.get')
     def test_download_file_new_file(self, mock_get, mock_exists):
@@ -28,6 +29,7 @@ class TestDownloadFile:
         handle = m()
         assert handle.write.call_count == 2
 
+    @pytest.mark.unit()
     @patch('os.path.exists')
     def test_download_file_exists(self, mock_exists):
         """
@@ -42,6 +44,8 @@ class TestDownloadFile:
             "File /path/to/file.txt already exists, skipping download."
         )
 
+
+    @pytest.mark.unit()
     @patch('os.path.exists')
     @patch('requests.get')
     def test_download_file_http_error(self, mock_get, mock_exists):
@@ -58,6 +62,7 @@ class TestDownloadFile:
             download_file("http://example.com/file.txt", "/path/to/file.txt")
 
 class TestDownloadFolder:
+    @pytest.mark.unit()
     @patch('os.makedirs')
     @patch('requests.get')
     def test_download_folder_bart(self, mock_get, mock_makedirs):
@@ -94,6 +99,7 @@ class TestDownloadFolder:
             repo_url, "subfolder", os.path.join(dest_path, "subfolder")
         )
 
+    @pytest.mark.unit()
     @patch('requests.get')
     def test_download_folder_api_error(self, mock_get):
         """Test handling of API errors."""
@@ -105,6 +111,7 @@ class TestDownloadFolder:
             download_folder("repo", "folder", "/path")
 
 class TestMain:
+    @pytest.mark.unit()
     @patch('os.makedirs')
     @patch('download_models.download_file')
     @patch('download_models.download_folder')
@@ -131,6 +138,7 @@ class TestMain:
         assert "./models/sbert-cased-finnish-paraphrase/" in folder_calls
 
 
+    @pytest.mark.unit()
     @patch('os.makedirs')
     def test_main_creates_models_dir(self, mock_makedirs):
         """

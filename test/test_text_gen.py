@@ -4,6 +4,7 @@ import time
 
 from pathlib import Path
 from unittest.mock import patch, MagicMock
+from abstract_classes import TextGenerationInterface
 
 # Mock the imports of the modules that are not installed
 with patch.dict(
@@ -43,6 +44,7 @@ class TestTextGenService:
         """
         Test the default values of the TextGenService class.
         """
+        assert isinstance(self.text_gen_service, TextGenerationInterface)
         assert self.text_gen_service.max_new_tokens == 100
         assert self.text_gen_service.temperature == 0.6
         assert self.text_gen_service.top_p == 0.95

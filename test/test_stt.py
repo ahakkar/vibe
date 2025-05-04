@@ -17,6 +17,7 @@ with patch.dict(
     },
 ):
     from stt import SpeechToTextService
+    from abstract_classes import SpeechToTextInterface
 
 
 @patch.dict(
@@ -59,6 +60,8 @@ class TestSTTService:
 
         assert self.stt_service.processor is not None
         assert self.stt_service.ort_session is not None
+        assert issubclass(SpeechToTextService, SpeechToTextInterface)
+        assert isinstance(self.stt_service, SpeechToTextInterface)
 
     @pytest.mark.unit()
     @patch("logging.Logger.error")
