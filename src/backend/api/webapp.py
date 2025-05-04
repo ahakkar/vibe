@@ -75,21 +75,19 @@ class WebApp:
                     content={"Text to speech error": str(e)}, status_code=500
                 )
 
-        @self.appAPI.post("/api/stt")
-        async def speech_to_text_api(audio: UploadFile = File(...)):
+        @self.appAPI.get("/api/stt")
+        async def speech_to_text_api():
             try:
-                audio_bytes = await audio.read()
-
-                audio_data, sample_rate = librosa.load(
-                    BytesIO(audio_bytes),
-                    sr=16_000,
-                    mono=True,
-                    dtype="float32",
-                )
-                recorded_sentence = self.app.speech_to_text(audio_data)
-                return JSONResponse(
-                    content={"response": recorded_sentence}, status_code=200
-                )
+                audio_data = self.app.toggle_recording_web()
+                if audio_data is not None:
+                    recorded_sentence = self.app.speech_to_text(audio_data)
+                    return JSONResponse(
+                        content={"response": recorded_sentence}, status_code=200
+                    )
+                else:
+                    return JSONResponse(
+                        content={"response": None}, status_code=200
+                    )
             except Exception as e:
                 self.app.logger.error(f"[post api/stt] Error while running webapp: {e}")
                 return JSONResponse(

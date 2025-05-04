@@ -103,6 +103,22 @@ class AppManager:
         else:
             self.services[Srv.AUDIO].start_recording()
 
+    def toggle_recording_web(self):
+        """
+        Toggle recording state and process audio if recording is stopped.
+
+        This function looks to be a bit to complex and could be refactored/
+        broken down to smaller functions.
+
+        :param bool all_services: If True, the program will run all services
+        """
+        if self.services[Srv.AUDIO].is_recording:
+            audio_data = self.services[Srv.AUDIO].stop_recording()
+            if audio_data is not None:
+                return audio_data
+        else:
+            self.services[Srv.AUDIO].start_recording()
+
     def _process_recording(self, recording, all, silent=False):
         """
         Transcribe audio with STT, detect intent, provide response based on
