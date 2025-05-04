@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 from io import BytesIO
-import librosa
 from pydantic import BaseModel
 
 
@@ -94,27 +93,25 @@ class WebApp:
                     content={"Speech to text error": str(e)}, status_code=500
                 )
 
-        @self.appAPI.post("/api/all")
-        async def all_services_api(audio: UploadFile = File(...)):
+        @self.appAPI.get("/api/all")
+        async def all_services_api():
             try:
-                audio_bytes = await audio.read()
+                audio_data = self.app.toggle_recording_web()
+                if audio_data is not None:
+                    audio_buffer: BytesIO = self.app.process_recording_web(audio_data)
 
-                audio_data, sample_rate = librosa.load(
-                    BytesIO(audio_bytes),
-                    sr=16_000,
-                    mono=True,
-                    dtype="float32",
-                )
-                audio_buffer: BytesIO = self.app.process_recording_web(audio_data)
+                    if not isinstance(audio_buffer, BytesIO):
+                        raise TypeError("Expected BytesIO from process_recording_web")
 
-                if not isinstance(audio_buffer, BytesIO):
-                    raise TypeError("Expected BytesIO from process_recording_web")
-
-                return StreamingResponse(
-                    audio_buffer,  # stream the buffer directly
-                    media_type="audio/wav",
-                    headers={"Content-Disposition": "inline; filename=all.wav"},
-                )
+                    return StreamingResponse(
+                        audio_buffer,  # stream the buffer directly
+                        media_type="audio/wav",
+                        headers={"Content-Disposition": "inline; filename=all.wav"},
+                    )
+                else:
+                    return JSONResponse(
+                        content={"response": None}, status_code=200
+                    )
             except Exception as e:
                 self.app.logger.error(f"[post api/all] Error while running webapp: {e}")
                 return JSONResponse(
