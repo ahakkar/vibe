@@ -1,12 +1,9 @@
 import logging
 from typing import Any, Dict, Optional
 import requests
-import json
 import os
 
 from local.constants import TTV_PAGES, TTV_PAGE_NUMS, Srv
-
-# TODO: clean code and fix comments
 
 
 class YlePage:

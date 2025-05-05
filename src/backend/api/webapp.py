@@ -4,8 +4,6 @@ from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 from io import BytesIO
 import librosa
-import subprocess
-import tempfile
 from pydantic import BaseModel
 
 
@@ -101,7 +99,6 @@ class WebApp:
                 return JSONResponse(
                     content={"Speech to text error": str(e)}, status_code=500
                 )
-            
 
         @self.appAPI.post("/api/all")
         async def all_services_api(audio: UploadFile = File(...)):

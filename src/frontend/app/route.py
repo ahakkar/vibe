@@ -43,4 +43,3 @@ def chat():
 @main_bp.route("/stt/chat")
 def sttChat():
     return render_template("chat.html")
-
