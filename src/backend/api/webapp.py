@@ -80,8 +80,6 @@ class WebApp:
             try:
                 audio_bytes = await audio.read()
 
-                print("audio_bytes:", audio_bytes)
-
                 audio_data, sample_rate = librosa.load(
                     BytesIO(audio_bytes),
                     sr=16_000,
@@ -89,7 +87,6 @@ class WebApp:
                     dtype="float32",
                 )
 
-                print("audio data:", audio_data)
                 recorded_sentence = self.app.speech_to_text(audio_data)
                 return JSONResponse(
                     content={"response": recorded_sentence}, status_code=200
