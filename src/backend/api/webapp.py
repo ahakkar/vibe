@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 from io import BytesIO
+import librosa
+import subprocess
+import tempfile
 from pydantic import BaseModel
 
 
@@ -74,44 +77,53 @@ class WebApp:
                     content={"Text to speech error": str(e)}, status_code=500
                 )
 
-        @self.appAPI.get("/api/stt")
-        async def speech_to_text_api():
+        @self.appAPI.post("/api/stt")
+        async def speech_to_text_api(audio: UploadFile = File(...)):
             try:
-                audio_data = self.app.toggle_recording_web()
-                if audio_data is not None:
-                    recorded_sentence = self.app.speech_to_text(audio_data)
-                    return JSONResponse(
-                        content={"response": recorded_sentence}, status_code=200
-                    )
-                else:
-                    return JSONResponse(
-                        content={"response": None}, status_code=200
-                    )
+                audio_bytes = await audio.read()
+
+                print("audio_bytes:", audio_bytes)
+
+                audio_data, sample_rate = librosa.load(
+                    BytesIO(audio_bytes),
+                    sr=16_000,
+                    mono=True,
+                    dtype="float32",
+                )
+
+                print("audio data:", audio_data)
+                recorded_sentence = self.app.speech_to_text(audio_data)
+                return JSONResponse(
+                    content={"response": recorded_sentence}, status_code=200
+                )
             except Exception as e:
                 self.app.logger.error(f"[post api/stt] Error while running webapp: {e}")
                 return JSONResponse(
                     content={"Speech to text error": str(e)}, status_code=500
                 )
+            
 
-        @self.appAPI.get("/api/all")
-        async def all_services_api():
+        @self.appAPI.post("/api/all")
+        async def all_services_api(audio: UploadFile = File(...)):
             try:
-                audio_data = self.app.toggle_recording_web()
-                if audio_data is not None:
-                    audio_buffer: BytesIO = self.app.process_recording_web(audio_data)
+                audio_bytes = await audio.read()
 
-                    if not isinstance(audio_buffer, BytesIO):
-                        raise TypeError("Expected BytesIO from process_recording_web")
+                audio_data, sample_rate = librosa.load(
+                    BytesIO(audio_bytes),
+                    sr=16_000,
+                    mono=True,
+                    dtype="float32",
+                )
+                audio_buffer: BytesIO = self.app.process_recording_web(audio_data)
 
-                    return StreamingResponse(
-                        audio_buffer,  # stream the buffer directly
-                        media_type="audio/wav",
-                        headers={"Content-Disposition": "inline; filename=all.wav"},
-                    )
-                else:
-                    return JSONResponse(
-                        content={"response": None}, status_code=200
-                    )
+                if not isinstance(audio_buffer, BytesIO):
+                    raise TypeError("Expected BytesIO from process_recording_web")
+
+                return StreamingResponse(
+                    audio_buffer,  # stream the buffer directly
+                    media_type="audio/wav",
+                    headers={"Content-Disposition": "inline; filename=all.wav"},
+                )
             except Exception as e:
                 self.app.logger.error(f"[post api/all] Error while running webapp: {e}")
                 return JSONResponse(

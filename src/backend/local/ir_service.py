@@ -56,7 +56,10 @@ class IrService(IntentRecognitionInterface):
                     page_data = self.app.get_service(Srv.NEWS).parse_user_input(
                         "pääuutiset"
                     )
+                    page_data = [data.strip() for data in page_data]
+                    page_data_str = " ".join(page_data)
                     self.logger.info("PERF : [News] Done fetching news")
+                    return page_data_str
                 else:
                     page_data = self.app.get_service(Srv.NEWS).parse_user_input(input)
 
