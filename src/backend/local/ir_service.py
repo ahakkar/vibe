@@ -145,9 +145,6 @@ class IrService(IntentRecognitionInterface):
 
                 weather_data = [data.strip() for data in weather_data]
 
-                if weather_data is None:
-                    raise ValueError("Säädataa ei ole (None)")
-
                 weather_data_str = (
                     f"Sääennuste {time} paikassa Tampere: {' '.join(weather_data)}"
                 )
@@ -213,11 +210,7 @@ class IrService(IntentRecognitionInterface):
                 return "Sääennusteen hakeminen epäonnistui."
 
         elif result.intent.name == "GetTime":
-            try:
-                return "Ajan hakemista ei ole vielä toteutettu."
-            except Exception as e:
-                self.logger.error(f"Ajan hakeminen epäonnistui: {e}")
-                return "Ajan hakeminen epäonnistui."
+            return "Ajan hakemista ei ole vielä toteutettu."
 
         self.logger.info(f"Tuntematon intent havaittu: {result.intent.name}")
         return f"Tuntematon intent havaittu: {result.intent.name}"
