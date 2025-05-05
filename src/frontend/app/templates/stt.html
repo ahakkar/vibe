@@ -1,10 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fi">
 
 <head>
     <meta charset="UTF-8">
-    <title>VIBE - SLT</title>
+    <title>VIBE - STT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        /* Add your styles as needed */
         body {
             margin: 0;
             padding: 0;
@@ -16,7 +18,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            background: radial-gradient(circle at center, #a64ca6 0%, #333 60%);
+            background: radial-gradient(circle at center, #4ca6a6 0%, #333 60%);
         }
 
         .logo {
@@ -44,15 +46,47 @@
             text-align: center;
         }
 
-        .mic-button {
-            max-width: 100%;
-            padding: 15px;
-            border-radius: 10px;
-            background-color: #aaa;
-            color: black;
+        .question {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .audio-button {
+            position: relative;
+            background-color: #ff6666;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .audio-button:hover {
+            background-color: #ff4d4d;
+        }
+
+        .audio-button i {
+            font-size: 24px;
+            color: white;
+        }
+
+        #loading-indicator {
+            display: none;
+            color: #ffcc00;
             font-size: 18px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            resize: none;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -60,13 +94,90 @@
 <body>
     <a href="{{ url_for('main.index') }}" class="logo">
         <div style="font-size: 24px;">S</div>
-        <span>VIBE - SLT</span>
+        <span>VIBE - STT</span>
     </a>
-    <div class="center-content">
-        <div class="input-container">
-            <button class="mic-button">🎤</button>
-        </div>
 
+    <div class="center-content">
+        <div class="question">Paina mikrofonia ja puhu</div>
+        <div class="input-container">
+            <button class="audio-button" id="mic-button">
+                <i class="bi bi-mic-fill" id="mic-icon"></i>
+            </button>
+        </div>
+        <div id="loading-indicator">Luodaan ääntä...</div>
     </div>
 
+    <script>
+        const micButton = document.getElementById('mic-button');
+        const micIcon = document.getElementById('mic-icon');
+        const loadingIndicator = document.getElementById('loading-indicator');
+
+        let isRecording = false; // State to track if recording is in progress
+        let mediaRecorder;
+        let audioChunks = [];
+
+        micButton.addEventListener('click', async () => {
+            if (!isRecording) {
+                // Start recording
+                isRecording = true;
+                micIcon.classList.remove('bi-mic-fill');
+                micIcon.classList.add('bi-stop-fill');
+                loadingIndicator.style.display = 'block';
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+
+                    // Collect audio chunks
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+
+                    // Start recording
+                    mediaRecorder.start();
+                } catch (err) {
+                    console.error('Error accessing microphone:', err);
+                    alert('Virhe: Mikrofonia ei voitu käyttää.');
+                    resetRecordingState();
+                }
+            } else {
+                // Stop recording
+                isRecording = false;
+                micIcon.classList.remove('bi-stop-fill');
+                micIcon.classList.add('bi-mic-fill');
+                loadingIndicator.style.display = 'block';
+
+                mediaRecorder.stop();
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    console.log("Audio Blob:", audioBlob);
+
+                    // Send the audio to the backend (GET request)
+                    try {
+                        const response = await fetch('http://localhost:5000/api/stt'); // GET request now
+                        const data = await response.json();
+                        console.log("Backend Response:", data);
+
+                        const question = data.response || "Something went wrong.";
+
+                        // Redirect to /stt/chat with the transcription as a query parameter
+                        window.location.href = `/stt/chat?question=${encodeURIComponent(question)}`;
+                    } finally {
+                        resetRecordingState();
+                    }
+                };
+            }
+        });
+
+        function resetRecordingState() {
+            isRecording = false;
+            micIcon.classList.remove('bi-stop-fill');
+            micIcon.classList.add('bi-mic-fill');
+            loadingIndicator.style.display = 'none';
+            audioChunks = []; // Clear audio chunks for the next recording
+        }
+    </script>
 </body>
+
+</html>
