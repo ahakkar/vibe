@@ -6,6 +6,8 @@ import onnxruntime as ort
 from transformers import Wav2Vec2Processor
 from abstract_classes import SpeechToTextInterface
 
+DEBUG_MODE = True
+
 
 class SpeechToTextService(SpeechToTextInterface):
     """
@@ -70,8 +72,8 @@ class SpeechToTextService(SpeechToTextInterface):
 
         # Include the attention_mask in the inputs
         ort_inputs = {
-            self.ort_session.get_inputs()[0].name: inputs.input_values,
-            self.ort_session.get_inputs()[1].name: inputs.attention_mask,
+            self.ort_session.get_inputs()[0].name: inputs["input_values"],
+            self.ort_session.get_inputs()[1].name: inputs["attention_mask"],
         }
 
         # Perform inference using the ONNX model
