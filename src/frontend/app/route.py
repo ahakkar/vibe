@@ -27,7 +27,7 @@ def tts():
 
 @main_bp.route("/all")
 def all():
-    return render_template("chat.html")
+    return render_template("all.html")
 
 
 @main_bp.route("/ir")
