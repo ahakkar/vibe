@@ -126,25 +126,13 @@
     </a>
 
     <div class="chat-container" id="chat">
-        <!-- <div class="user-message">Moi, Mitä kuuluu?</div>
-        <div class="bot-message">
-            <span class="bot-icon">🤖</span>
-            Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
-            tuuli voi olla navakkaa. ☁️
-        </div>
-        <div class="user-message">Mikä sää on tänään Satakunnassa?</div>
-        <div class="bot-message">
-            <span class="bot-icon">🤖</span>
-            Tänään Satakunnassa on pilvistä ja viileää, lämpötila noin 1–6 astetta. Sateen mahdollisuus on pieni, mutta
-            tuuli voi olla navakkaa. ☁️
-        </div> -->
+        <!-- Messages will be dynamically added here -->
     </div>
 
     <div class="input-container">
         <input type="text" class="user-input" placeholder="Kirjoita viestisi tähän..." />
         <span class="mic-icon">🎤</span>
     </div>
-
 
     <script>
         const inputField = document.querySelector('.user-input');
@@ -189,25 +177,28 @@
             }
         });
 
+        // When the page loads, check the URL parameters for 'question'
         document.addEventListener('DOMContentLoaded', async function () {
             const params = new URLSearchParams(window.location.search);
             const question = params.get('question');
             const service = params.get('intent') ? 'intent' : 'text';
 
             if (question) {
+                // Display the user question in the chat container
                 const userMessage = document.createElement('div');
                 userMessage.className = 'user-message';
-                userMessage.textContent = question;
+                userMessage.textContent = decodeURIComponent(question); // Decode URL-encoded question
                 chatContainer.appendChild(userMessage);
                 chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 try {
+                    // Make a request to the appropriate service (intent or text generation)
                     const endpoint = service === 'intent' ? '/api/intent' : '/api/text';
 
                     const response = await fetch(`http://localhost:5000${endpoint}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ input_text: question })
+                        body: JSON.stringify({ input_text: decodeURIComponent(question) })
                     });
 
                     const data = await response.json();
@@ -216,6 +207,7 @@
                     botMessage.className = 'bot-message';
                     botMessage.innerHTML = `<span class="bot-icon"><i class="bi bi-robot"></i></span> ${data.response || "En saanut vastausta palvelimelta."}`;
                     chatContainer.appendChild(botMessage);
+
                     chatContainer.scrollTop = chatContainer.scrollHeight;
 
                 } catch (error) {
