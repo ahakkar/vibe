@@ -1,10 +1,14 @@
+import logging
 import os
 import chromadb
+import uuid
+import numpy as np
+
+
+from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 from datetime import datetime, timezone
-import uuid
 from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
 
 path = "./chroma_db"
 
@@ -17,6 +21,8 @@ class Chroma:
         The function sets up the embedding model and the ChromaDB client.
         It also creates a collection in the database to store the entries.
         """
+        self.logger = logging.getLogger(__name__)
+        
         try:
             embed_filepath = (
                 str(project_root)
@@ -29,10 +35,10 @@ class Chroma:
             self.embedding_model = SentenceTransformer(embed_filepath)
 
         except Exception as e:
-            print(f"Error loading model: {e}")
+            self.logger.error(f"Error loading model: {e}")
             raise
 
-        self.chroma_client = chromadb.PersistentClient(path)
+        self.chroma_client = chromadb.PersistentClient(path, settings=Settings(anonymized_telemetry=False))
 
         # self.chroma_client.delete_collection(name="voice_data")
         # Uncomment line above for clearing the persistent storage
@@ -89,8 +95,6 @@ class Chroma:
         top_embedding = np.array(results["embeddings"][0][0])
 
         similarity = cosine_similarity([query_embedding], [top_embedding])[0][0]
-
-        # print("\nTop context smilarity:", similarity, "\n")
 
         if similarity >= similarity_threshold:
             return top_document

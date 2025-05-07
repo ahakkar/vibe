@@ -15,6 +15,8 @@ class YlePage:
         """
         Initialize Yle page
         """
+        self.logger = logging.getLogger(__name__)
+
         self.subpages = {}
         self.content = []
         self.app = app
@@ -94,6 +96,7 @@ class YlePage:
             return self.subpages.get(most_similiar)
 
         else:
+            self.logger.error("Failed to find an YLE news article")
             # print("Failed to find article")
             return None
 

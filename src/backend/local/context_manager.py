@@ -1,3 +1,4 @@
+import logging
 import os
 from transformers import BartForConditionalGeneration, BartTokenizer
 
@@ -10,6 +11,8 @@ class ContextManager:
 
         :param Path project_root: The path of the project root
         """
+        self.logger = logging.getLogger(__name__)
+        
         try:
             sum_filepath = (
                 str(project_root)
@@ -27,7 +30,7 @@ class ContextManager:
                 sum_filepath, local_files_only=True
             )
         except Exception as e:
-            print(f"Error loading model: {e}")
+            self.logger.error(f"Error loading model: {e}")
             raise
 
     def summarizer(self):

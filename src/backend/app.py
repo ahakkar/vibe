@@ -10,6 +10,7 @@ import local.constants
 from local.constants import Srv
 from local.constants import APP_LOG_FILE
 from dotenv import load_dotenv
+from local.bg import BackgroundService
 from local.cli import CommandLineService
 from local.ir_service import IrService
 from local.text_gen import TextGenService
@@ -17,7 +18,7 @@ from local.chroma import Chroma
 from local.context_manager import ContextManager
 from local.tts import TextToSpeech
 from local.audio import AudioService
-from local.stt import SpeechToTextService
+from local.stt import Wav2Vec2Service
 from local.weather import Weather
 from local.yle import YleNewsApi
 from local.baseform import Baseform
@@ -44,7 +45,7 @@ class AppManager:
 
         self.logger = logging.getLogger(__name__)
         logfile_name = f"{APP_LOG_FILE}_{time.strftime('%Y%m%d_%H%M')}.log"
-
+        print("saving log to", os.path.join(self.LOG_PATH, logfile_name))
         logging.basicConfig(
             level=logging.INFO,
             format="{asctime}.{msecs:03.0f} - {levelname} - {message}",
@@ -193,7 +194,8 @@ class AppManager:
         if self.args.cli:
             self._run_cli()
 
-        # Could run as a background if we had voice activation detection
+        self.logger.info("Running APP in background mode")
+        self._run_background()
 
         # Could perhaps run the web server here too
 
@@ -208,6 +210,21 @@ class AppManager:
         except Exception as e:
             self.logger.error(
                 f"[_run_cli] Error while running CLI service: {e} at line {e.lineno}"
+            )
+            self.exit()
+
+    def _run_background(self):
+        """
+        Run in background mode
+        """
+        self.logger.info("_run_background initiated")
+        try:
+            self.services[Srv.BG] = BackgroundService(self)
+            self.services[Srv.BG].test_with_audio_file()
+            self.exit()
+        except Exception as e:
+            self.logger.error(
+                f"Error while running Background service, exiting: {e} at line {e.lineno}"
             )
             self.exit()
 
@@ -318,7 +335,7 @@ class AppManager:
             self.exit()
 
         try:
-            self.services[Srv.STT] = SpeechToTextService(self.root)
+            self.services[Srv.STT] = Wav2Vec2Service(self)
         except Exception as e:
             self.logger.error(f"Failed to load stt service: {e}")
             self.exit()
