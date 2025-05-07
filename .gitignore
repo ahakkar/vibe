@@ -8,3 +8,5 @@ recorded_audio.wav
 *.log
 chroma_data/
 venv/
+.VSCodeCounter/
+temp/
