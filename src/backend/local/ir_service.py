@@ -56,7 +56,11 @@ class IrService(IntentRecognitionInterface):
                     page_data = self.app.get_service(Srv.NEWS).parse_user_input(
                         "pääuutiset"
                     )
+                    page_data = [data.strip() for data in page_data]
+                    page_data_str = " ".join(page_data)
+
                     self.logger.info("PERF : [News] Done fetching news")
+                    return page_data_str
                 else:
                     page_data = self.app.get_service(Srv.NEWS).parse_user_input(input)
 
@@ -141,9 +145,6 @@ class IrService(IntentRecognitionInterface):
 
                 weather_data = [data.strip() for data in weather_data]
 
-                if weather_data is None:
-                    raise ValueError("Säädataa ei ole (None)")
-
                 weather_data_str = (
                     f"Sääennuste {time} paikassa Tampere: {' '.join(weather_data)}"
                 )
@@ -209,11 +210,7 @@ class IrService(IntentRecognitionInterface):
                 return "Sääennusteen hakeminen epäonnistui."
 
         elif result.intent.name == "GetTime":
-            try:
-                return "Ajan hakemista ei ole vielä toteutettu."
-            except Exception as e:
-                self.logger.error(f"Ajan hakeminen epäonnistui: {e}")
-                return "Ajan hakeminen epäonnistui."
+            return "Ajan hakemista ei ole vielä toteutettu."
 
         self.logger.info(f"Tuntematon intent havaittu: {result.intent.name}")
         return f"Tuntematon intent havaittu: {result.intent.name}"
