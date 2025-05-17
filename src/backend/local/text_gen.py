@@ -3,8 +3,7 @@ import os
 from llama_cpp import Llama
 from abstract_classes import TextGenerationInterface
 
-# Suppress llama.cpp warnings from console output
-# e.g. llama_new_context_with_model: n_ctx_per_seq (2048) < n_ctx_train (8192) -- the full capacity of the model will not be utilized
+# Suppress warnings from console output
 sys.stderr = open(os.devnull, "w")
 
 
