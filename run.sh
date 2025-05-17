@@ -90,9 +90,29 @@ install_portaudio() {
     fi
 }
 
+download_models() {
+    echo -e "${CYAN}Dowloading models from Huggingface...${RESET}"
+    python download_models.py
+}
+
+build_application() {
+    echo -e "${CYAN}Building the application using Docker Compose...${RESET}"
+    docker compose build
+}
+
 run_application() {
-    echo -e "${CYAN}Building and running the application using Docker Compose...${RESET}"
-    docker compose build && docker compose run --rm --service-ports app
+    echo -e "${CYAN}Running the application using Docker Compose...${RESET}"
+    docker compose run --rm --service-ports app
+}
+
+run_test() {
+    echo -e "${CYAN}Running tests using pytest...${RESET}"
+    pytest test
+}
+
+run_test_with_cov() {
+    echo -e "${CYAN}Running tests using pytest with pytest coverage...${RESET}"
+    pytest --cov=. --cov-report=term --cov-report=xml --cov-config=.coveragerc test
 }
 
 while true; do
@@ -100,10 +120,13 @@ while true; do
     echo -e "1) Install Docker"
     echo -e "2) Install Requirements for testing"
     echo -e "3) Download models"
-    echo -e "4) Run application"
-    echo -e "5) Exit"
+    echo -e "4) Build application"
+    echo -e "5) Run application"
+    echo -e "6) Run tests"
+    echo -e "7) Run tests with coverage"
+    echo -e "8) Exit"
 
-    read -p "Enter your choice (1-5): " choice
+    read -p "Enter your choice (1-8): " choice
 
     case $choice in
         1)
@@ -115,9 +138,12 @@ while true; do
             fi
             ;;
         2) install_pip && install_requirements && install_portaudio ;;
-        3) python download_models.py ;;
-        4) run_application ;;
-        5) 
+        3) download_models ;;
+        4) build_application ;;
+        5) run_application ;;
+        6) run_test ;;
+        7) run_test_with_cov ;;
+        8) 
             echo -e "${GREEN}Exiting...${RESET}"
             exit 0
             ;;
