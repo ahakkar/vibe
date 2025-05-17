@@ -45,7 +45,6 @@ class TestYlePage:
     def test_get_titles_emtpy(self):
         result_list = self.yle_page._get_titles()
         assert result_list == []
-    
 
     def test_get_content(self):
         line = 1
@@ -56,9 +55,6 @@ class TestYlePage:
     def test_get_content_empty(self):
         content = self.yle_page._get_content()
         assert content == []
-
-    def test_find_page_from_input(self):
-        pass
 
 
 class TestYleNewsApi:

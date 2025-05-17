@@ -51,4 +51,3 @@ class IntentRecognitionInterface(ABC):
         :return dict: Structured intent.
         """
         pass
-

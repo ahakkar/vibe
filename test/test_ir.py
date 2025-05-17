@@ -14,10 +14,7 @@ class MockIntent:
 class MockRecognizeResult:
     def __init__(self):
         self.intent = MockIntent()
-        self.entities = {
-            "aika": MagicMock(),
-            "sijainti": MagicMock()
-        }
+        self.entities = {"aika": MagicMock(), "sijainti": MagicMock()}
 
 
 @pytest.fixture()
@@ -214,20 +211,25 @@ class TestIrService:
     def test_process_intent_current_weather_value_error(self, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetCurrentWeather"
         valueErrorMsg = "Säädataa ei ole (None)"
-        with patch.object(self.ir_service.logger, "info", return_value=None), patch.object(
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
             self.ir_service.logger, "error", return_value=None
         ), patch.object(
-            self.ir_service.app.get_service("weather"), "get_current_weather", return_value=None
+            self.ir_service.app.get_service("weather"),
+            "get_current_weather",
+            return_value=None,
         ):
             result = self.ir_service.process_intent(mockRecognizeResult)
             assert result == "Sään hakeminen epäonnistui."
             calls = [
                 call("PERF : [Weather] Fetching current weather"),
-                call("PERF : [Weather] Done fetching current weather")
+                call("PERF : [Weather] Done fetching current weather"),
             ]
             self.ir_service.logger.info.assert_has_calls(calls)
-            self.ir_service.logger.error.assert_called_once_with(f"Sään hakeminen epäonnistui: {valueErrorMsg}")
-            
+            self.ir_service.logger.error.assert_called_once_with(
+                f"Sään hakeminen epäonnistui: {valueErrorMsg}"
+            )
 
     @pytest.mark.unit()
     def test_process_intent_current_weather_except(self, mockRecognizeResult):
@@ -249,40 +251,50 @@ class TestIrService:
     def test_process_intent_current_weather_at_location(self, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetCurrentWeatherAtLocation"
         result = self.ir_service.process_intent(mockRecognizeResult)
-        assert result == self.ir_service.app.get_service("weather").get_current_weather()
+        assert (
+            result == self.ir_service.app.get_service("weather").get_current_weather()
+        )
 
     @pytest.mark.unit()
-    def test_process_intent_current_weather_at_location_value_error(self, mockRecognizeResult):
+    def test_process_intent_current_weather_at_location_value_error(
+        self, mockRecognizeResult
+    ):
         mockRecognizeResult.intent.name = "GetCurrentWeatherAtLocation"
         valueError = "Säädataa ei ole (None)"
         with patch.object(
             self.ir_service.logger, "error", return_value=None
         ), patch.object(
-            self.ir_service.app.get_service("weather"), "get_current_weather", return_value=None
+            self.ir_service.app.get_service("weather"),
+            "get_current_weather",
+            return_value=None,
         ):
             result = self.ir_service.process_intent(mockRecognizeResult)
-            location_baseform = self.ir_service.app.get_service("weather").get_baseform()
+            location_baseform = self.ir_service.app.get_service(
+                "weather"
+            ).get_baseform()
             assert result == f"Sään hakeminen epäonnistui paikasta {location_baseform}"
-            self.ir_service.logger.error.assert_called_once_with(f"Sään hakeminen paikasta {location_baseform} epäonnistui: {valueError}")
+            self.ir_service.logger.error.assert_called_once_with(
+                f"Sään hakeminen paikasta {location_baseform} epäonnistui: {valueError}"
+            )
 
     @pytest.mark.unit()
     @pytest.mark.parametrize(
-        "time",
-        [
-            "tänään",
-            "huomenna",
-            "ylihuomenna",
-            "tällä viikolla"
-        ]
+        "time", ["tänään", "huomenna", "ylihuomenna", "tällä viikolla"]
     )
     def test_process_intent_forecast(self, time, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetForecast"
         mockRecognizeResult.entities["aika"].value = time
-        with patch.object(self.ir_service.logger, "info", return_value=None), patch.object(
-            self.ir_service.app.get_service("weather"), "get_baseform", return_value="Tampere"
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("weather"),
+            "get_baseform",
+            return_value="Tampere",
         ):
             result = self.ir_service.process_intent(mockRecognizeResult)
-            location_baseform = self.ir_service.app.get_service("weather").get_baseform()
+            location_baseform = self.ir_service.app.get_service(
+                "weather"
+            ).get_baseform()
             assert result == f"Sääennuste {time} paikassa {location_baseform}: "
             calls = [
                 call("PERF : [Weather] Fetching forecast"),
@@ -291,26 +303,26 @@ class TestIrService:
             self.ir_service.logger.info.assert_has_calls(calls)
 
     @pytest.mark.unit()
-    @pytest.mark.parametrize(
-        "intentName",
-        [
-            "GetForecast",
-            "GetForecastAtLocation"
-        ]
-    )
+    @pytest.mark.parametrize("intentName", ["GetForecast", "GetForecastAtLocation"])
     def test_process_intent_forecast_value_error(self, intentName, mockRecognizeResult):
         mockRecognizeResult.intent.name = intentName
         time = "tänään"
         mockRecognizeResult.entities["aika"].value = time
         valueErrorMsg = "'NoneType' object is not iterable"
-        with patch.object(self.ir_service.logger, "info", return_value=None), patch.object(
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
             self.ir_service.logger, "error", return_value=None
         ), patch.object(
-            self.ir_service.app.get_service("weather"), "get_forecast", return_value=None
+            self.ir_service.app.get_service("weather"),
+            "get_forecast",
+            return_value=None,
         ):
             result = self.ir_service.process_intent(mockRecognizeResult)
             assert result == "Sääennusteen hakeminen epäonnistui."
-            self.ir_service.logger.error.assert_called_once_with(f"Sään hakeminen epäonnistui: {valueErrorMsg}")
+            self.ir_service.logger.error.assert_called_once_with(
+                f"Sään hakeminen epäonnistui: {valueErrorMsg}"
+            )
             if intentName == "GetForecast":
                 calls = [
                     call("PERF : [Weather] Fetching forecast"),
@@ -330,7 +342,7 @@ class TestIrService:
         [
             "GetForecast",
             "GetForecastAtLocation",
-        ]
+        ],
     )
     def test_process_intent_forecast_no_time(self, intentName, mockRecognizeResult):
         mockRecognizeResult.intent.name = intentName
@@ -350,25 +362,24 @@ class TestIrService:
                 ]
                 self.ir_service.logger.info.assert_has_calls(calls)
 
-
     @pytest.mark.unit()
     @pytest.mark.parametrize(
-        "time",
-        [
-            "tänään",
-            "huomenna",
-            "ylihuomenna",
-            "tällä viikolla"
-        ]
+        "time", ["tänään", "huomenna", "ylihuomenna", "tällä viikolla"]
     )
     def test_process_intent_forecast(self, time, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetForecastAtLocation"
         mockRecognizeResult.entities["aika"].value = time
-        with patch.object(self.ir_service.logger, "info", return_value=None), patch.object(
-            self.ir_service.app.get_service("weather"), "get_baseform", return_value="Tampere"
+        with patch.object(
+            self.ir_service.logger, "info", return_value=None
+        ), patch.object(
+            self.ir_service.app.get_service("weather"),
+            "get_baseform",
+            return_value="Tampere",
         ):
             result = self.ir_service.process_intent(mockRecognizeResult)
-            location_baseform = self.ir_service.app.get_service("weather").get_baseform()
+            location_baseform = self.ir_service.app.get_service(
+                "weather"
+            ).get_baseform()
             assert result == f"Sääennuste {time} paikassa {location_baseform}: "
             calls = [
                 call("PERF : [Weather] fetching forecast @ location"),
@@ -376,7 +387,6 @@ class TestIrService:
             ]
             self.ir_service.logger.info.assert_has_calls(calls)
 
-    
     @pytest.mark.unit()
     def test_process_intent_time(self, mockRecognizeResult):
         mockRecognizeResult.intent.name = "GetTime"

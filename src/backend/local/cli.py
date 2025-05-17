@@ -100,6 +100,8 @@ class CommandLineService:
 
             self.logger.info("Settings successfully saved to .env file!")
 
+            self.app.update_device_indexes()
+
         except Exception as e:
             self.logger.error(
                 f'Failed to write to .env at: {self.app.ENV_PATH}/.env"\nwhile updating env in settings menu. Error: {e}'
@@ -115,6 +117,8 @@ class CommandLineService:
         2. Only speech to text service
         3. Only language model service
         4. Only text to speech service
+        5. Only intent recognition service
+        6. All services silent mode
         """
         while True:
             # print(f"Testing: {self.testing}")  # Debugging statement
@@ -130,6 +134,7 @@ class CommandLineService:
             print(self.term.ljust("3: Only language model service"))
             print(self.term.ljust("4: Only text to speech service"))
             print(self.term.ljust("5: Only intent recognition service"))
+            print(self.term.ljust("6: All services silent mode"))
             print(self.term.ljust("0: Adjust audio input/output devices"))
 
             command_input = input(
@@ -154,16 +159,19 @@ class CommandLineService:
                 self._input_tts()
             elif command_input == "5":
                 self._input_ir()
+            elif command_input == "6":
+                self._toggle_recording(True, silent=True)
 
             if self.testing:
                 # If testing is enabled, exit after one iteration
                 break
 
-    def _toggle_recording(self, all=False):
+    def _toggle_recording(self, all=False, silent=False):
         """
         This function will run the keyboard command to start and stop recording or exit the program.
 
         :param bool all: If True, the program will run all services
+        :param bool silent: In silent mode, all services won't print output text
         """
         print(
             self.term.ljust(
@@ -179,7 +187,7 @@ class CommandLineService:
                     return
                 elif key.name == "KEY_F12":
                     self._flush_input_buffer()
-                    self.app.toggle_recording(all)
+                    self.app.toggle_recording(all, silent)
 
                 time.sleep(0.5)
 

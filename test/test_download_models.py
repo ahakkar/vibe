@@ -128,7 +128,7 @@ class TestMain:
 
         assert mock_download_file.call_count == 4
         calls = [call[0][1] for call in mock_download_file.call_args_list]
-        assert "./models/google_gemma-3-1b-it-Q4_0.gguf" in calls
+        assert "./models/gemma-3-1B-it-QAT-Q4_0.gguf" in calls
         assert "./models/fi_FI-harri-medium.onnx" in calls
         assert "./models/fi_FI-harri-medium.onnx.json" in calls
         assert "./models/wav2vec2_model.onnx" in calls
